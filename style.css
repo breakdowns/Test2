@@ -143,10 +143,44 @@ body {
 #volumeSlider { width: 100% !important; height: 4px; accent-color: var(--timeline-blue); cursor: pointer; background: rgba(255, 255, 255, 0.1); border-radius: 2px; }
 
 /* =======================================
-   PLAYLIST & RESPONSIVE DESKTOP
+   PLAYLIST & LIST LAGU
    ======================================= */
-#playlist { max-height: 200px; overflow-y: auto; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 12px; }
+#playlist {
+    max-height: 200px;
+    overflow-y: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 16px;
+    margin-top: 16px;
+}
 
+.track-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 8px 12px !important;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.track-item:hover { background: rgba(255, 255, 255, 0.05); }
+
+.track-item img {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.item-meta { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.item-meta h4 { font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-pure); }
+.item-meta p { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* =======================================
+   RESPONSIVE DESKTOP
+   ======================================= */
 @media (min-width: 769px) {
     body { padding: 40px; }
     
@@ -165,4 +199,4 @@ body {
     
     .controls-utility-row { gap: 20px !important; padding-top: 26px; margin-bottom: 32px; }
     #playlist { max-height: 280px; padding-top: 16px; }
-}
+               }
