@@ -53,7 +53,7 @@ body {
     overflow: hidden;
     margin-bottom: 24px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    position: relative; /* Menumpuk gambar dan canvas */
+    position: relative;
 }
 
 .cover-wrapper img {
@@ -62,13 +62,12 @@ body {
     object-fit: cover;
 }
 
-/* Canvas Visualizer menempel transparan di area bawah cover album */
 #visualizer {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 30%; /* Mengisi 30% area bawah foto cover */
+    height: 30%;
     background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
     pointer-events: none;
 }
@@ -101,8 +100,7 @@ body {
     color: var(--text-main);
     white-space: nowrap;
     display: inline-block;
-    padding-right: 50px;
-    animation: marqueeSpotify 12s linear infinite;
+    /* Animasi diatur via JS agar judul pendek tidak ikut bergeser */
 }
 
 .track-info p {
@@ -150,7 +148,7 @@ body {
 .btn-play-pause {
     background-color: #ffffff !important;
     color: #121212 !important;
-    color-scheme: only light !important; /* Mencegah pembalikan paksa oleh Force Dark Mode */
+    color-scheme: only light !important;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -170,7 +168,7 @@ body {
 .btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
 /* ==========================================
-   VOLUME & LYRICS (AUTO-SCROLL TENGAH HALUS)
+   VOLUME & LYRICS (AUTO-SCROLL)
    ========================================== */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
@@ -178,7 +176,7 @@ body {
 
 .lyrics-container {
     max-height: 160px;
-    overflow-y: hidden; /* Mengunci manual scroll agar transisi JS mulus */
+    overflow-y: hidden;
     margin-bottom: 24px;
     position: relative;
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
@@ -186,7 +184,7 @@ body {
 }
 
 #lyricsWrapper {
-    padding: 40px 0; /* Memberikan ruang baca di tengah */
+    padding: 40px 0;
     text-align: center;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -205,7 +203,7 @@ body {
 }
 
 /* ==========================================
-   PLAYLIST & SEARCH & WATERMARK HAFITZ
+   PLAYLIST & SEARCH & KREDIT WATERMARK HAFITZ
    ========================================== */
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 .playlist-container { max-height: 180px; overflow-y: auto; }
@@ -218,7 +216,21 @@ body {
 .track-item.active strong { color: var(--spotify-green); }
 .track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
 
-.watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
-.watermark a { color: inherit; text-decoration: none; font-weight: bold; transition: color 0.2s; }
-.watermark a:hover { color: var(--spotify-green) !important; text-decoration: underline !important; }
-    
+/* Menghidupkan Teks Kredit Hafitz Menjadi Hijau Spotify Permanen */
+.watermark { 
+    text-align: center; 
+    font-size: 0.75rem; 
+    color: var(--text-muted); 
+    margin-top: 20px; 
+    letter-spacing: 0.5px; 
+}
+.watermark a { 
+    color: var(--spotify-green) !important;
+    text-decoration: none; 
+    font-weight: bold; 
+    transition: filter 0.2s; 
+}
+.watermark a:hover { 
+    filter: brightness(1.2);
+    text-decoration: underline !important; 
+   }
