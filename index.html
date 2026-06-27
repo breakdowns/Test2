@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Mencegah browser memaksa inversi warna pada elemen tertentu saat Dark Mode aktif -->
+    <meta name="color-scheme" content="dark light">
     <title>Breakdowns Music</title>
-    <!-- Favicon Baru -->
+    <!-- Favicon Resmi Breakdowns -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- File CSS Utama -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,6 +25,7 @@
         <!-- 2. Informasi Lagu & Tombol Favorit -->
         <div class="track-header">
             <div class="track-info">
+                <!-- Wrapper Khusus Animasi Judul Panjang Berjalan Ala Spotify -->
                 <div class="marquee-container">
                     <h2 id="trackTitle">Memuat Judul...</h2>
                 </div>
@@ -43,7 +47,7 @@
             </div>
         </div>
 
-        <!-- 4. Kontrol Musik (Perbaikan Tombol Play) -->
+        <!-- 4. Kontrol Musik (Dilengkapi Fix Pengecatan Tombol Play) -->
         <div class="controls-area">
             <button id="shuffleBtn" class="btn-control">
                 <span class="material-icons">shuffle</span>
@@ -69,7 +73,7 @@
             <span class="material-icons" style="font-size: 1.2rem;">volume_up</span>
         </div>
 
-        <!-- 6. Panel Teks Lirik Otomatis (Perbaikan Struktur) -->
+        <!-- 6. Panel Teks Lirik Otomatis Sisi Tengah Halus -->
         <div id="lyricsContainer" class="lyrics-container">
             <div id="lyricsWrapper"></div>
         </div>
@@ -78,16 +82,18 @@
         <input type="text" id="searchBar" class="search-box" placeholder="Cari lagu atau artis...">
         <div id="playlist" class="playlist-container"></div>
 
-        <!-- 8. Watermark Kredit Pembuat -->
+        <!-- 8. Watermark Kredit Pembuat Aktif -->
         <div class="watermark">
             Made with ♥️ by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
         </div>
     </div>
 
+    <!-- Audio Element Utama -->
     <audio id="mainAudio" crossorigin="anonymous"></audio>
 
+    <!-- File Modul JS Terpisah (Supaya Tidak Terpotong) -->
     <script src="app.js"></script>
     <script src="media.js"></script>
 </body>
-    </html>
-    
+        </html>
+        
