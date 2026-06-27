@@ -2,7 +2,6 @@
 // STATE MANAGEMENT & KONFIGURASI
 // ==========================================
 let playlist = [];
-let filteredPlaylist = [];
 let currentIndex = 0;
 let isShuffle = false;
 let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat One
@@ -26,8 +25,6 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const shuffleBtn = document.getElementById('shuffleBtn');
 const repeatBtn = document.getElementById('repeatBtn');
-const searchBar = document.getElementById('searchBar');
-const sortAZBtn = document.getElementById('sortAZ');
 const playlistContainer = document.getElementById('playlist');
 const progressBar = document.getElementById('progressBar');
 const progressContainer = document.getElementById('progressContainer');
@@ -49,8 +46,7 @@ async function fetchPlaylist() {
     try {
         const res = await fetch('playlist.json');
         playlist = await res.json();
-        filteredPlaylist = [...playlist];
-        renderPlaylist(filteredPlaylist);
+        renderPlaylist(playlist);
         if (playlist.length > 0) loadTrack(0);
     } catch (err) {
         console.error("Gagal memuat playlist.json", err);
@@ -102,7 +98,7 @@ function loadTrack(index) {
         updateCardColor(trackCover);
     };
     
-    renderPlaylist(filteredPlaylist);
+    renderPlaylist(playlist);
 }
 
 function updateCardColor(imgElement) {
@@ -214,19 +210,6 @@ repeatBtn.addEventListener('click', () => {
     icon.textContent = repeatMode === 2 ? 'repeat_one' : 'repeat';
 });
 
-searchBar.addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase();
-    filteredPlaylist = playlist.filter(t => t.title.toLowerCase().includes(term) || t.artist.toLowerCase().includes(term));
-    renderPlaylist(filteredPlaylist);
-});
-
-sortAZBtn.addEventListener('click', () => {
-    let isAZ = false;
-    isAZ = !isAZ;
-    filteredPlaylist.sort((a, b) => isAZ ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
-    renderPlaylist(filteredPlaylist);
-});
-
 // ==========================================
 // AUDIO VISUALIZER
 // ==========================================
@@ -265,4 +248,4 @@ function drawVisualizer() {
         canvasCtx.fillRect(x, h - barHeight, barWidth, barHeight);
         x += barWidth + 2;
     }
-                           }
+}
