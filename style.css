@@ -1,119 +1,5 @@
 /* =======================================
-   ROOT VARIABLES & BASICS
-   ======================================= */
-:root {
-    --bg-dark: #080a0c;
-    /* Custom property dinamis yang nanti diubah nilainya oleh JS */
-    --card-gradient: linear-gradient(135deg, #111a14 0%, #0d1013 100%);
-    --spotify-green: #1db954;
-    --spotify-hover: #1ed760;
-    --timeline-blue: #1d72fe;
-    --text-pure: #ffffff;
-    --text-muted: #a7a7a7;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Circular Std', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    -webkit-tap-highlight-color: transparent;
-}
-
-body {
-    background-color: var(--bg-dark);
-    color: var(--text-pure);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-}
-
-/* Background blur efek sinematik di belakang card */
-.bg-blur {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-size: cover;
-    background-position: center;
-    filter: blur(80px) brightness(0.25);
-    z-index: -1;
-    transition: background-image 0.8s ease-in-out;
-}
-
-/* =======================================
-   MAIN CONTROLLER CARD
-   ======================================= */
-.player-card {
-    width: 100%;
-    max-width: 400px;
-    background: var(--card-gradient); /* Berubah dinamis sesuai cover album */
-    border-radius: 32px;
-    padding: 24px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    transition: background 0.8s ease; /* Transisi warna halus saat ganti lagu */
-}
-
-/* =======================================
-   COVER ART & CANVAS VISUALIZER
-   ======================================= */
-.cover-container {
-    width: 100%;
-    position: relative;
-    aspect-ratio: 1 / 1;
-    border-radius: 24px;
-    overflow: hidden;
-    margin-bottom: 24px;
-    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
-}
-
-.cover-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Mengunci posisi kanvas di bagian bawah cover art */
-#visualizer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 45px;
-    z-index: 2;
-    pointer-events: none;
-}
-
-/* =======================================
-   TRACK META DATA
-   ======================================= */
-.track-info {
-    margin-bottom: 20px;
-}
-
-.track-info h2 {
-    font-size: 1.6rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: var(--text-pure);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.track-info p {
-    font-size: 1rem;
-    color: var(--text-muted);
-    margin-top: 4px;
-    font-weight: 500;
-}
-
-/* =======================================
-   PROGRESS TIMELINE (FIXED DARK MODE BUG)
+   PROGRESS TIMELINE & DURASI (PERBAIKAN)
    ======================================= */
 .progress-section {
     width: 100%;
@@ -124,7 +10,7 @@ body {
 .progress-bar-container {
     width: 100%;
     height: 6px;
-    background: #2e353b; /* FIX: Pakai warna HEX solid agar tidak kena auto-invert/hilang oleh browser dark mode */
+    background: #2e353b; /* Tetap aman untuk dark mode */
     border-radius: 10px;
     cursor: pointer;
     margin-bottom: 8px;
@@ -139,7 +25,6 @@ body {
     position: relative;
 }
 
-/* Dot lingkaran penanda jalan progress */
 .progress-bar::after {
     content: '';
     position: absolute;
@@ -153,70 +38,72 @@ body {
     box-shadow: 0 0 10px rgba(29, 114, 254, 0.6);
 }
 
+/* Memisahkan menit kiri dan kanan */
 .time-stamps {
     display: flex;
     justify-content: space-between;
+    width: 100%;
     font-size: 0.75rem;
     color: var(--text-muted);
     font-weight: 600;
 }
 
+
 /* =======================================
-   PLAYER CONTROLLER BUTTONS
+   PLAYER CONTROLLER BUTTONS (PERBAIKAN UTAMA)
    ======================================= */
 .controls-main {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 24px; /* Jarak antar tombol */
     margin-bottom: 24px;
+    width: 100%;
 }
 
+/* Mengembalikan tombol agar transparan dan tidak kotak putih */
 .btn-icon {
-    background: none;
-    border: none;
-    color: var(--text-pure);
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-pure) !important;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 8px;
     transition: all 0.2s ease;
 }
 
 .btn-icon .material-icons {
-    font-size: 28px;
+    font-size: 32px; /* Ukuran icon skip prev/next */
 }
 
-.btn-icon:hover {
-    transform: scale(1.08);
-    color: var(--text-pure);
-}
-
-.btn-icon:active {
-    transform: scale(0.95);
-}
-
-/* Tombol Utama Play / Pause */
+/* Tombol Putar Tengah (Hijau Bulat Spotify) */
 #playBtn {
     width: 64px;
     height: 64px;
-    background-color: var(--spotify-green);
-    color: #000000;
-    border-radius: 50%;
+    background-color: var(--spotify-green) !important;
+    color: #000000 !important;
+    border-radius: 50% !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     box-shadow: 0 6px 12px rgba(29, 185, 84, 0.3);
 }
 
 #playBtn .material-icons {
-    font-size: 36px;
+    font-size: 40px;
 }
 
 #playBtn:hover {
-    background-color: var(--spotify-hover);
+    background-color: var(--spotify-hover) !important;
     transform: scale(1.05);
-    box-shadow: 0 8px 16px rgba(29, 185, 84, 0.4);
 }
 
-/* Utility bar (Shuffle, Repeat, Volume) */
+
+/* =======================================
+   UTILITY BAR (SHUFFLE, REPEAT, VOLUME)
+   ======================================= */
 .controls-utility {
     display: flex;
     align-items: center;
@@ -224,15 +111,19 @@ body {
     gap: 16px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     padding-top: 20px;
+    width: 100%;
+}
+
+.controls-utility .btn-icon .material-icons {
+    font-size: 24px; /* Mengecilkan tombol shuffle/repeat bawah */
 }
 
 .btn-small {
-    color: var(--text-muted);
+    color: var(--text-muted) !important;
 }
 
 .btn-small.active {
-    color: var(--spotify-green);
-    text-shadow: 0 0 8px rgba(29, 185, 84, 0.5);
+    color: var(--spotify-green) !important;
 }
 
 .volume-container {
@@ -243,96 +134,9 @@ body {
     max-width: 140px;
 }
 
-.volume-container .material-icons {
-    color: var(--text-muted);
-    font-size: 20px;
-}
-
 #volumeSlider {
     width: 100%;
     height: 4px;
     accent-color: var(--timeline-blue);
     cursor: pointer;
-}
-
-/* =======================================
-   SEARCH, SORT, & PLAYLIST CONTAINER
-   ======================================= */
-.search-sort-row {
-    display: flex;
-    gap: 10px;
-    margin: 20px 0 12px 0;
-}
-
-#searchBar {
-    flex-grow: 1;
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 10px 14px;
-    border-radius: 12px;
-    color: #fff;
-    outline: none;
-    font-size: 0.9rem;
-}
-
-#sortAZ {
-    background: rgba(255, 255, 255, 0.07);
-    border: none;
-    color: #fff;
-    padding: 0 14px;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
-#playlist {
-    max-height: 180px;
-    overflow-y: auto;
-    padding-right: 4px;
-}
-
-#playlist::-webkit-scrollbar {
-    width: 4px;
-}
-
-#playlist::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-}
-
-/* Baris daftar lagu */
-.track-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-bottom: 6px;
-    transition: background 0.2s;
-}
-
-.track-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.track-item.active {
-    background: rgba(29, 114, 254, 0.15);
-    border-left: 3px solid var(--timeline-blue);
-}
-
-.track-item img {
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
-    object-fit: cover;
-}
-
-.item-meta h4 {
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.item-meta p {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
+   }
