@@ -1,10 +1,10 @@
 :root {
     --bg-main: #0c0f12;
-    --card-gradient: linear-gradient(135deg, #152019 0%, #101417 100%);
-    --spotify-green: #1db954;
-    --btn-green: #1ed760;
+    --card-gradient: linear-gradient(135deg, #131d17 0%, #0d1013 100%);
+    --btn-green: #1db954;
     --text-muted: #9ca3af;
     --timeline-blue: #1d72fe;
+    --spotify-orange: #ff9f0a;
 }
 
 * {
@@ -35,92 +35,86 @@ body {
     padding: 0 15px;
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 20px;
 }
 
-/* =======================================
-   PLAYER CARD (Eksklusif Sesuai Gambar)
-   ======================================= */
 .player-card {
     background: var(--card-gradient);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 40px; /* Lengkungan sudut estetik tebal */
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 35px;
     padding: 30px 25px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
 }
 
-/* Container Cover & Efek Bayangan */
 .cover-container {
     position: relative;
     width: 100%;
     aspect-ratio: 1 / 1;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
 .track-cover {
     width: 100%;
     height: 100%;
-    border-radius: 24px;
+    border-radius: 20px;
     object-fit: cover;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
-    transform: rotate(-1deg); /* Sedikit aksen rotasi dinamis seperti gambar */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
 }
 
 .visualizer-canvas {
     position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
-    pointer-events: none; opacity: 0.5; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
+    pointer-events: none; opacity: 0.4; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
 }
 
-/* Bagian Teks Judul */
 .track-meta {
     width: 100%;
     text-align: left;
-    margin-bottom: 25px;
-    padding-left: 5px;
+    margin-bottom: 20px;
+    padding-left: 2px;
 }
 
 .track-meta h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 700;
     letter-spacing: -0.5px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .track-meta p {
     color: var(--text-muted);
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
-/* Progress Timeline (Warna Biru + Putih) */
 .progress-section {
     width: 100%;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
 .progress-bar-container {
     width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.2);
+    height: 4px;
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 10px;
     cursor: pointer;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    position: relative;
 }
 
 .progress-bar {
     height: 100%;
-    width: 25%; /* Dikontrol JS */
+    width: 0%;
     background: var(--timeline-blue);
     border-radius: 10px;
     position: relative;
 }
 
-/* Knob lingkaran biru penunjuk progress */
+/* Knob Lingkaran Biru */
 .progress-bar::after {
     content: '';
-    position: absolute; right: -6px; top: -3px;
+    position: absolute; right: -5px; top: -4px;
     width: 12px; height: 12px;
     background: var(--timeline-blue);
     border-radius: 50%;
@@ -129,19 +123,18 @@ body {
 .time-display {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
-    padding: 0 2px;
 }
 
-/* Tombol Bulat Hijau Sesuai Gambar */
+/* Controls */
 .main-controls {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 20px;
     width: 100%;
-    margin-bottom: 35px;
+    margin-bottom: 30px;
 }
 
 .btn-round {
@@ -153,44 +146,46 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 0.1s;
+    transition: all 0.2s ease;
 }
 
 .btn-round:active { transform: scale(0.95); }
 
 .btn-side {
-    width: 60px; height: 60px;
+    width: 55px; height: 55px;
 }
-.btn-side span { font-size: 1.8rem; }
+.btn-side span { font-size: 1.6rem; color: #fff; }
 
+/* Tombol Tengah */
 .btn-center {
-    width: 70px; height: 70px;
-    color: #ff9f0a; /* Warna orange pause seperti gambar referensi */
+    width: 65px; height: 65px;
 }
-.btn-center span { font-size: 2.2rem; }
+.btn-center span { font-size: 2.2rem; color: #fff; } /* Default icon play warna putih */
 
-/* Efek Glow Hijau di tombol tengah */
-.glow-active {
-    box-shadow: 0 0 25px rgba(30, 215, 96, 0.4);
+/* Ketika lagu berputar, berubah menjadi orange dan nge-glow */
+.btn-center.playing-state {
+    box-shadow: 0 0 20px rgba(30, 215, 96, 0.4);
+}
+.btn-center.playing-state span {
+    color: var(--spotify-orange); /* Menjadi orange saat pause muncul */
 }
 
-/* Baris Utility Bawah */
+/* Bottom Utility */
 .bottom-utility {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 0 5px;
 }
 
 .btn-util {
     background: none; border: none;
     color: #ffffff; cursor: pointer;
 }
-.btn-util span { font-size: 1.6rem; }
+.btn-util span { font-size: 1.5rem; }
 
-/* Status Aktif Orange Sesuai Gambar */
-.toggle-btn.active { color: #ff9f0a; }
+.toggle-btn.active { color: var(--spotify-orange); }
+.btn-util.active { color: #ff3b30; }
 
 .volume-box {
     flex: 1;
@@ -206,48 +201,29 @@ body {
     cursor: pointer;
 }
 
-/* =======================================
-   PLAYLIST PLAYBACK (Bawah Card)
-   ======================================= */
+/* Playlist UI */
 .playlist-section {
-    background: rgba(21, 32, 25, 0.6);
-    border-radius: 28px;
+    background: rgba(21, 32, 25, 0.4);
+    border-radius: 24px;
     padding: 20px;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.02);
 }
 
-.playlist-header {
-    display: flex; gap: 10px; margin-bottom: 15px;
-}
+.playlist-header { display: flex; gap: 10px; margin-bottom: 15px; }
+.search-box { display: flex; align-items: center; background: #151d19; border-radius: 10px; padding: 8px 12px; gap: 8px; flex: 1; }
+.search-box input { background: none; border: none; color: #fff; outline: none; width: 100%; font-size: 0.9rem; }
+.btn-sort { background: #151d19; border: none; color: #fff; padding: 8px 12px; border-radius: 10px; cursor: pointer; }
 
-.search-box {
-    display: flex; align-items: center; background: #1a231e;
-    border-radius: 10px; padding: 8px 12px; gap: 8px; flex: 1;
-}
+.playlist-container { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.playlist-container::-webkit-scrollbar { width: 3px; }
+.playlist-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
 
-.search-box input {
-    background: none; border: none; color: #fff; outline: none; width: 100%;
-}
-
-.btn-sort {
-    background: #1a231e; border: none; color: #fff; padding: 8px 12px; border-radius: 10px; cursor: pointer;
-}
-
-.playlist-container {
-    max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
-}
-
-.playlist-container::-webkit-scrollbar { width: 4px; }
-.playlist-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-
-.track-item {
-    display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 10px; cursor: pointer;
-}
+.track-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; cursor: pointer; }
 .track-item:hover { background: rgba(255,255,255,0.03); }
-.track-item.active { background: rgba(30, 215, 96, 0.15); }
+.track-item.active { background: rgba(30, 215, 96, 0.12); }
 .track-item.active h4 { color: var(--btn-green); }
 
-.track-item img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; }
-.item-meta h4 { font-size: 0.9rem; font-weight: 600; }
-.item-meta p { font-size: 0.8rem; color: var(--text-muted); }
+.track-item img { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; }
+.item-meta h4 { font-size: 0.85rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.item-meta p { font-size: 0.75rem; color: var(--text-muted); }
