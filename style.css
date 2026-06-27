@@ -32,7 +32,7 @@ body {
 }
 
 /* ==========================================
-   MAIN CONTAINER (OPTIMIZED FOR DESKTOP MODE)
+   MAIN CONTAINER (FIX OVER-STRETCH CHROME)
    ========================================== */
 .player-container {
     background-color: rgba(26, 26, 26, 0.75);
@@ -40,20 +40,24 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    max-width: 420px; /* Ukuran default yang pas di genggaman layar HP portrait normal */
+    max-width: 420px; /* Ukuran pas untuk portrait mobile normal */
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
 }
 
-/* PERBAIKAN UTAMA: Ditingkatkan agar mode desktop di Android / PC terlihat jauh lebih besar dan lega */
+/* PERBAIKAN RESPONSIVITAS: Mengunci lebar di Chrome & Brave agar selalu tampak padat berisi */
 @media (min-width: 768px) {
     .player-container {
-        width: 65vw; /* Memanfaatkan 65% lebar viewport layar simulasi desktop */
-        max-width: 680px; /* Dinaikkan dari 520px ke 680px agar area playlist dan lirik makin luas */
-        padding: 36px;
+        width: 100%;
+        max-width: 500px; /* Dikunci di 500px agar tidak kempes memanjang ke bawah */
+        padding: 32px;
     }
+    
+    /* Menaikkan skala teks dikit di desktop biar ga keliatan kekecilan */
+    .track-info h2 { font-size: 1.55rem !important; }
+    .lyric-line { font-size: 1.15rem !important; }
 }
 
 /* ==========================================
@@ -251,5 +255,4 @@ body {
 .watermark a:hover { 
     filter: brightness(1.2);
     text-decoration: underline !important; 
-                                }
-   
+}
