@@ -312,3 +312,8 @@ body {
     border-radius: 4px;
     object-fit: cover;
                            }
+
+.watermark a:hover {
+    color: var(--spotify-green) !important;
+    text-decoration: underline !important;
+}
