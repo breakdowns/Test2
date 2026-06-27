@@ -27,7 +27,7 @@ body {
 
 .player-card {
     width: 100%;
-    max-width: 380px; /* Ukuran standar pas di HP (Mode Mobile) */
+    max-width: 380px; /* Ukuran HP */
     background: var(--card-bg);
     border-radius: 24px;
     padding: 24px;
@@ -50,17 +50,34 @@ body {
     object-fit: cover;
 }
 
+/* Track Info & Efek Marquee */
 .track-info {
     margin-bottom: 24px;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
 }
 
 .track-info h2 {
+    display: inline-block;
     font-size: 1.4rem;
     font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     margin-bottom: 4px;
+    will-change: transform;
+}
+
+.track-info h2.marquee {
+    animation: spotifyMarquee 8s linear infinite alternate;
+}
+
+@keyframes spotifyMarquee {
+    0%, 20% {
+        transform: translateX(0);
+    }
+    80%, 100% {
+        transform: translateX(var(--scroll-dist, 0));
+    }
 }
 
 .track-info p {
@@ -218,14 +235,11 @@ body {
     text-decoration: none;
 }
 
-
-/* ==========================================================
-   OPTIMASI UKURAN BESAR (Mode Desktop / Situs Desktop Aktif)
-   ========================================================== */
+/* Optimasi Ukuran Mode Desktop / Situs Desktop Aktif */
 @media (min-width: 768px) {
     .player-card {
-        max-width: 580px;  /* Ditambah dari 460px ke 580px agar card terlihat padat dan dominan */
-        padding: 36px;     /* Spasi dalam card dibuat lebih lebar */
+        max-width: 580px; 
+        padding: 36px;     
         border-radius: 36px;
     }
 
@@ -235,73 +249,73 @@ body {
     }
 
     .track-info h2 {
-        font-size: 2rem;   /* Ukuran judul lagu diperbesar drastis */
+        font-size: 2rem;   
         margin-bottom: 8px;
     }
 
     .track-info p {
-        font-size: 1.2rem; /* Nama musisi diperbesar */
+        font-size: 1.2rem; 
     }
 
     .progress-bar-container {
-        height: 6px;       /* Bar penunjuk menit lagu dipertebal */
+        height: 6px;       
     }
 
     .time-stamps {
-        font-size: 0.9rem; /* Angka menit lagu diperbesar */
+        font-size: 0.9rem; 
     }
 
     .controls-main {
-        gap: 40px;         /* Jarak tombol navigasi direnggangkan */
+        gap: 40px;         
         margin-bottom: 32px;
     }
 
     .btn-icon .material-icons {
-        font-size: 2.8rem; /* Icon backward & forward diperbesar */
+        font-size: 2.8rem; 
     }
 
     #playBtn {
-        width: 80px;       /* Tombol lingkaran hijau utama diperbesar */
+        width: 80px;       
         height: 80px;
     }
 
     #playBtn .material-icons {
-        font-size: 3.5rem; /* Icon play/pause di dalam lingkaran diperbesar */
+        font-size: 3.5rem; 
     }
 
     .btn-small .material-icons {
-        font-size: 1.8rem; /* Tombol shuffle & repeat diperbesar */
+        font-size: 1.8rem; 
     }
 
     #volumeSlider {
-        height: 6px;       /* Slider volume dipertebal */
+        height: 6px;       
     }
 
     #playlist {
-        max-height: 260px; /* Kotak list lagu bisa menampung ruang lebih tinggi */
+        max-height: 260px; 
     }
 
     .track-item {
-        padding: 12px;     /* List daftar lagu dibuat lebih renggang & lega */
+        padding: 12px;     
         gap: 16px;
     }
 
     .track-item img {
-        width: 54px;       /* Gambar mini di list lagu diperbesar */
+        width: 54px;       
         height: 54px;
         border-radius: 6px;
     }
 
     .track-meta h4 {
-        font-size: 1.15rem; /* Judul lagu di list diperbesar */
+        font-size: 1.15rem; 
     }
 
     .track-meta p {
-        font-size: 0.9rem;  /* Nama artis di list diperbesar */
+        font-size: 0.9rem;  
     }
     
     .footer-credit {
         margin-top: 40px;
-        font-size: 1.05rem; /* Teks "Build with ♥️ by Hafitz" diperbesar */
+        font-size: 1.05rem; 
     }
 }
