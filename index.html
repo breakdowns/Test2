@@ -3,69 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeStream - Premium Music Player</title>
+    <title>Breakdowns Music</title>
     <!-- Material Icons & Google Fonts -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json" id="manifest-placeholder">
 </head>
 <body>
     <!-- Dynamic Blurred Background -->
     <div class="bg-blur" id="bgBlur"></div>
-    <div class="animated-gradient"></div>
 
-    <!-- Main Container -->
+    <!-- Main Container Layout Vertikal -->
     <div class="container">
-        <!-- Sidebar / Playlist Section -->
-        <div class="sidebar panel">
-            <div class="sidebar-header">
-                <h2>🎼 My Library</h2>
-                <div class="search-box">
-                    <span class="material-icons">search</span>
-                    <input type="text" id="searchBar" placeholder="Cari lagu, artis...">
-                </div>
-            </div>
-            
-            <div class="sort-controls">
-                <button id="sortAZ" class="btn-sm"><span class="material-icons">sort_by_alpha</span> A-Z</button>
-                <button id="sortNew" class="btn-sm"><span class="material-icons">new_releases</span> Terbaru</button>
-            </div>
-
-            <div class="playlist-container" id="playlist">
-                <!-- Lagu akan di-render via JavaScript -->
-            </div>
-        </div>
-
-        <!-- Player Center Section -->
+        
+        <!-- PLAYER UTAMA (DI ATAS) -->
         <div class="main-player panel">
-            <!-- PWA Install Button -->
-            <button id="pwaInstall" class="btn-pwa hidden">
-                <span class="material-icons">download</span> Pasang Aplikasi
-            </button>
-
             <!-- Album Art Zone -->
             <div class="cover-wrapper">
                 <img src="placeholder.jpg" alt="Cover Album" id="trackCover" class="track-cover">
-                <!-- Audio Visualizer Overlay -->
                 <canvas id="visualizer" class="visualizer-canvas"></canvas>
             </div>
 
             <!-- Track Info -->
             <div class="track-info">
                 <div class="title-wrapper">
-                    <h1 id="trackTitle">Pilih Lagu</h1>
+                    <h1 id="trackTitle">Memuat lagu...</h1>
                     <p id="trackArtist">Artis</p>
                 </div>
                 <button id="favBtn" class="btn-fav">
                     <span class="material-icons">favorite_border</span>
                 </button>
-            </div>
-
-            <!-- Lyrics Sync View -->
-            <div class="lyrics-container" id="lyricsBox">
-                <p class="lyric-line active">Lirik otomatis sinkronisasi...</p>
             </div>
 
             <!-- Progress Bar Area -->
@@ -100,7 +67,7 @@
                 </button>
             </div>
 
-            <!-- Audio Extra Utilities -->
+            <!-- Volume & Speed -->
             <div class="extra-controls">
                 <div class="volume-container">
                     <span class="material-icons" id="volumeIcon">volume_up</span>
@@ -117,21 +84,37 @@
                 </div>
             </div>
         </div>
+
+        <!-- PLAYLIST / DAFTAR LAGU (DI BAWAH) -->
+        <div class="sidebar panel">
+            <div class="sidebar-header">
+                <div class="search-box">
+                    <span class="material-icons">search</span>
+                    <input type="text" id="searchBar" placeholder="Cari lagu...">
+                </div>
+                <div class="sort-controls">
+                    <button id="sortAZ" class="btn-sm"><span class="material-icons">sort_by_alpha</span> A-Z</button>
+                </div>
+            </div>
+            
+            <div class="playlist-container" id="playlist">
+                <!-- Lagu di-render di sini -->
+            </div>
+        </div>
+
     </div>
 
     <!-- Audio Element Hidden -->
     <audio id="mainAudio" crossorigin="anonymous"></audio>
 
-    <!-- Start Overlay Modal -->
-    <div class="start-modal" id="startModal">
-        <div class="modal-content">
-            <h1>VibeStream</h1>
-            <p>Selamat datang di pemutar musik modern kamu.</p>
-            <button id="startAppBtn" class="btn-start">Mulai Mendengarkan</button>
-        </div>
-    </div>
-
+    <!-- Script Otomatis Menghilangkan Overlay & Load Musik -->
+    <script>
+        // Trigger otomatis agar tidak perlu klik tombol selamat datang
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof initAudioVisualizer === 'function') initAudioVisualizer();
+            if (typeof fetchPlaylist === 'function') fetchPlaylist();
+        });
+    </script>
     <script src="app.js"></script>
 </body>
-          </html>
-          
+</html>
