@@ -1,4 +1,4 @@
-// State Managemenet & Configurations
+// State Management & Configurations
 let playlist = [];
 let filteredPlaylist = [];
 let favorites = JSON.parse(localStorage.getItem('vibe_favorites')) || [];
@@ -8,6 +8,7 @@ let currentIndex = 0;
 let isShuffle = false;
 let repeatMode = 'off'; // 'off' | 'one' | 'all'
 let audioCtx, analyser, dataArray, canvasCtx;
+let isAudioCtxInitialized = false; // Flag untuk mencegah inisialisasi ganda
 
 // DOM Elements
 const audio = document.getElementById('mainAudio');
@@ -27,14 +28,11 @@ const trackTitle = document.getElementById('trackTitle');
 const trackArtist = document.getElementById('trackArtist');
 const trackCover = document.getElementById('trackCover');
 const bgBlur = document.getElementById('bgBlur');
-const startModal = document.getElementById('startModal');
 const volumeSlider = document.getElementById('volumeSlider');
 const speedSelect = document.getElementById('speedSelect');
 
-// Init App setelah interaksi pertama pengguna (Kebijakan Browser Audio)
-document.getElementById('startAppBtn').addEventListener('click', () => {
-    startModal.classList.add('hidden');
-    initAudioVisualizer();
+// Pemicu pertama kali saat web dibuka
+window.addEventListener('DOMContentLoaded', () => {
     fetchPlaylist();
 });
 
@@ -87,25 +85,35 @@ function loadTrack(index) {
     trackCover.src = track.cover;
     bgBlur.style.backgroundImage = `url('${track.cover}')`;
 
-    // Reset Progress & Setup Media Session
     progressBar.style.width = '0%';
     updateFavoriteUI(track.id);
     setupMediaSession(track);
     
-    // Highlight track aktif di playlist
     document.querySelectorAll('.track-item').forEach((item, i) => {
         item.classList.toggle('active', playlist[i]?.id === track.id);
     });
 
-    // Masuk ke Riwayat
     addToHistory(track.id);
 }
 
-// Play & Pause logic
+// Play & Pause logic dengan Inisialisasi Audio Context yang Aman
 function playTrack() {
-    audio.play();
-    playBtn.innerHTML = '<span class="material-icons">pause</span>';
-    trackCover.classList.add('playing');
+    // Inisialisasi visualizer HANYA KETIKA user benar-benar berinteraksi (klik play)
+    if (!isAudioCtxInitialized) {
+        initAudioVisualizer();
+    }
+
+    // Pastikan AudioContext kembali resume jika terkena suspend otomatis oleh browser
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+
+    audio.play().then(() => {
+        playBtn.innerHTML = '<span class="material-icons">pause</span>';
+        trackCover.classList.add('playing');
+    }).catch(err => {
+        console.log("Playback tertunda:", err);
+    });
 }
 
 function pauseTrack() {
@@ -115,7 +123,11 @@ function pauseTrack() {
 }
 
 playBtn.addEventListener('click', () => {
-    if (audio.paused) playTrack(); else pauseTrack();
+    if (audio.paused) {
+        playTrack();
+    } else {
+        pauseTrack();
+    }
 });
 
 // Navigation
@@ -138,7 +150,7 @@ function prevTrack() {
 nextBtn.addEventListener('click', nextTrack);
 prevBtn.addEventListener('click', prevTrack);
 
-// Auto Next Handler (Mengikuti Aturan Repeat)
+// Auto Next Handler
 audio.addEventListener('ended', () => {
     if (repeatMode === 'one') {
         audio.currentTime = 0;
@@ -150,7 +162,7 @@ audio.addEventListener('ended', () => {
     }
 });
 
-// Progress Bar & Duration Updates
+// Progress Bar Updates
 audio.addEventListener('timeupdate', () => {
     const { currentTime, duration } = audio;
     if (isNaN(duration)) return;
@@ -158,12 +170,8 @@ audio.addEventListener('timeupdate', () => {
     const progressPercent = (currentTime / duration) * 100;
     progressBar.style.width = `${progressPercent}%`;
 
-    // Format Waktu
     currentTimeEl.textContent = formatTime(currentTime);
     durationEl.textContent = formatTime(duration);
-
-    // Update Lirik jika ada
-    updateLyrics(currentTime);
 });
 
 function formatTime(time) {
@@ -219,11 +227,6 @@ document.getElementById('sortAZ').addEventListener('click', () => {
     renderPlaylist(playlist);
 });
 
-document.getElementById('sortNew').addEventListener('click', () => {
-    playlist.reverse(); // Mengasumsikan urutan JSON asli adalah kronologis
-    renderPlaylist(playlist);
-});
-
 // Favorite Management
 favBtn.addEventListener('click', () => {
     const currentTrack = playlist[currentIndex];
@@ -258,41 +261,48 @@ speedSelect.addEventListener('change', (e) => {
     audio.playbackRate = parseFloat(e.target.value);
 });
 
-// Audio Visualizer Implementation
+// Audio Visualizer yang Sudah Diperbaiki jalurnya
 function initAudioVisualizer() {
-    const canvas = document.getElementById('visualizer');
-    canvasCtx = canvas.getContext('2d');
-    
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    
-    const source = audioCtx.createMediaElementSource(audio);
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
-    
-    analyser.fftSize = 64;
-    const bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    
-    function draw() {
-        requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
+    try {
+        const canvas = document.getElementById('visualizer');
+        if (!canvas) return;
+        canvasCtx = canvas.getContext('2d');
         
-        canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.0)';
-        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
         
-        const barWidth = (canvas.width / bufferLength) * 1.5;
-        let barHeight;
-        let x = 0;
+        const source = audioCtx.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
         
-        for(let i = 0; i < bufferLength; i++) {
-            barHeight = dataArray[i] / 4;
-            canvasCtx.fillStyle = `rgba(0, 255, 136, ${barHeight / 60})`;
-            canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
-            x += barWidth;
+        analyser.fftSize = 64;
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+        
+        isAudioCtxInitialized = true; // Tandai sudah sukses sinkron
+
+        function draw() {
+            requestAnimationFrame(draw);
+            analyser.getByteFrequencyData(dataArray);
+            
+            canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.0)';
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const barWidth = (canvas.width / bufferLength) * 1.5;
+            let barHeight;
+            let x = 0;
+            
+            for(let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i] / 4;
+                canvasCtx.fillStyle = `rgba(0, 255, 136, ${barHeight / 60})`;
+                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
+                x += barWidth;
+            }
         }
+        draw();
+    } catch (e) {
+        console.warn("Visualizer gagal dimuat, kemungkinan masalah routing audio:", e);
     }
-    draw();
 }
 
 // Sync System Media Session (Lock Screen Kontrol)
@@ -311,17 +321,6 @@ function setupMediaSession(track) {
     }
 }
 
-// Simple LRC Lyrics Parser
-function updateLyrics(time) {
-    const currentTrack = playlist[currentIndex];
-    const lyricsBox = document.getElementById('lyricsBox');
-    if (!currentTrack.lyrics) {
-        lyricsBox.innerHTML = '<p class="lyric-line">Lirik tidak tersedia</p>';
-        return;
-    }
-    // Implementasi logika pencarian timestamps sederhana bisa disematkan di sini.
-}
-
 function addToHistory(trackId) {
     history = history.filter(id => id !== trackId);
     history.unshift(trackId);
@@ -336,4 +335,3 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowRight') nextTrack();
     if (e.code === 'ArrowLeft') prevTrack();
 });
-  
