@@ -113,18 +113,18 @@ body {
 }
 
 /* =======================================
-   PROGRESS TIMELINE & DURASI (PERBAIKAN)
+   PROGRESS TIMELINE & DURASI (FIXED)
    ======================================= */
 .progress-section {
     width: 100%;
     margin-bottom: 24px;
-    padding: 0 4px;
+    display: block !important; /* Memastikan pembungkus timeline tidak rusak */
 }
 
 .progress-bar-container {
     width: 100%;
     height: 6px;
-    background: #2e353b; /* FIX: Warna HEX solid biar gak hilang di dark mode browser */
+    background: #2e353b !important; /* Proteksi warna dark mode browser */
     border-radius: 10px;
     cursor: pointer;
     margin-bottom: 8px;
@@ -139,7 +139,6 @@ body {
     position: relative;
 }
 
-/* Dot penanda timeline jalan */
 .progress-bar::after {
     content: '';
     position: absolute;
@@ -153,83 +152,95 @@ body {
     box-shadow: 0 0 10px rgba(29, 114, 254, 0.6);
 }
 
-/* Memisahkan durasi kiri (current) dan kanan (end) */
+/* Memisahkan durasi menit kiri dan kanan agar menyebar ke ujung */
 .time-stamps {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
     font-size: 0.75rem;
     color: var(--text-muted);
     font-weight: 600;
 }
 
 /* =======================================
-   PLAYER CONTROLLER BUTTONS (PERBAIKAN UTAMA)
+   PLAYER CONTROLLER BUTTONS (FIXED TOTAL)
    ======================================= */
 .controls-main {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 24px;
-    margin-bottom: 24px;
-    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 32px !important; /* Memberikan jarak antar tombol */
+    margin: 24px 0 !important;
+    width: 100% !important;
 }
 
-/* Reset button default browser (Hilangkan kotak putih & border bawaan) */
+/* Reset total paksa semua properti button bawaan browser agar hilang kotaknya */
 .btn-icon {
     background: transparent !important;
+    background-color: transparent !important;
     border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
     color: var(--text-pure) !important;
     cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 8px;
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+    height: auto !important;
     transition: all 0.2s ease;
 }
 
 .btn-icon .material-icons {
-    font-size: 32px;
+    font-size: 36px !important; /* Ukuran icon skip prev/next */
+    background: transparent !important;
 }
 
 .btn-icon:hover {
-    transform: scale(1.08);
+    transform: scale(1.1);
 }
 
 .btn-icon:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
 }
 
-/* Tombol Play Lingkaran Tengah */
+/* Khusus Tombol Putar Tengah Lingkaran Hijau */
 #playBtn {
-    width: 64px;
-    height: 64px;
+    width: 64px !important;
+    height: 64px !important;
+    background: var(--spotify-green) !important;
     background-color: var(--spotify-green) !important;
     color: #000000 !important;
     border-radius: 50% !important;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 6px 12px rgba(29, 185, 84, 0.3);
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    box-shadow: 0 6px 12px rgba(29, 185, 84, 0.3) !important;
 }
 
 #playBtn .material-icons {
-    font-size: 40px;
+    font-size: 44px !important;
+    color: #000000 !important;
 }
 
 #playBtn:hover {
     background-color: var(--spotify-hover) !important;
     transform: scale(1.05);
-    box-shadow: 0 8px 16px rgba(29, 185, 84, 0.4);
 }
 
 /* =======================================
    UTILITY BAR (SHUFFLE, REPEAT, VOLUME)
    ======================================= */
 .controls-utility {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     gap: 16px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     padding-top: 20px;
@@ -237,7 +248,7 @@ body {
 }
 
 .controls-utility .btn-icon .material-icons {
-    font-size: 24px;
+    font-size: 24px !important;
 }
 
 .btn-small {
@@ -246,12 +257,11 @@ body {
 
 .btn-small.active {
     color: var(--spotify-green) !important;
-    text-shadow: 0 0 8px rgba(29, 185, 84, 0.5);
 }
 
 .volume-container {
-    display: flex;
-    align-items: center;
+    display: flex !important;
+    align-items: center !important;
     gap: 8px;
     flex-grow: 1;
     max-width: 140px;
@@ -308,7 +318,6 @@ body {
     border-radius: 4px;
 }
 
-/* Desain baris item lagu */
 .track-item {
     display: flex;
     align-items: center;
