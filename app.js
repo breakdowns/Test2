@@ -57,41 +57,45 @@ function loadTrack(index) {
     audio.src = track.src;
     
     parsedLyrics = []; 
-    
-    // FIX: Sembunyikan kontainer lirik & matikan transisi seketika agar lirik lama tidak melompat kaku
-    lyricsContainer.style.opacity = '0';
-    lyricsWrapper.style.transition = 'none';
-    lyricsWrapper.style.transform = 'translateY(0px)';
-    lyricsWrapper.innerHTML = ''; 
-
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
+
+    // --- FIX UTAMA: Efek Fade-Out Lirik Lama Terlebih Dahulu ---
+    lyricsContainer.style.opacity = '0';
+    
+    // Tunggu 200ms sampai lirik lama benar-benar pudar sempurna dari layar
+    setTimeout(() => {
+        lyricsWrapper.style.transition = 'none';
+        lyricsWrapper.style.transform = 'translateY(0px)';
+        lyricsWrapper.innerHTML = ''; 
+
+        if (track.lyricsSrc) {
+            fetch(track.lyricsSrc)
+                .then(res => res.text())
+                .then(text => { 
+                    parsedLyrics = parseLRC(text); 
+                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                    
+                    lyricsContainer.style.display = "block"; 
+                    // Memaksa browser menghitung ulang layout sebelum transisi diaktifkan lagi
+                    void lyricsWrapper.offsetWidth; 
+                    
+                    // Fade-in lirik baru secara halus di posisi awal yang benar
+                    lyricsContainer.style.opacity = '1';
+                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                })
+                .catch(() => {
+                    lyricsContainer.style.display = "none";
+                });
+        } else { 
+            lyricsContainer.style.display = "none"; 
+        }
+    }, 200); // Durasi delay sinkron dengan transisi CSS (.lyrics-container)
     
     const isFav = favorites.includes(track.src);
     favoriteBtn.classList.toggle('active', isFav); 
     favoriteBtn.querySelector('.material-icons').textContent = isFav ? 'favorite' : 'favorite_border';
-    
-    if (track.lyricsSrc) {
-        fetch(track.lyricsSrc)
-            .then(res => res.text())
-            .then(text => { 
-                parsedLyrics = parseLRC(text); 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                
-                // Tampilkan kembali lirik dengan efek memudar (fade-in) setelah siap di-render
-                lyricsContainer.style.display = "block"; 
-                setTimeout(() => {
-                    lyricsContainer.style.opacity = '1';
-                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                }, 50);
-            })
-            .catch(() => {
-                lyricsContainer.style.display = "none";
-            });
-    } else { 
-        lyricsContainer.style.display = "none"; 
-    }
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
@@ -305,4 +309,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                                            }
+                  }
