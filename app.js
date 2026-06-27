@@ -51,49 +51,64 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    // 1. GANTI DATA AUDIO DAN COVER SECARA INSTAN (ANTI-LAG)
+    // 1. UBAH DATA UTAMA SECARA INSTAN (LAGU & COVER LANGSUNG RESPONSIV)
     trackTitle.textContent = track.title; 
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
     audio.src = track.src;
     
-    parsedLyrics = []; 
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // 2. FADE-OUT LIRIK LAMA INSTAN
+    // 2. ANIMASI PUDAR: Mulai pudar lirik lama (jangan langsung dihapus teksnya!)
     lyricsContainer.style.opacity = '0';
-    lyricsWrapper.style.transition = 'none';
-    lyricsWrapper.style.transform = 'translateY(0px)';
-    lyricsWrapper.innerHTML = ''; 
     
-    // 3. FETCH LIRIK DI LATAR BELAKANG (TIDAK MEMBLOKIR PEMUTARAN LAGU)
+    // Simpan reference track saat ini untuk divalidasi nanti
+    const currentTrackSrc = track.src;
+
+    // 3. JALANKAN FETCH LIRIK SECARA ASINKRONUS
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
             .then(res => res.text())
             .then(text => { 
-                // Pastikan user belum nge-skip ke lagu lain saat fetch ini selesai
-                if (tracks[currentIndex].src !== track.src) return;
+                // Cek apakah user sudah buru-buru nge-skip ke lagu lain sebelum fetch beres
+                if (tracks[currentIndex].src !== currentTrackSrc) return;
 
-                lyricsWrapper.innerHTML = ''; 
-                parsedLyrics = parseLRC(text); 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                
-                lyricsContainer.style.display = "block"; 
-                void lyricsWrapper.offsetWidth; 
-                
-                // Fade-in lirik baru
-                lyricsContainer.style.opacity = '1';
-                lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                // TUNGGU TRANSISI PUDAR CSS SELESAI (200ms), BARU BERSIHKAN & ISI DOM
+                setTimeout(() => {
+                    if (tracks[currentIndex].src !== currentTrackSrc) return;
+
+                    lyricsWrapper.style.transition = 'none';
+                    lyricsWrapper.style.transform = 'translateY(0px)';
+                    lyricsWrapper.innerHTML = ''; 
+                    
+                    parsedLyrics = parseLRC(text); 
+                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                    
+                    lyricsContainer.style.display = "block"; 
+                    void lyricsWrapper.offsetWidth; // Paksa reflow layout browser
+                    
+                    // Lirik baru memudar muncul secara elegan
+                    lyricsContainer.style.opacity = '1';
+                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                }, 200);
             })
             .catch(() => {
-                if (tracks[currentIndex].src === track.src) {
+                if (tracks[currentIndex].src === currentTrackSrc) {
+                    lyricsWrapper.innerHTML = '';
                     lyricsContainer.style.display = "none";
                 }
             });
     } else { 
-        lyricsContainer.style.display = "none"; 
+        // Jika tidak ada lirik, tunggu pudar dulu baru kosongkan kontainer
+        setTimeout(() => {
+            if (tracks[currentIndex].src === currentTrackSrc) {
+                parsedLyrics = [];
+                lyricsWrapper.innerHTML = '';
+                lyricsContainer.style.display = "none";
+            }
+        }, 200);
     }
     
     const isFav = favorites.includes(track.src);
@@ -314,4 +329,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
+                                                                                              }
