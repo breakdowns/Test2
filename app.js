@@ -16,11 +16,19 @@ const trackArtist = document.getElementById('trackArtist');
 const trackCover = document.getElementById('trackCover');
 
 let tracks = [];
-let currentIndex = 0;
-let isShuffle = false;
-let isRepeat = false;
 
-// Memanggil playlist.json yang aman dari blokir GitHub Pages
+/* FITUR: Mengambil Memori Setelan Terakhir Pengguna (LocalStorage) */
+let currentIndex = parseInt(localStorage.getItem('brkdown_index')) || 0;
+let isShuffle = localStorage.getItem('brkdown_shuffle') === 'true';
+let isRepeat = localStorage.getItem('brkdown_repeat') === 'true';
+let savedVolume = localStorage.getItem('brkdown_volume') !== null ? parseFloat(localStorage.getItem('brkdown_volume')) : 1;
+
+// Sinkronisasi awal visual tombol utility & volume
+shuffleBtn.classList.toggle('active', isShuffle);
+repeatBtn.classList.toggle('active', isRepeat);
+volumeSlider.value = savedVolume;
+audio.volume = savedVolume;
+
 fetch('playlist.json')
     .then(res => {
         if (!res.ok) throw new Error('Gagal fetch playlist.json');
@@ -29,6 +37,8 @@ fetch('playlist.json')
     .then(data => {
         if (data.playlist && data.playlist.length > 0) {
             tracks = data.playlist;
+            // Amankan index jika data json berkurang/berubah
+            if (currentIndex >= tracks.length) currentIndex = 0;
             loadTrack(currentIndex);
             renderPlaylist();
         } else {
@@ -43,8 +53,11 @@ fetch('playlist.json')
 function loadTrack(index) {
     if (!tracks[index]) return;
     const track = tracks[index];
+    currentIndex = index;
     
-    // Reset posisi animasi teks marquee sebelum ganti lagu
+    // Simpan posisi lagu saat ini ke memori browser
+    localStorage.setItem('brkdown_index', currentIndex);
+    
     trackTitle.classList.remove('marquee');
     trackTitle.style.transform = 'translateX(0)';
     
@@ -53,34 +66,47 @@ function loadTrack(index) {
     trackCover.src = track.cover;
     audio.src = track.src;
     
-    // Hitung otomatis panjang teks untuk efek marquee ala Spotify
+    // Hitung otomatis panjang teks untuk efek marquee
     setTimeout(() => {
-        const containerWidth = trackTitle.parentElement.clientWidth;
-        const textWidth = trackTitle.scrollWidth;
+        const containerWidth = trackTitle.parentElement.getBoundingClientRect().width;
+        const textWidth = trackTitle.getBoundingClientRect().width;
         
         if (textWidth > containerWidth) {
-            const scrollDistance = textWidth - containerWidth + 24; 
+            const scrollDistance = textWidth - containerWidth + 30; 
             trackTitle.style.setProperty('--scroll-dist', `-${scrollDistance}px`);
             trackTitle.classList.add('marquee');
         }
-    }, 100);
+    }, 300);
     
-    // Update kelas active pada UI playlist
-    const items = document.querySelectorAll('.track-item');
-    items.forEach((item, idx) => {
-        if (idx === index) item.classList.add('active');
-        else item.classList.remove('active');
-    });
+    // FITUR: Media Session API (Kontrol Musik Via Lock Screen / Notifikasi HP)
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.title,
+            artist: track.artist,
+            album: 'Breakdowns Music Player',
+            artwork: [
+                { src: track.cover, sizes: '300x300', type: 'image/jpeg' },
+                { src: track.cover, sizes: '512x512', type: 'image/jpeg' }
+            ]
+        });
+        setupMediaSessionActions();
+    }
+    
+    updatePlaylistUI();
+}
+
+function setupMediaSessionActions() {
+    navigator.mediaSession.setActionHandler('play', togglePlay);
+    navigator.mediaSession.setActionHandler('pause', togglePlay);
+    navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+    navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
 }
 
 function togglePlay() {
     if (audio.paused) {
         audio.play()
             .then(() => playIcon.textContent = 'pause')
-            .catch(err => {
-                alert("File tidak ditemukan! Cek kembali penulisan nama file musik/folder di playlist.json.");
-                console.error(err);
-            });
+            .catch(err => console.error("Putar gagal:", err));
     } else {
         audio.pause();
         playIcon.textContent = 'play_arrow';
@@ -116,7 +142,7 @@ function renderPlaylist() {
     playlistContainer.innerHTML = '';
     tracks.forEach((track, index) => {
         const item = document.createElement('div');
-        item.className = `track-item ${index === currentIndex ? 'active' : ''}`;
+        item.className = `track-item-selector track-item ${index === currentIndex ? 'active' : ''}`;
         item.innerHTML = `
             <img src="${track.cover}" onerror="this.src='https://via.placeholder.com/150'">
             <div class="track-meta">
@@ -133,6 +159,14 @@ function renderPlaylist() {
     });
 }
 
+function updatePlaylistUI() {
+    const items = document.querySelectorAll('.track-item-selector');
+    items.forEach((item, idx) => {
+        if (idx === currentIndex) item.classList.add('active');
+        else item.classList.remove('active');
+    });
+}
+
 function formatTime(time) {
     if (isNaN(time)) return "0:00";
     const m = Math.floor(time / 60);
@@ -140,7 +174,7 @@ function formatTime(time) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-// Pasang Event Listeners
+// Event Listeners
 playBtn.addEventListener('click', togglePlay);
 nextBtn.addEventListener('click', nextTrack);
 prevBtn.addEventListener('click', prevTrack);
@@ -148,11 +182,13 @@ prevBtn.addEventListener('click', prevTrack);
 shuffleBtn.addEventListener('click', () => {
     isShuffle = !isShuffle;
     shuffleBtn.classList.toggle('active', isShuffle);
+    localStorage.setItem('brkdown_shuffle', isShuffle);
 });
 
 repeatBtn.addEventListener('click', () => {
     isRepeat = !isRepeat;
     repeatBtn.classList.toggle('active', isRepeat);
+    localStorage.setItem('brkdown_repeat', isRepeat);
 });
 
 audio.addEventListener('timeupdate', () => {
@@ -176,5 +212,6 @@ progressContainer.addEventListener('click', (e) => {
 
 volumeSlider.addEventListener('input', (e) => {
     audio.volume = e.target.value;
+    localStorage.setItem('brkdown_volume', e.target.value);
 });
-                   
+        
