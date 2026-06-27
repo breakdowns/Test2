@@ -3,26 +3,22 @@ const playBtn = document.getElementById('playBtn');
 const playIcon = document.getElementById('playIcon');
 const progressBar = document.getElementById('progressBar');
 const trackTitle = document.getElementById('trackTitle');
-const trackArtist = document.getElementById('trackArtist');
-const trackCover = document.getElementById('trackCover');
 
+// PENTING: Ganti 'music.mp3' dan 'cover.jpg' sesuai nama file asli Anda
 const tracks = [
-    { title: "Dialogue", artist: "Blood The Face", src: "dialogue.mp3", cover: "cover1.jpg" },
-    { title: "Where My Dreams Are Made Of Gold", artist: "A Reason To Breathe", src: "gold.mp3", cover: "cover2.jpg" }
+    { title: "Judul Lagu 1", artist: "Artis 1", src: "music.mp3", cover: "cover.jpg" }
 ];
-
-let currentIndex = 0;
 
 function loadTrack(index) {
     trackTitle.textContent = tracks[index].title;
-    trackArtist.textContent = tracks[index].artist;
-    trackCover.src = tracks[index].cover;
+    document.getElementById('trackArtist').textContent = tracks[index].artist;
+    document.getElementById('trackCover').src = tracks[index].cover;
     audio.src = tracks[index].src;
 }
 
 playBtn.addEventListener('click', () => {
     if (audio.paused) {
-        audio.play().then(() => { playIcon.textContent = 'pause'; }).catch(e => alert("File audio tidak ditemukan!"));
+        audio.play().then(() => playIcon.textContent = 'pause');
     } else {
         audio.pause();
         playIcon.textContent = 'play_arrow';
