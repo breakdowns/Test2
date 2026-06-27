@@ -32,7 +32,7 @@ body {
 }
 
 /* ==========================================
-   MAIN CONTAINER (RESPONSIVE & LARGER FOR DESKTOP)
+   MAIN CONTAINER (FIX MODE DESKTOP ANDROID & PC)
    ========================================== */
 .player-container {
     background-color: rgba(26, 26, 26, 0.75);
@@ -40,19 +40,19 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    /* Default untuk mobile layout tetap pas genggaman tangan */
-    max-width: 420px; 
+    max-width: 420px; /* Ukuran default yang pas di genggaman layar HP portrait */
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
-    transition: max-width 0.3s ease;
+    transition: all 0.3s ease;
 }
 
-/* Kunci Perubahan Ukuran: Otomatis membesar saat mendeteksi layar Desktop atau Mode Desktop Android */
+/* Solusi Kunci: Lebar responsif menggunakan skala persentase jika dibuka di PC atau Mode Desktop Android */
 @media (min-width: 768px) {
     .player-container {
-        max-width: 500px; /* Melebarkan kontainer utama player sebesar +80px */
-        padding: 32px; /* Memberikan ruang napas elemen dalam agar lebih premium */
+        width: 85%; /* Responsif membesar mengikuti lebar layar browser */
+        max-width: 520px; /* Batas maksimum pelebaran yang ideal agar tidak terlalu raksasa */
+        padding: 32px;
     }
 }
 
@@ -179,7 +179,7 @@ body {
 .btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
 /* ==========================================
-   VOLUME & LYRICS (AUTO-SCROLL)
+   VOLUME & LYRICS (ANTI TERPOTONG DI PINGGIR)
    ========================================== */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
@@ -188,14 +188,14 @@ body {
 .lyrics-container {
     max-height: 160px;
     overflow-y: hidden;
-    margin-bottom: 20px; /* Merapatkan gap bawah sedikit */
+    margin-bottom: 20px;
     position: relative;
+    padding: 0 12px; /* Memberi ruang batas aman di sisi kiri & kanan agar lirik tidak menempel border */
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
 }
 
 #lyricsWrapper {
-    /* PERBAIKAN: Mengurangi padding atas (dari 40px jadi 15px) agar lirik terangkat naik lebih dekat ke kontrol volume */
     padding: 15px 0 40px 0; 
     text-align: center;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -208,10 +208,15 @@ body {
     padding: 8px 0;
     cursor: pointer;
     transition: color 0.3s, transform 0.3s;
+    
+    /* FIX PERBAIKAN UTAMA: Mengizinkan teks lirik panjang melipat ke bawah secara otomatis jika tidak muat */
+    white-space: normal; 
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 .lyric-line.active {
     color: var(--text-main);
-    transform: scale(1.08);
+    transform: scale(1.05); /* Skala perkecil sedikit dari 1.08 agar kalimat multi-baris tetap aman */
 }
 
 /* ==========================================
@@ -244,4 +249,4 @@ body {
 .watermark a:hover { 
     filter: brightness(1.2);
     text-decoration: underline !important; 
-   }
+}
