@@ -1,16 +1,16 @@
-[
-  {
-    "id": "track_1",
-    "title": "Dialogue",
-    "artist": "Blood The Face",
-    "src": "music/Dialogue - Blood The Face.mp3",
-    "cover": "cover/Blood The Face - Dialogue.jpg"
-  },
-  {
-    "id": "track_2",
-    "title": "Where My Dreams Are Made Of Gold",
-    "artist": "A Reason To Breathe",
-    "src": "music/Where My Dreams Are Made Of Gold - A Reason To Breathe.mp3",
-    "cover": "cover/A Reason To Breathe - Where My Dreams Are Made Of Gold.jpg"
-  }
-]
+{
+  "playlist": [
+    {
+      "title": "Where My Dreams Are Made Of Gold",
+      "artist": "A Reason To Breathe",
+      "src": "music/Where My Dreams Are Made Of Gold - A Reason To Breathe.mp3",
+      "cover": "cover/A Reason To Breathe - Where My Dreams Are Made Of Gold.jpg"
+    },
+    {
+      "title": "Dialogue",
+      "artist": "Blood The Face",
+      "src": "music/Dialogue - Blood The Face.mp3",
+      "cover": "cover/Blood The Face - Dialogue.jpg"
+    }
+  ]
+}
