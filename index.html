@@ -3,38 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Breakdowns Web Player</title>
+    <title>Breakdowns Music</title>
+    <!-- Favicon Baru -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- File CSS Utama -->
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* Tambahan style khusus untuk watermark Hafitz */
-        .watermark {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 20px;
-            letter-spacing: 0.5px;
-            transition: color 0.2s;
-        }
-        .watermark:hover {
-            color: var(--spotify-green);
-        }
-    </style>
 </head>
 <body>
 
     <div class="player-container">
-        <!-- 1. Gambar Cover Album -->
+        <!-- 1. Gambar Cover Album + Visualizer Bersatu di Sini -->
         <div class="cover-wrapper">
             <img id="trackCover" src="https://via.placeholder.com/300" alt="Cover Album">
+            <canvas id="visualizer"></canvas>
         </div>
 
         <!-- 2. Informasi Lagu & Tombol Favorit -->
         <div class="track-header">
             <div class="track-info">
-                <!-- Wrapper Khusus Animasi Judul Panjang Berjalan -->
                 <div class="marquee-container">
                     <h2 id="trackTitle">Memuat Judul...</h2>
                 </div>
@@ -56,7 +43,7 @@
             </div>
         </div>
 
-        <!-- 4. Kontrol Musik (Shuffle, Prev, Play/Pause, Next, Repeat) -->
+        <!-- 4. Kontrol Musik (Perbaikan Tombol Play) -->
         <div class="controls-area">
             <button id="shuffleBtn" class="btn-control">
                 <span class="material-icons">shuffle</span>
@@ -65,7 +52,7 @@
                 <span class="material-icons">skip_previous</span>
             </button>
             <button id="playBtn" class="btn-control btn-play-pause">
-                <span id="playIcon" class="material-icons" style="font-size: 2.2rem;">play_arrow</span>
+                <span id="playIcon" class="material-icons">play_arrow</span>
             </button>
             <button id="nextBtn" class="btn-control">
                 <span class="material-icons">skip_next</span>
@@ -82,33 +69,25 @@
             <span class="material-icons" style="font-size: 1.2rem;">volume_up</span>
         </div>
 
-        <!-- 6. Canvas Efek Audio Visualizer -->
-        <div class="visualizer-container">
-            <canvas id="visualizer"></canvas>
-        </div>
-
-        <!-- 7. Panel Teks Lirik Otomatis -->
+        <!-- 6. Panel Teks Lirik Otomatis (Perbaikan Struktur) -->
         <div id="lyricsContainer" class="lyrics-container">
             <div id="lyricsWrapper"></div>
         </div>
 
-        <!-- 8. Kotak Pencarian & Daftar Putar Lagu -->
+        <!-- 7. Kotak Pencarian & Daftar Putar Lagu -->
         <input type="text" id="searchBar" class="search-box" placeholder="Cari lagu atau artis...">
-        <div id="playlist" class="playlist-container">
-            <!-- Daftar lagu akan dirender otomatis oleh JS -->
-        </div>
+        <div id="playlist" class="playlist-container"></div>
 
-        <!-- 9. Watermark Kredit Pembuat -->
+        <!-- 8. Watermark Kredit Pembuat -->
         <div class="watermark">
-            Made with ♥️ by <a href="https://hafitz.eu.org" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; transition: color 0.2s;">Hafitz</a>
+            Made with ♥️ by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
         </div>
     </div>
 
-    <!-- Audio Element Utama -->
     <audio id="mainAudio" crossorigin="anonymous"></audio>
 
-    <!-- File JavaScript (Dibagi dua agar aman dan tidak gampang terpotong sistem) -->
     <script src="app.js"></script>
     <script src="media.js"></script>
 </body>
-</html>
+    </html>
+    
