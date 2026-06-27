@@ -4,16 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Breakdowns Music</title>
-    <!-- Pastikan link stylesheet mengarah ke file style.css yang sudah diupdate -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Background Blur -->
     <div class="bg-blur" id="bgBlur"></div>
 
-    <!-- Main Player Card -->
     <div class="player-card">
         <div class="cover-container">
             <img id="trackCover" src="placeholder.jpg" alt="Cover Album">
@@ -28,6 +25,7 @@
             <div class="progress-bar-container" id="progressContainer">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
+            <!-- Hanya ada satu blok timestamp di sini -->
             <div class="time-stamps">
                 <span id="currentTime">0:00</span>
                 <span id="duration">0:00</span>
@@ -48,17 +46,13 @@
             </div>
         </div>
 
-        <div id="playlist">
-            <!-- Playlist akan diisi oleh app.js -->
-        </div>
+        <div id="playlist"></div>
     </div>
 
-    <!-- Footer Credit -->
     <footer class="footer-credit">
         Build with ♥️ by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
     </footer>
 
-    <!-- Audio & Script -->
     <audio id="mainAudio"></audio>
     <script src="app.js"></script>
 </body>
