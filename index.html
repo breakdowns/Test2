@@ -8,14 +8,17 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
+
     <div class="player-card">
         <div class="cover-container">
-            <img id="trackCover" src="cover.jpg" alt="Cover Album">
+            <img id="trackCover" src="" alt="Cover Album">
         </div>
+        
         <div class="track-info">
             <h2 id="trackTitle">Memuat...</h2>
-            <p id="trackArtist">Menunggu...</p>
+            <p id="trackArtist">-</p>
         </div>
+
         <div class="progress-section">
             <div class="progress-bar-container" id="progressContainer">
                 <div class="progress-bar" id="progressBar"></div>
@@ -25,16 +28,28 @@
                 <span id="duration">0:00</span>
             </div>
         </div>
+
         <div class="controls-main">
-            <div class="btn-icon" id="prevBtn"><span class="material-icons">skip_previous</span></div>
-            <div class="btn-icon" id="playBtn"><span class="material-icons" id="playIcon">play_arrow</span></div>
-            <div class="btn-icon" id="nextBtn"><span class="material-icons">skip_next</span></div>
+            <button class="btn-icon" id="prevBtn"><span class="material-icons">skip_previous</span></button>
+            <button class="btn-icon" id="playBtn"><span class="material-icons" id="playIcon">play_arrow</span></button>
+            <button class="btn-icon" id="nextBtn"><span class="material-icons">skip_next</span></button>
         </div>
+
+        <div class="controls-utility-row">
+            <button class="btn-icon btn-small" id="shuffleBtn"><span class="material-icons">shuffle</span></button>
+            <button class="btn-icon btn-small" id="repeatBtn"><span class="material-icons">repeat</span></button>
+            <div class="volume-inline-container">
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+            </div>
+        </div>
+
         <div id="playlist"></div>
     </div>
+
     <footer class="footer-credit">
         Build with ♥️ by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
     </footer>
+
     <audio id="mainAudio"></audio>
     <script src="app.js"></script>
 </body>
