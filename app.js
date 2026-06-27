@@ -61,37 +61,40 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // --- FIX UTAMA: Efek Fade-Out Lirik Lama Terlebih Dahulu ---
+    // 1. BUANG LIRIK LAMA: Buat memudar hilang secara visual terlebih dahulu
     lyricsContainer.style.opacity = '0';
     
-    // Tunggu 200ms sampai lirik lama benar-benar pudar sempurna dari layar
-    setTimeout(() => {
-        lyricsWrapper.style.transition = 'none';
-        lyricsWrapper.style.transform = 'translateY(0px)';
-        lyricsWrapper.innerHTML = ''; 
-
-        if (track.lyricsSrc) {
-            fetch(track.lyricsSrc)
-                .then(res => res.text())
-                .then(text => { 
-                    parsedLyrics = parseLRC(text); 
-                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                    
-                    lyricsContainer.style.display = "block"; 
-                    // Memaksa browser menghitung ulang layout sebelum transisi diaktifkan lagi
-                    void lyricsWrapper.offsetWidth; 
-                    
-                    // Fade-in lirik baru secara halus di posisi awal yang benar
-                    lyricsContainer.style.opacity = '1';
-                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                })
-                .catch(() => {
-                    lyricsContainer.style.display = "none";
-                });
-        } else { 
-            lyricsContainer.style.display = "none"; 
-        }
-    }, 200); // Durasi delay sinkron dengan transisi CSS (.lyrics-container)
+    // 2. AMBIL DATA LIRIK BARU SECARA PARALEL (ANTI BALAPAN DATA/RACE CONDITION)
+    if (track.lyricsSrc) {
+        fetch(track.lyricsSrc)
+            .then(res => res.text())
+            .then(text => { 
+                // KUNCI UTAMA: Hanya hapus dan render DOM saat file lirik benar-benar selesai diunduh
+                lyricsWrapper.style.transition = 'none';
+                lyricsWrapper.style.transform = 'translateY(0px)';
+                lyricsWrapper.innerHTML = ''; 
+                
+                parsedLyrics = parseLRC(text); 
+                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                
+                lyricsContainer.style.display = "block"; 
+                void lyricsWrapper.offsetWidth; // Memaksa browser me-reset siklus render gaya (reflow)
+                
+                // Tampilkan lirik baru dengan efek transisi pudar naik yang 100% konsisten smooth
+                lyricsContainer.style.opacity = '1';
+                lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            })
+            .catch(() => {
+                lyricsWrapper.innerHTML = '';
+                lyricsContainer.style.display = "none";
+            });
+    } else { 
+        // Jika lagu tidak memiliki lirik, bersihkan wadahnya setelah efek transisi pudar selesai
+        setTimeout(() => {
+            lyricsWrapper.innerHTML = '';
+            lyricsContainer.style.display = "none";
+        }, 200);
+    }
     
     const isFav = favorites.includes(track.src);
     favoriteBtn.classList.toggle('active', isFav); 
@@ -309,4 +312,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                  }
+          }
+              
