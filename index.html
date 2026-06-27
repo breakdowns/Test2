@@ -8,15 +8,17 @@
     <!-- Favicon Logo Website -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
     
-    <!-- Menggunakan cache buster v=4 untuk memaksa browser memuat pembaruan terbaru -->
-    <link rel="stylesheet" href="style.css?v=4">
+    <!-- Menggunakan cache buster v=5 -->
+    <link rel="stylesheet" href="style.css?v=5">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
     <div class="player-card">
+        <!-- VISUALIZER PINDAH KE DALAM SINI -->
         <div class="cover-container">
             <img id="trackCover" src="" alt="Cover Album">
+            <canvas id="visualizer"></canvas>
         </div>
         
         <div class="track-info">
@@ -34,9 +36,6 @@
             </div>
         </div>
 
-        <!-- BARU: Canvas untuk Audio Visualizer (Gelombang Suara) -->
-        <canvas id="visualizer"></canvas>
-
         <div class="controls-main">
             <button class="btn-icon" id="prevBtn"><span class="material-icons">skip_previous</span></button>
             <button class="btn-icon" id="playBtn"><span class="material-icons" id="playIcon">play_arrow</span></button>
@@ -51,12 +50,12 @@
             </div>
         </div>
 
-        <!-- BARU: Container Lirik Berjalan (Auto-Hide secara bawaan) -->
+        <!-- Container Lirik Berjalan -->
         <div id="lyricsContainer" class="lyrics-container">
             <div id="lyricsWrapper"></div>
         </div>
 
-        <!-- BARU: Search Bar Input di Atas Playlist -->
+        <!-- Search Bar Input -->
         <input type="text" id="searchBar" placeholder="Cari judul lagu atau musisi...">
 
         <div id="playlist"></div>
@@ -67,7 +66,6 @@
     </footer>
 
     <audio id="mainAudio"></audio>
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 </body>
-                                                                                  </html>
-                                                                                  
+</html>
