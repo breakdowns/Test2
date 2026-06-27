@@ -1,16 +1,16 @@
 [
   {
     "id": "track_1",
-    "title": "My Favorite Song",
-    "artist": "Awesome Artist",
-    "src": "music/music.mp3",
-    "cover": "cover/default.jpg"
+    "title": "Dialogue",
+    "artist": "Blood The Face",
+    "src": "music/Blood The Face - Dialogue.mp3",
+    "cover": "cover/Blood The Face - Dialogue.jpg"
   },
   {
     "id": "track_2",
-    "title": "Chill Vibe Track",
-    "artist": "Lofi Producer",
-    "src": "chill-vibe.mp3",
-    "cover": "chill-cover.jpg"
+    "title": "Where My Dreams Are Made Of Gold",
+    "artist": "A Reason To Breathe",
+    "src": "music/Where My Dreams Are Made Of Gold - A Reason To Breathe.mp3",
+    "cover": "cover/Where My Dreams Are Made Of Gold - A Reason To Breathe.jpg"
   }
 ]
