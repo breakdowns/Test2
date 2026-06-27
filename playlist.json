@@ -4,13 +4,15 @@
       "title": "Where My Dreams Are Made Of Gold",
       "artist": "A Reason To Breathe",
       "src": "music/Where My Dreams Are Made Of Gold - A Reason To Breathe.mp3",
-      "cover": "cover/A Reason To Breathe - Where My Dreams Are Made Of Gold.jpg"
+      "cover": "cover/A Reason To Breathe - Where My Dreams Are Made Of Gold.jpg",
+      "lyricsSrc": ""
     },
     {
       "title": "Dialogue",
       "artist": "Blood The Face",
       "src": "music/Dialogue - Blood The Face.mp3",
-      "cover": "cover/Blood The Face - Dialogue.jpg"
+      "cover": "cover/Blood The Face - Dialogue.jpg",
+      "lyricsSrc": ""
     }
   ]
 }
