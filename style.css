@@ -1,3 +1,6 @@
+/* ==========================================
+   GLOBAL STYLES & VARIABLES
+   ========================================== */
 :root {
     --spotify-green: #1ed760;
     --background-base: #121212;
@@ -40,7 +43,9 @@ body {
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
 }
 
-/* COVER & VISUALIZER STACK */
+/* ==========================================
+   COVER & VISUALIZER STACK
+   ========================================== */
 .cover-wrapper {
     width: 100%;
     aspect-ratio: 1/1;
@@ -48,7 +53,7 @@ body {
     overflow: hidden;
     margin-bottom: 24px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    position: relative; /* Wajib untuk absolute placement */
+    position: relative; /* Menumpuk gambar dan canvas */
 }
 
 .cover-wrapper img {
@@ -57,18 +62,20 @@ body {
     object-fit: cover;
 }
 
-/* Canvas Visualizer ditaruh menempel di bagian bawah cover album secara transparan */
+/* Canvas Visualizer menempel transparan di area bawah cover album */
 #visualizer {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 30%; /* Mengisi 30% area bawah cover album */
+    height: 30%; /* Mengisi 30% area bawah foto cover */
     background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
-    pointer-events: none; /* Supaya cover tetap bisa di-klik jika ada event */
+    pointer-events: none;
 }
 
-/* TRACK INFO & MARQUEE */
+/* ==========================================
+   TRACK INFO & MARQUEE SPOTIFY
+   ========================================== */
 .track-header {
     display: flex;
     justify-content: space-between;
@@ -124,7 +131,9 @@ body {
 }
 .btn-fav.active { color: var(--spotify-green); }
 
-/* CONTROLS & PROGRESS */
+/* ==========================================
+   CONTROLS & PROGRESS BAR
+   ========================================== */
 .progress-area { margin-bottom: 24px; }
 .progress-bar-container { width: 100%; height: 4px; background-color: #4f4f4f; border-radius: 2px; cursor: pointer; margin-bottom: 8px; }
 .progress-bar { height: 100%; width: 0%; background-color: var(--text-main); border-radius: 2px; }
@@ -137,32 +146,39 @@ body {
 .btn-control:active { transform: scale(0.95); }
 .btn-control.active { color: var(--spotify-green); }
 
-/* FIX TOMBOL PLAY: Menambahkan tata letak flex agar icon di tengah dan kontras hitam */
+/* FIX TOMBOL PLAY ANTI INVERSI WARNA BROWSER */
 .btn-play-pause {
-    background-color: var(--text-main);
-    color: #121212 !important; /* Memaksa warna ikon menjadi hitam gelap */
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    color-scheme: only light !important; /* Mencegah pembalikan paksa oleh Force Dark Mode */
     width: 56px;
     height: 56px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
 }
 .btn-play-pause .material-icons {
     font-size: 2.2rem;
     color: #121212 !important;
+    color-scheme: only light !important;
 }
 .btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
-/* VOLUME */
+/* ==========================================
+   VOLUME & LYRICS (AUTO-SCROLL TENGAH HALUS)
+   ========================================== */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); }
 
-/* FIX LYRICS CONTAINER */
 .lyrics-container {
     max-height: 160px;
-    overflow-y: hidden; /* Mengunci manual scroll luar agar tidak tabrakan dengan script auto-scroll */
+    overflow-y: hidden; /* Mengunci manual scroll agar transisi JS mulus */
     margin-bottom: 24px;
     position: relative;
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
@@ -170,7 +186,7 @@ body {
 }
 
 #lyricsWrapper {
-    padding: 40px 0; /* Padding atas bawah memberi ruang baris lirik agar berada pas di tengah */
+    padding: 40px 0; /* Memberikan ruang baca di tengah */
     text-align: center;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -188,11 +204,14 @@ body {
     transform: scale(1.08);
 }
 
-/* PLAYLIST & SEARCH & WATERMARK */
+/* ==========================================
+   PLAYLIST & SEARCH & WATERMARK HAFITZ
+   ========================================== */
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 .playlist-container { max-height: 180px; overflow-y: auto; }
 .playlist-container::-webkit-scrollbar { width: 4px; }
 .playlist-container::-webkit-scrollbar-thumb { background: #4f4f4f; border-radius: 2px; }
+
 .track-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
 .track-item:hover { background-color: rgba(255, 255, 255, 0.05); }
 .track-item.active { background-color: rgba(30, 215, 96, 0.15); }
@@ -202,3 +221,4 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: inherit; text-decoration: none; font-weight: bold; transition: color 0.2s; }
 .watermark a:hover { color: var(--spotify-green) !important; text-decoration: underline !important; }
+    
