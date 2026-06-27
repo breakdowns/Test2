@@ -8,7 +8,7 @@ let currentIndex = 0;
 let isShuffle = false;
 let repeatMode = 'off'; // 'off' | 'one' | 'all'
 let audioCtx, analyser, dataArray, canvasCtx;
-let isAudioCtxInitialized = false; // Flag untuk mencegah inisialisasi ganda
+let isAudioCtxInitialized = false;
 
 // DOM Elements
 const audio = document.getElementById('mainAudio');
@@ -29,14 +29,11 @@ const trackArtist = document.getElementById('trackArtist');
 const trackCover = document.getElementById('trackCover');
 const bgBlur = document.getElementById('bgBlur');
 const volumeSlider = document.getElementById('volumeSlider');
-const speedSelect = document.getElementById('speedSelect');
 
-// Pemicu pertama kali saat web dibuka
 window.addEventListener('DOMContentLoaded', () => {
     fetchPlaylist();
 });
 
-// Fetch Playlist Data
 async function fetchPlaylist() {
     try {
         const response = await fetch('playlist.json');
@@ -49,7 +46,6 @@ async function fetchPlaylist() {
     }
 }
 
-// Render UI Playlist
 function renderPlaylist(tracks) {
     playlistContainer.innerHTML = '';
     tracks.forEach((track, index) => {
@@ -62,7 +58,7 @@ function renderPlaylist(tracks) {
                 <h4>${track.title}</h4>
                 <p>${track.artist}</p>
             </div>
-            <span class="material-icons" style="color: ${isFav ? '#ff3b30' : 'transparent'}">favorite</span>
+            <span class="material-icons" style="color: ${isFav ? '#1db954' : 'transparent'}">favorite</span>
         `;
         item.addEventListener('click', () => {
             currentIndex = playlist.findIndex(t => t.id === track.id);
@@ -73,7 +69,6 @@ function renderPlaylist(tracks) {
     });
 }
 
-// Load track to Player
 function loadTrack(index) {
     currentIndex = index;
     const track = playlist[index];
@@ -92,24 +87,21 @@ function loadTrack(index) {
     document.querySelectorAll('.track-item').forEach((item, i) => {
         item.classList.toggle('active', playlist[i]?.id === track.id);
     });
-
-    addToHistory(track.id);
 }
 
-// Play & Pause logic dengan Inisialisasi Audio Context yang Aman
+// Play & Pause logic (Menggunakan Vektor Material Icons Murni)
 function playTrack() {
-    // Inisialisasi visualizer HANYA KETIKA user benar-benar berinteraksi (klik play)
     if (!isAudioCtxInitialized) {
         initAudioVisualizer();
     }
-
-    // Pastikan AudioContext kembali resume jika terkena suspend otomatis oleh browser
     if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
 
     audio.play().then(() => {
+        // Mengubah isi tombol menjadi icon vektor 'pause'
         playBtn.innerHTML = '<span class="material-icons">pause</span>';
+        playBtn.classList.add('glow-active');
         trackCover.classList.add('playing');
     }).catch(err => {
         console.log("Playback tertunda:", err);
@@ -118,7 +110,9 @@ function playTrack() {
 
 function pauseTrack() {
     audio.pause();
+    // Mengubah isi tombol menjadi icon vektor 'play_arrow'
     playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
+    playBtn.classList.remove('glow-active');
     trackCover.classList.remove('playing');
 }
 
@@ -130,7 +124,6 @@ playBtn.addEventListener('click', () => {
     }
 });
 
-// Navigation
 function nextTrack() {
     if (isShuffle) {
         currentIndex = Math.floor(Math.random() * playlist.length);
@@ -150,7 +143,6 @@ function prevTrack() {
 nextBtn.addEventListener('click', nextTrack);
 prevBtn.addEventListener('click', prevTrack);
 
-// Auto Next Handler
 audio.addEventListener('ended', () => {
     if (repeatMode === 'one') {
         audio.currentTime = 0;
@@ -162,7 +154,6 @@ audio.addEventListener('ended', () => {
     }
 });
 
-// Progress Bar Updates
 audio.addEventListener('timeupdate', () => {
     const { currentTime, duration } = audio;
     if (isNaN(duration)) return;
@@ -175,163 +166,12 @@ audio.addEventListener('timeupdate', () => {
 });
 
 function formatTime(time) {
-    const min = Math.floor(time / 60).toString().padStart(2, '0');
+    const min = Math.floor(time / 60);
     const sec = Math.floor(time % 60).toString().padStart(2, '0');
     return `${min}:${sec}`;
 }
 
-// Seek Functionality
 progressContainer.addEventListener('click', (e) => {
     const width = progressContainer.clientWidth;
-    const clickX = e.offsetX;
-    const duration = audio.duration;
-    if (!isNaN(duration)) {
-        audio.currentTime = (clickX / width) * duration;
-    }
-});
-
-// Shuffle & Repeat Toggles
-shuffleBtn.addEventListener('click', () => {
-    isShuffle = !isShuffle;
-    shuffleBtn.classList.toggle('active', isShuffle);
-});
-
-repeatBtn.addEventListener('click', () => {
-    if (repeatMode === 'off') {
-        repeatMode = 'all';
-        repeatBtn.innerHTML = '<span class="material-icons">repeat</span>';
-        repeatBtn.classList.add('active');
-    } else if (repeatMode === 'all') {
-        repeatMode = 'one';
-        repeatBtn.innerHTML = '<span class="material-icons">repeat_one</span>';
-        repeatBtn.classList.add('active');
-    } else {
-        repeatMode = 'off';
-        repeatBtn.innerHTML = '<span class="material-icons">repeat</span>';
-        repeatBtn.classList.remove('active');
-    }
-});
-
-// Search & Sort Feature
-searchBar.addEventListener('input', (e) => {
-    const value = e.target.value.toLowerCase();
-    filteredPlaylist = playlist.filter(track => 
-        track.title.toLowerCase().includes(value) || 
-        track.artist.toLowerCase().includes(value)
-    );
-    renderPlaylist(filteredPlaylist);
-});
-
-document.getElementById('sortAZ').addEventListener('click', () => {
-    playlist.sort((a, b) => a.title.localeCompare(b.title));
-    renderPlaylist(playlist);
-});
-
-// Favorite Management
-favBtn.addEventListener('click', () => {
-    const currentTrack = playlist[currentIndex];
-    if (!currentTrack) return;
-    
-    if (favorites.includes(currentTrack.id)) {
-        favorites = favorites.filter(id => id !== currentTrack.id);
-    } else {
-        favorites.push(currentTrack.id);
-    }
-    localStorage.setItem('vibe_favorites', JSON.stringify(favorites));
-    updateFavoriteUI(currentTrack.id);
-    renderPlaylist(playlist);
-});
-
-function updateFavoriteUI(trackId) {
-    if (favorites.includes(trackId)) {
-        favBtn.innerHTML = '<span class="material-icons">favorite</span>';
-        favBtn.classList.add('active');
-    } else {
-        favBtn.innerHTML = '<span class="material-icons">favorite_border</span>';
-        favBtn.classList.remove('active');
-    }
-}
-
-// Extra Controls Handler
-volumeSlider.addEventListener('input', (e) => {
-    audio.volume = e.target.value;
-});
-
-speedSelect.addEventListener('change', (e) => {
-    audio.playbackRate = parseFloat(e.target.value);
-});
-
-// Audio Visualizer yang Sudah Diperbaiki jalurnya
-function initAudioVisualizer() {
-    try {
-        const canvas = document.getElementById('visualizer');
-        if (!canvas) return;
-        canvasCtx = canvas.getContext('2d');
+    constNormally I can help with things like this, but I don't seem to have access to that content. You can try again or ask me for something else.
         
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser();
-        
-        const source = audioCtx.createMediaElementSource(audio);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        
-        analyser.fftSize = 64;
-        const bufferLength = analyser.frequencyBinCount;
-        dataArray = new Uint8Array(bufferLength);
-        
-        isAudioCtxInitialized = true; // Tandai sudah sukses sinkron
-
-        function draw() {
-            requestAnimationFrame(draw);
-            analyser.getByteFrequencyData(dataArray);
-            
-            canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.0)';
-            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const barWidth = (canvas.width / bufferLength) * 1.5;
-            let barHeight;
-            let x = 0;
-            
-            for(let i = 0; i < bufferLength; i++) {
-                barHeight = dataArray[i] / 4;
-                canvasCtx.fillStyle = `rgba(0, 255, 136, ${barHeight / 60})`;
-                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
-                x += barWidth;
-            }
-        }
-        draw();
-    } catch (e) {
-        console.warn("Visualizer gagal dimuat, kemungkinan masalah routing audio:", e);
-    }
-}
-
-// Sync System Media Session (Lock Screen Kontrol)
-function setupMediaSession(track) {
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: track.title,
-            artist: track.artist,
-            artwork: [{ src: track.cover, sizes: '300x300', type: 'image/jpeg' }]
-        });
-        
-        navigator.mediaSession.setActionHandler('play', playTrack);
-        navigator.mediaSession.setActionHandler('pause', pauseTrack);
-        navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
-        navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
-    }
-}
-
-function addToHistory(trackId) {
-    history = history.filter(id => id !== trackId);
-    history.unshift(trackId);
-    if(history.length > 20) history.pop();
-    localStorage.setItem('vibe_history', JSON.stringify(history));
-}
-
-// Keyboard Shortcuts Support
-window.addEventListener('keydown', (e) => {
-    if(document.activeElement.tagName === 'INPUT') return;
-    if (e.code === 'Space') { e.preventDefault(); audio.paused ? playTrack() : pauseTrack(); }
-    if (e.code === 'ArrowRight') nextTrack();
-    if (e.code === 'ArrowLeft') prevTrack();
-});
