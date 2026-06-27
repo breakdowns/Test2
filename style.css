@@ -1,10 +1,10 @@
 :root {
-    --spotify-black: #121212;
-    --spotify-dark-grey: #181818;
-    --spotify-grey: #b3b3b3;
+    --bg-main: #0c0f12;
+    --card-gradient: linear-gradient(135deg, #152019 0%, #101417 100%);
     --spotify-green: #1db954;
-    --glow-green-semi: rgba(29, 185, 84, 0.2);
-    --text-main: #ffffff;
+    --btn-green: #1ed760;
+    --text-muted: #9ca3af;
+    --timeline-blue: #1d72fe;
 }
 
 * {
@@ -12,169 +12,242 @@
     font-family: 'Inter', sans-serif; user-select: none;
 }
 
-/* Base Body dengan Scroll Aktif */
 body {
-    background-color: var(--spotify-black);
-    color: var(--text-main);
+    background-color: var(--bg-main);
+    color: #ffffff;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     overflow-y: auto;
-    overflow-x: hidden;
+    padding: 20px 0;
 }
 
-body::-webkit-scrollbar {
-    width: 6px;
-}
-body::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-}
-
-/* Background Blur Mewah ala Spotify Premium */
 .bg-blur {
-    position: fixed;
-    top: -10%; left: -10%; width: 120%; height: 120%;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: -2; background-size: cover; background-position: center;
-    filter: blur(50px) brightness(0.25);
-    transition: background-image 0.8s ease-in-out;
+    filter: blur(80px) brightness(0.15);
 }
 
-.bg-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: -1;
-    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.2) 0%, var(--spotify-black) 100%);
-}
-
-/* Container Responsif Tengah */
 .container {
     width: 100%;
-    max-width: 450px;
-    margin: 0 auto;
+    max-width: 420px;
+    padding: 0 15px;
     display: flex;
     flex-direction: column;
+    gap: 25px;
 }
 
-/* ================================
-   PLAYER CARD (SATU Halaman Penuh)
-   ================================ */
-.main-player {
-    height: 100vh; /* Memaksa player pas memenuhi 1 layar penuh */
-    padding: 25px 25px 15px 25px;
+/* =======================================
+   PLAYER CARD (Eksklusif Sesuai Gambar)
+   ======================================= */
+.player-card {
+    background: var(--card-gradient);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 40px; /* Lengkungan sudut estetik tebal */
+    padding: 30px 25px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Menyebar komponen dari atas ke bawah */
     align-items: center;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
 }
 
-.player-header {
-    display: flex; justify-content: space-between; align-items: center;
-    width: 100%; color: var(--spotify-grey);
-}
-.player-header span { font-size: 1.3rem; cursor: pointer; }
-.header-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; }
-
-/* Cover Album Kotak Sempurna & Besar */
-.cover-wrapper {
-    position: relative; 
-    width: 100%; 
-    aspect-ratio: 1 / 1; /* Membuatnya kotak sempurna mengikuti lebar HP */
-    max-width: 340px;
-    margin: 15px 0;
+/* Container Cover & Efek Bayangan */
+.cover-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    margin-bottom: 30px;
 }
 
 .track-cover {
-    width: 100%; height: 100%; border-radius: 8px; object-fit: cover;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    width: 100%;
+    height: 100%;
+    border-radius: 24px;
+    object-fit: cover;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+    transform: rotate(-1deg); /* Sedikit aksen rotasi dinamis seperti gambar */
 }
 
 .visualizer-canvas {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 35px;
-    pointer-events: none; opacity: 0.6; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
+    pointer-events: none; opacity: 0.5; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
 }
 
-/* Info Lagu (Judul Kiri, Fav Kanan) */
-.track-info {
-    display: flex; align-items: center; justify-content: space-between;
-    width: 100%; padding: 0 5px;
+/* Bagian Teks Judul */
+.track-meta {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 25px;
+    padding-left: 5px;
 }
 
-.title-wrapper { overflow: hidden; max-width: 85%; text-align: left; width: 100%; }
-.title-wrapper h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-bottom: 4px; }
-.title-wrapper p { color: var(--spotify-grey); font-size: 0.95rem; font-weight: 500; }
-
-.btn-fav { background: none; border: none; color: var(--text-main); cursor: pointer; display: flex; align-items: center; }
-.btn-fav span { font-size: 1.6rem; }
-.btn-fav.active { color: var(--spotify-green); }
-
-/* Progress Bar Timeline */
-.progress-area { width: 100%; padding: 0 5px; }
-.progress-bar-container { width: 100%; height: 4px; background: rgba(255,255,255,0.15); border-radius: 4px; cursor: pointer; position: relative; margin-bottom: 8px; }
-.progress-bar { height: 100%; width: 0%; background: var(--text-main); border-radius: 4px; position: relative; }
-.progress-knob { position: absolute; right: -5px; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); opacity: 0; transition: opacity 0.1s; }
-
-/* Hover effect mirip Spotify asli (berubah hijau & knob muncul) */
-.progress-bar-container:hover .progress-bar { background: var(--spotify-green); box-shadow: 0 0 5px var(--glow-green-semi); }
-.progress-bar-container:hover .progress-knob { opacity: 1; }
-
-.time-display { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--spotify-grey); }
-
-/* Tombol Kontrol Utama */
-.controls-area { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 5px; }
-.btn-control { background: none; border: none; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
-.btn-control span { font-size: 1.6rem; }
-.btn-control:active { transform: scale(0.95); }
-.btn-control:hover { color: #fff; }
-
-.icon-large span { font-size: 2.3rem; }
-.btn-main span { font-size: 4rem; color: var(--text-main); } /* Tombol play putih lingkaran besar khas Spotify */
-.btn-main:hover span { color: var(--text-main); transform: scale(1.03); }
-
-.toggle-btn.active { color: var(--spotify-green); }
-
-/* Extra Controls (Volume & Speed bawah) */
-.extra-controls { display: flex; justify-content: space-between; width: 100%; padding: 5px 5px 0 5px; }
-.volume-container, .speed-container { display: flex; align-items: center; gap: 6px; color: var(--spotify-grey); font-size: 0.8rem; }
-.volume-container input { accent-color: var(--text-main); width: 75px; height: 3px; cursor: pointer; }
-.speed-container select { background: transparent; border: none; color: var(--spotify-grey); padding: 2px; outline: none; cursor: pointer; font-weight: 600; }
-
-/* Petunjuk Scroll */
-.scroll-hint { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--spotify-grey); font-size: 0.7rem; letter-spacing: 0.5px; opacity: 0.6; animation: bounce 2s infinite; margin-top: 10px;}
-@keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } 60% { transform: translateY(-3px); } }
-
-/* ================================
-   PLAYLIST SECTION (DI BAWAH SCROLL)
-   ================================ */
-.sidebar {
-    background: var(--spotify-dark-grey);
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
-    padding: 25px 20px;
-    min-height: 50vh;
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+.track-meta h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
 }
 
-.sidebar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-.sidebar-header h3 { font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
+.track-meta p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
 
-.search-box { display: flex; align-items: center; background: #282828; border-radius: 8px; padding: 8px 12px; gap: 8px; flex: 1; }
-.search-box input { background: none; border: none; color: #fff; outline: none; width: 100%; font-size: 0.85rem; }
-.search-box input::placeholder { color: var(--spotify-grey); }
-.search-box span { font-size: 1.1rem; color: var(--spotify-grey); }
+/* Progress Timeline (Warna Biru + Putih) */
+.progress-section {
+    width: 100%;
+    margin-bottom: 30px;
+}
 
-.btn-sm { background: #282828; border: none; color: #fff; padding: 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; }
+.progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
 
-.playlist-container { display: flex; flex-direction: column; gap: 4px; }
+.progress-bar {
+    height: 100%;
+    width: 25%; /* Dikontrol JS */
+    background: var(--timeline-blue);
+    border-radius: 10px;
+    position: relative;
+}
 
-/* Item Daftar Lagu */
-.track-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
-.track-item:hover { background: rgba(255,255,255,0.05); }
+/* Knob lingkaran biru penunjuk progress */
+.progress-bar::after {
+    content: '';
+    position: absolute; right: -6px; top: -3px;
+    width: 12px; height: 12px;
+    background: var(--timeline-blue);
+    border-radius: 50%;
+}
 
-/* Highlight Hijau Spotify saat Lagu Aktif */
-.track-item.active { background: rgba(255,255,255,0.08); }
-.track-item.active .item-meta h4 { color: var(--spotify-green); }
+.time-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 0 2px;
+}
 
-.track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
-.item-meta { flex: 1; overflow: hidden; text-align: left; }
-.item-meta h4 { font-size: 0.9rem; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-bottom: 2px; }
-.item-meta p { font-size: 0.8rem; color: var(--spotify-grey); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
-              
+/* Tombol Bulat Hijau Sesuai Gambar */
+.main-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 35px;
+}
+
+.btn-round {
+    border: none;
+    background: var(--btn-green);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.btn-round:active { transform: scale(0.95); }
+
+.btn-side {
+    width: 60px; height: 60px;
+}
+.btn-side span { font-size: 1.8rem; }
+
+.btn-center {
+    width: 70px; height: 70px;
+    color: #ff9f0a; /* Warna orange pause seperti gambar referensi */
+}
+.btn-center span { font-size: 2.2rem; }
+
+/* Efek Glow Hijau di tombol tengah */
+.glow-active {
+    box-shadow: 0 0 25px rgba(30, 215, 96, 0.4);
+}
+
+/* Baris Utility Bawah */
+.bottom-utility {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 5px;
+}
+
+.btn-util {
+    background: none; border: none;
+    color: #ffffff; cursor: pointer;
+}
+.btn-util span { font-size: 1.6rem; }
+
+/* Status Aktif Orange Sesuai Gambar */
+.toggle-btn.active { color: #ff9f0a; }
+
+.volume-box {
+    flex: 1;
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.volume-box input {
+    width: 100%;
+    accent-color: var(--timeline-blue);
+    height: 4px;
+    cursor: pointer;
+}
+
+/* =======================================
+   PLAYLIST PLAYBACK (Bawah Card)
+   ======================================= */
+.playlist-section {
+    background: rgba(21, 32, 25, 0.6);
+    border-radius: 28px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.03);
+}
+
+.playlist-header {
+    display: flex; gap: 10px; margin-bottom: 15px;
+}
+
+.search-box {
+    display: flex; align-items: center; background: #1a231e;
+    border-radius: 10px; padding: 8px 12px; gap: 8px; flex: 1;
+}
+
+.search-box input {
+    background: none; border: none; color: #fff; outline: none; width: 100%;
+}
+
+.btn-sort {
+    background: #1a231e; border: none; color: #fff; padding: 8px 12px; border-radius: 10px; cursor: pointer;
+}
+
+.playlist-container {
+    max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+}
+
+.playlist-container::-webkit-scrollbar { width: 4px; }
+.playlist-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+.track-item {
+    display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 10px; cursor: pointer;
+}
+.track-item:hover { background: rgba(255,255,255,0.03); }
+.track-item.active { background: rgba(30, 215, 96, 0.15); }
+.track-item.active h4 { color: var(--btn-green); }
+
+.track-item img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; }
+.item-meta h4 { font-size: 0.9rem; font-weight: 600; }
+.item-meta p { font-size: 0.8rem; color: var(--text-muted); }
