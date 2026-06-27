@@ -1,0 +1,16 @@
+[
+  {
+    "id": "track_1",
+    "title": "My Favorite Song",
+    "artist": "Awesome Artist",
+    "src": "music/music.mp3",
+    "cover": "cover.jpg"
+  },
+  {
+    "id": "track_2",
+    "title": "Chill Vibe Track",
+    "artist": "Lofi Producer",
+    "src": "chill-vibe.mp3",
+    "cover": "chill-cover.jpg"
+  }
+]
