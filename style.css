@@ -32,7 +32,7 @@ body {
 }
 
 /* ==========================================
-   MAIN CONTAINER (RESPONSIVE PC & MOBILE)
+   MAIN CONTAINER (OPTIMIZED FOR DESKTOP MODE)
    ========================================== */
 .player-container {
     background-color: rgba(26, 26, 26, 0.75);
@@ -40,18 +40,19 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    max-width: 420px;
+    max-width: 420px; /* Ukuran default yang pas di genggaman layar HP portrait normal */
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
 }
 
+/* PERBAIKAN UTAMA: Ditingkatkan agar mode desktop di Android / PC terlihat jauh lebih besar dan lega */
 @media (min-width: 768px) {
     .player-container {
-        width: 85%;
-        max-width: 520px;
-        padding: 32px;
+        width: 65vw; /* Memanfaatkan 65% lebar viewport layar simulasi desktop */
+        max-width: 680px; /* Dinaikkan dari 520px ke 680px agar area playlist dan lirik makin luas */
+        padding: 36px;
     }
 }
 
@@ -194,7 +195,6 @@ body {
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     
     opacity: 1;
-    /* FIX: Durasi transisi pudar dikunci di 0.2 detik agar pas dengan jeda loading JS */
     transition: opacity 0.2s ease-in-out;
 }
 
@@ -251,5 +251,5 @@ body {
 .watermark a:hover { 
     filter: brightness(1.2);
     text-decoration: underline !important; 
-   }
-               
+                                }
+   
