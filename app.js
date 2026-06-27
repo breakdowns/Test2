@@ -58,7 +58,14 @@ function loadTrack(index) {
     
     parsedLyrics = []; 
     lyricsWrapper.innerHTML = ''; 
-    lyricsWrapper.style.transform = 'translateY(0px)'; // Reset posisi lirik
+    
+    // FIX: Matikan transisi efek geser lirik sesaat sewaktu memuat lagu baru agar tidak melompat kaku
+    lyricsWrapper.style.transition = 'none';
+    lyricsWrapper.style.transform = 'translateY(0px)';
+    setTimeout(() => {
+        lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+    }, 50);
+
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
@@ -292,4 +299,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                                              }
+              }
