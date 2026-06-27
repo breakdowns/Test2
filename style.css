@@ -1,6 +1,3 @@
-/* ==========================================
-   GLOBAL STYLES & VARIABLES
-   ========================================== */
 :root {
     --spotify-green: #1ed760;
     --background-base: #121212;
@@ -16,7 +13,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 }
 
 body {
@@ -31,9 +28,6 @@ body {
     transition: background 0.8s ease;
 }
 
-/* ==========================================
-   MAIN CONTAINER
-   ========================================== */
 .player-container {
     background-color: rgba(26, 26, 26, 0.75);
     backdrop-filter: blur(20px);
@@ -46,9 +40,7 @@ body {
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
 }
 
-/* ==========================================
-   TRACK ART / COVER
-   ========================================== */
+/* COVER & VISUALIZER STACK */
 .cover-wrapper {
     width: 100%;
     aspect-ratio: 1/1;
@@ -56,7 +48,7 @@ body {
     overflow: hidden;
     margin-bottom: 24px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    position: relative;
+    position: relative; /* Wajib untuk absolute placement */
 }
 
 .cover-wrapper img {
@@ -65,9 +57,18 @@ body {
     object-fit: cover;
 }
 
-/* ==========================================
-   TRACK INFO & ANIMASI MARQUEE SPOTIFY
-   ========================================== */
+/* Canvas Visualizer ditaruh menempel di bagian bawah cover album secara transparan */
+#visualizer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30%; /* Mengisi 30% area bawah cover album */
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+    pointer-events: none; /* Supaya cover tetap bisa di-klik jika ada event */
+}
+
+/* TRACK INFO & MARQUEE */
 .track-header {
     display: flex;
     justify-content: space-between;
@@ -77,24 +78,23 @@ body {
 
 .track-info {
     flex: 1;
-    overflow: hidden; /* Menyembunyikan teks luber */
+    overflow: hidden;
     position: relative;
     margin-right: 16px;
 }
 
-/* Container khusus teks judul agar animasi kalkulasi persentase akurat */
 .marquee-container {
     display: flex;
     width: max-content;
 }
 
 .track-info h2 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: var(--text-main);
     white-space: nowrap;
     display: inline-block;
-    padding-right: 50px; /* Jarak jeda loop antar teks */
+    padding-right: 50px;
     animation: marqueeSpotify 12s linear infinite;
 }
 
@@ -107,213 +107,98 @@ body {
     text-overflow: ellipsis;
 }
 
-/* Kunci Animasi Geser Kiri ala Spotify */
 @keyframes marqueeSpotify {
     0% { transform: translate3d(0, 0, 0); }
-    10% { transform: translate3d(0, 0, 0); } /* Diam sejenak di awal */
-    45% { transform: translate3d(-50%, 0, 0); } /* Geser separuh container */
-    55% { transform: translate3d(-50%, 0, 0); } /* Diam sejenak saat mentok kiri */
-    90% { transform: translate3d(0, 0, 0); } /* Kembali ke kanan */
+    10% { transform: translate3d(0, 0, 0); }
+    45% { transform: translate3d(-50%, 0, 0); }
+    55% { transform: translate3d(-50%, 0, 0); }
+    90% { transform: translate3d(0, 0, 0); }
     100% { transform: translate3d(0, 0, 0); }
 }
 
-/* Tombol Favorite */
 .btn-fav {
     background: none;
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    transition: color 0.2s;
 }
+.btn-fav.active { color: var(--spotify-green); }
 
-.btn-fav.active {
-    color: var(--spotify-green);
-}
+/* CONTROLS & PROGRESS */
+.progress-area { margin-bottom: 24px; }
+.progress-bar-container { width: 100%; height: 4px; background-color: #4f4f4f; border-radius: 2px; cursor: pointer; margin-bottom: 8px; }
+.progress-bar { height: 100%; width: 0%; background-color: var(--text-main); border-radius: 2px; }
+.progress-bar-container:hover .progress-bar { background-color: var(--spotify-green); }
+.time-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
 
-/* ==========================================
-   CONTROLS & PROGRESS BAR
-   ========================================== */
-.progress-area {
-    margin-bottom: 24px;
-}
-
-.progress-bar-container {
-    width: 100%;
-    height: 4px;
-    background-color: #4f4f4f;
-    border-radius: 2px;
-    cursor: pointer;
-    position: relative;
-    margin-bottom: 8px;
-}
-
-.progress-bar {
-    height: 100%;
-    width: 0%;
-    background-color: var(--text-main);
-    border-radius: 2px;
-    transition: background-color 0.1s;
-}
-
-.progress-bar-container:hover .progress-bar {
-    background-color: var(--spotify-green);
-}
-
-.time-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-/* Buttons Controls Layout */
-.controls-area {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.btn-control {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.2s, transform 0.1s;
-}
-
+.controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.btn-control { background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s, transform 0.1s; }
 .btn-control:hover { color: var(--text-main); }
 .btn-control:active { transform: scale(0.95); }
 .btn-control.active { color: var(--spotify-green); }
 
+/* FIX TOMBOL PLAY: Menambahkan tata letak flex agar icon di tengah dan kontras hitam */
 .btn-play-pause {
     background-color: var(--text-main);
-    color: #000000;
+    color: #121212 !important; /* Memaksa warna ikon menjadi hitam gelap */
     width: 56px;
     height: 56px;
     border-radius: 50%;
-}
-.btn-play-pause:hover {
-    background-color: #ffffff;
-    transform: scale(1.05);
-}
-
-/* ==========================================
-   VOLUME & VISUALIZER
-   ========================================== */
-.volume-area {
     display: flex;
     align-items: center;
-    gap: 12px;
-    color: var(--text-muted);
-    margin-bottom: 24px;
+    justify-content: center;
 }
+.btn-play-pause .material-icons {
+    font-size: 2.2rem;
+    color: #121212 !important;
+}
+.btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
-.volume-slider {
-    flex: 1;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 4px;
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-}
+/* VOLUME */
+.volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
+.volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
+.volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); }
 
-.volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--text-main);
-}
-
-.visualizer-container {
-    width: 100%;
-    height: 40px;
-    margin-bottom: 24px;
-}
-#visualizer {
-    width: 100%;
-    height: 100%;
-}
-
-/* ==========================================
-   LYRICS & PLAYLIST SECTION
-   ========================================== */
+/* FIX LYRICS CONTAINER */
 .lyrics-container {
-    max-height: 180px;
-    overflow-y: auto;
+    max-height: 160px;
+    overflow-y: hidden; /* Mengunci manual scroll luar agar tidak tabrakan dengan script auto-scroll */
     margin-bottom: 24px;
-    padding-right: 6px;
-    text-align: center;
-    scroll-behavior: smooth;
-    display: none;
+    position: relative;
+    mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
 }
 
-.lyrics-container::-webkit-scrollbar,
-.playlist-container::-webkit-scrollbar {
-    width: 4px;
-}
-.lyrics-container::-webkit-scrollbar-thumb,
-.playlist-container::-webkit-scrollbar-thumb {
-    background: #4f4f4f;
-    border-radius: 2px;
+#lyricsWrapper {
+    padding: 40px 0; /* Padding atas bawah memberi ruang baris lirik agar berada pas di tengah */
+    text-align: center;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .lyric-line {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: #6a6a6a;
-    padding: 6px 0;
+    color: rgba(255, 255, 255, 0.25);
+    padding: 8px 0;
+    cursor: pointer;
     transition: color 0.3s, transform 0.3s;
 }
 .lyric-line.active {
     color: var(--text-main);
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
-/* Playlist & Search */
-.search-box {
-    width: 100%;
-    background-color: var(--background-highlight);
-    border: 1px solid #3e3e3e;
-    padding: 10px 14px;
-    border-radius: 4px;
-    color: var(--text-main);
-    font-size: 0.85rem;
-    margin-bottom: 16px;
-    outline: none;
-}
-
-.playlist-container {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.track-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
+/* PLAYLIST & SEARCH & WATERMARK */
+.search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
+.playlist-container { max-height: 180px; overflow-y: auto; }
+.playlist-container::-webkit-scrollbar { width: 4px; }
+.playlist-container::-webkit-scrollbar-thumb { background: #4f4f4f; border-radius: 2px; }
+.track-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
 .track-item:hover { background-color: rgba(255, 255, 255, 0.05); }
 .track-item.active { background-color: rgba(30, 215, 96, 0.15); }
 .track-item.active strong { color: var(--spotify-green); }
+.track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
 
-.track-item img {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    object-fit: cover;
-                           }
-
-.watermark a:hover {
-    color: var(--spotify-green) !important;
-    text-decoration: underline !important;
-}
+.watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
+.watermark a { color: inherit; text-decoration: none; font-weight: bold; transition: color 0.2s; }
+.watermark a:hover { color: var(--spotify-green) !important; text-decoration: underline !important; }
