@@ -27,6 +27,7 @@ body {
     align-items: center;
     min-height: 100vh;
     padding: 20px;
+    overflow-x: hidden;
 }
 
 .bg-blur {
@@ -47,7 +48,7 @@ body {
    ======================================= */
 .player-card {
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     background: var(--card-gradient) !important;
     border-radius: 32px;
     padding: 24px;
@@ -110,7 +111,7 @@ body {
 }
 
 /* =======================================
-   PROGRESS TIMELINE & DURASI (SOLVED)
+   PROGRESS TIMELINE & DURASI
    ======================================= */
 .progress-section {
     width: 100%;
@@ -163,7 +164,7 @@ body {
 }
 
 /* =======================================
-   PLAYER CONTROLLER BUTTONS (FIX TOTAL!)
+   PLAYER CONTROLLER BUTTONS
    ======================================= */
 .controls-main {
     display: flex !important;
@@ -175,7 +176,6 @@ body {
     width: 100% !important;
 }
 
-/* Menggunakan inline-flex murni pada div agar kebal manipulasi kotak abu browser */
 .btn-icon {
     background: transparent !important;
     background-color: transparent !important;
@@ -206,7 +206,6 @@ body {
     transform: scale(0.92);
 }
 
-/* Tombol Bulat Tengah Hijau */
 #playBtn {
     width: 64px !important;
     height: 64px !important;
@@ -219,7 +218,6 @@ body {
     box-shadow: 0 6px 12px rgba(29, 185, 84, 0.3) !important;
 }
 
-/* Mengunci paksa agar warna icon play/pause di tengah tetap hitam */
 #playBtn .material-icons {
     font-size: 42px !important;
     color: #000000 !important; 
@@ -231,16 +229,16 @@ body {
 }
 
 /* =======================================
-   UTILITY BAR (SHUFFLE, REPEAT, VOLUME)
+   UTILITY BAR (SHUFFLE & REPEAT)
    ======================================= */
 .controls-utility {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 16px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     padding-top: 20px;
+    margin-bottom: 16px;
     width: 100%;
 }
 
@@ -256,12 +254,17 @@ body {
     color: var(--spotify-green) !important;
 }
 
+/* =======================================
+   VOLUME CONTAINER (STYLE LAMA)
+   ======================================= */
 .volume-container {
     display: flex !important;
     align-items: center !important;
-    gap: 8px;
-    flex-grow: 1;
-    max-width: 140px;
+    justify-content: center !important;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 24px;
+    padding: 0 10px;
 }
 
 .volume-container .material-icons {
@@ -270,45 +273,23 @@ body {
 }
 
 #volumeSlider {
-    width: 100%;
+    flex-grow: 1;
     height: 4px;
     accent-color: var(--timeline-blue);
     cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
 }
 
 /* =======================================
-   SEARCH, SORT, & PLAYLIST CONTAINER
-   ====================================== */
-.search-sort-row {
-    display: flex;
-    gap: 10px;
-    margin: 20px 0 12px 0;
-}
-
-#searchBar {
-    flex-grow: 1;
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 10px 14px;
-    border-radius: 12px;
-    color: #fff;
-    outline: none;
-    font-size: 0.9rem;
-}
-
-#sortAZ {
-    background: rgba(255, 255, 255, 0.07);
-    border: none;
-    color: #fff;
-    padding: 0 14px;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
+   PLAYLIST CONTAINER
+   ======================================= */
 #playlist {
-    max-height: 180px;
+    max-height: 200px;
     overflow-y: auto;
     padding-right: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 12px;
 }
 
 #playlist::-webkit-scrollbar {
@@ -324,8 +305,8 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px;
-    border-radius: 10px;
+    padding: 10px;
+    border-radius: 12px;
     cursor: pointer;
     margin-bottom: 6px;
     transition: background 0.2s;
@@ -341,19 +322,43 @@ body {
 }
 
 .track-item img {
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
     object-fit: cover;
 }
 
 .item-meta h4 {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
+    color: var(--text-pure);
 }
 
 .item-meta p {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
-   }
-   
+    margin-top: 2px;
+}
+
+/* =======================================
+   RESPONSIVE OPTIMIZATION (DESKTOP MODE)
+   ======================================= */
+@media (min-width: 769px) {
+    body {
+        padding: 40px;
+    }
+    
+    .player-card {
+        max-width: 450px; /* Sedikit lebih lebar di desktop agar proporsional */
+        padding: 32px;
+        border-radius: 40px;
+    }
+    
+    .track-info h2 {
+        font-size: 1.8rem;
+    }
+    
+    #playlist {
+        max-height: 250px; /* Playlist bisa memuat daftar lebih panjang di desktop */
+    }
+}
