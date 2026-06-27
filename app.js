@@ -67,12 +67,15 @@ function renderPlaylist(tracks) {
     playlistContainer.innerHTML = '';
     
     tracks.forEach((track) => {
-        const isActive = playlist[currentIndex] && playlist[currentIndex].id === track.id;
+        // PENGAMAN: Mencegah error crash jika playlist belum sepenuhnya termuat
+        const currentTrack = playlist[currentIndex];
+        const isActive = currentTrack ? currentTrack.id === track.id : false;
+        
         const item = document.createElement('div');
         item.className = `track-item ${isActive ? 'active' : ''}`;
         
         item.innerHTML = `
-            <img src="${track.cover}">
+            <img src="${track.cover}" alt="Cover">
             <div class="item-meta">
                 <h4>${track.title}</h4>
                 <p>${track.artist}</p>
@@ -101,8 +104,13 @@ function loadTrack(index) {
     trackTitle.textContent = track.title;
     trackArtist.textContent = track.artist;
     trackCover.src = track.cover;
-    bgBlur.style.backgroundImage = `url('${track.cover}')`;
     
+    // PENGAMAN: Jika file gambar di playlist.json typo/rusak, ganti ke placeholder biar gak pecah
+    trackCover.onerror = () => {
+        trackCover.src = 'placeholder.jpg';
+    };
+    
+    bgBlur.style.backgroundImage = `url('${track.cover}')`;
     progressBar.style.width = '0%';
     currentTimeEl.textContent = '0:00';
     renderPlaylist(filteredPlaylist);
@@ -133,6 +141,8 @@ function pauseTrack() {
 }
 
 function changeTrack(direction) {
+    if (playlist.length === 0) return;
+    
     if (isShuffle) {
         currentIndex = Math.floor(Math.random() * playlist.length);
     } else {
@@ -292,10 +302,10 @@ function drawVisualizer() {
     for (let i = 0; i < dataArray.length; i++) {
         let barHeight = (dataArray[i] / 255) * h;
         
-        // Membuat gradasi warna biru dinamis berdasarkan tinggi gelombang
         canvasCtx.fillStyle = `rgba(29, ${114 + barHeight}, 254, 0.7)`;
         canvasCtx.fillRect(x, h - barHeight, barWidth, barHeight);
         
         x += barWidth + 2;
     }
 }
+    
