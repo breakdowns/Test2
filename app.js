@@ -43,10 +43,27 @@ fetch('playlist.json')
 function loadTrack(index) {
     if (!tracks[index]) return;
     const track = tracks[index];
+    
+    // Reset posisi animasi teks marquee sebelum ganti lagu
+    trackTitle.classList.remove('marquee');
+    trackTitle.style.transform = 'translateX(0)';
+    
     trackTitle.textContent = track.title;
     trackArtist.textContent = track.artist;
     trackCover.src = track.cover;
     audio.src = track.src;
+    
+    // Hitung otomatis panjang teks untuk efek marquee ala Spotify
+    setTimeout(() => {
+        const containerWidth = trackTitle.parentElement.clientWidth;
+        const textWidth = trackTitle.scrollWidth;
+        
+        if (textWidth > containerWidth) {
+            const scrollDistance = textWidth - containerWidth + 24; 
+            trackTitle.style.setProperty('--scroll-dist', `-${scrollDistance}px`);
+            trackTitle.classList.add('marquee');
+        }
+    }, 100);
     
     // Update kelas active pada UI playlist
     const items = document.querySelectorAll('.track-item');
@@ -61,7 +78,7 @@ function togglePlay() {
         audio.play()
             .then(() => playIcon.textContent = 'pause')
             .catch(err => {
-                alert("File tidak ditemukan! Cek kembali apakah nama file musik/folder di playlist.json sudah sama persis dengan di GitHub.");
+                alert("File tidak ditemukan! Cek kembali penulisan nama file musik/folder di playlist.json.");
                 console.error(err);
             });
     } else {
@@ -123,7 +140,7 @@ function formatTime(time) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-// Pasang semua Event Listener Fitur Utama
+// Pasang Event Listeners
 playBtn.addEventListener('click', togglePlay);
 nextBtn.addEventListener('click', nextTrack);
 prevBtn.addEventListener('click', prevTrack);
@@ -160,3 +177,4 @@ progressContainer.addEventListener('click', (e) => {
 volumeSlider.addEventListener('input', (e) => {
     audio.volume = e.target.value;
 });
+                   
