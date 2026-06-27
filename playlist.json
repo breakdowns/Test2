@@ -4,7 +4,7 @@
     "title": "My Favorite Song",
     "artist": "Awesome Artist",
     "src": "music/music.mp3",
-    "cover": "cover.jpg"
+    "cover": "cover/default.jpg"
   },
   {
     "id": "track_2",
