@@ -32,7 +32,7 @@ body {
 }
 
 /* ==========================================
-   MAIN CONTAINER (FIX MODE DESKTOP ANDROID & PC)
+   MAIN CONTAINER (RESPONSIVE PC & MOBILE)
    ========================================== */
 .player-container {
     background-color: rgba(26, 26, 26, 0.75);
@@ -40,18 +40,17 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    max-width: 420px; /* Ukuran default yang pas di genggaman layar HP portrait */
+    max-width: 420px;
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
 }
 
-/* Solusi Kunci: Lebar responsif menggunakan skala persentase jika dibuka di PC atau Mode Desktop Android */
 @media (min-width: 768px) {
     .player-container {
-        width: 85%; /* Responsif membesar mengikuti lebar layar browser */
-        max-width: 520px; /* Batas maksimum pelebaran yang ideal agar tidak terlalu raksasa */
+        width: 85%;
+        max-width: 520px;
         padding: 32px;
     }
 }
@@ -179,7 +178,7 @@ body {
 .btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
 /* ==========================================
-   VOLUME & LYRICS (ANTI TERPOTONG DI PINGGIR)
+   VOLUME & LYRICS (SMOOTH TRANSITION FIX)
    ========================================== */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
@@ -190,7 +189,7 @@ body {
     overflow-y: hidden;
     margin-bottom: 20px;
     position: relative;
-    padding: 0 12px; /* Memberi ruang batas aman di sisi kiri & kanan agar lirik tidak menempel border */
+    padding: 0 12px;
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
 }
@@ -198,7 +197,9 @@ body {
 #lyricsWrapper {
     padding: 15px 0 40px 0; 
     text-align: center;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* FIX: Animasi transisi yang jauh lebih halus, responsif, dan hemat beban rendering HP */
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: transform;
 }
 
 .lyric-line {
@@ -208,19 +209,17 @@ body {
     padding: 8px 0;
     cursor: pointer;
     transition: color 0.3s, transform 0.3s;
-    
-    /* FIX PERBAIKAN UTAMA: Mengizinkan teks lirik panjang melipat ke bawah secara otomatis jika tidak muat */
     white-space: normal; 
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
 .lyric-line.active {
     color: var(--text-main);
-    transform: scale(1.05); /* Skala perkecil sedikit dari 1.08 agar kalimat multi-baris tetap aman */
+    transform: scale(1.05);
 }
 
 /* ==========================================
-   PLAYLIST & SEARCH & KREDIT WATERMARK
+   PLAYLIST & SEARCH & WATERMARK HAFITZ
    ========================================== */
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 .playlist-container { max-height: 180px; overflow-y: auto; }
