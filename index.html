@@ -3,304 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Breakdowns Audio Player</title>
-    <!-- Menggunakan Font Awesome untuk icon-icon media player -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            background-color: #090909;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            padding: 20px;
-        }
-        .player-container {
-            background-color: #121212;
-            padding: 30px;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 360px;
-            text-align: center;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-        }
-        .cover-wrapper {
-            width: 100%;
-            aspect-ratio: 1/1;
-            margin-bottom: 25px;
-            border-radius: 15px;
-            overflow: hidden;
-            background-color: #282828;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .cover-art {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .song-details {
-            margin-bottom: 25px;
-        }
-        .song-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        /* Progress Bar Styling */
-        .progress-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 25px;
-            width: 100%;
-        }
-        .progress-bar {
-            flex-grow: 1;
-            -webkit-appearance: none;
-            appearance: none;
-            height: 5px;
-            border-radius: 5px;
-            background: #282828;
-            outline: none;
-            cursor: pointer;
-        }
-        .progress-bar::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 5px;
-            cursor: pointer;
-            background: #282828;
-            border-radius: 5px;
-        }
-        .progress-bar::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: #1db954;
-            cursor: pointer;
-            margin-top: -3.5px;
-        }
-        /* Controls Styling */
-        .controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 25px;
-            margin-bottom: 10px;
-        }
-        .btn {
-            background: none;
-            border: none;
-            color: #b3b3b3;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .btn:hover, .btn.active {
-            color: #ffffff;
-        }
-        .btn.active {
-            color: #1db954;
-        }
-        .btn-main {
-            font-size: 1.5rem;
-        }
-        .btn-play {
-            background-color: #1db954;
-            color: #000000;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.4rem;
-            transition: transform 0.2s;
-        }
-        .btn-play:hover {
-            transform: scale(1.05);
-            color: #000000;
-        }
-        /* Footer Credits */
-        .footer-credits {
-            margin-top: 30px;
-            font-size: 0.85rem;
-            color: #727272;
-        }
-        .footer-credits span {
-            color: #1db954;
-            font-weight: 500;
-        }
-    </style>
+    <title>Breakdowns Music</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-
-<div class="player-container">
-    <!-- Cover Album dengan Fallback Image jika link error/rusak -->
-    <div class="cover-wrapper">
-        <img id="coverArt" class="cover-art" src="images/cover1.jpg" alt="Cover Album" onerror="this.onerror=null; this.src='https://placehold.co/300x300/282828/ffffff?text=Cover+Album';">
+    <div class="player-card">
+        <div class="cover-container">
+            <img id="trackCover" src="cover.jpg" alt="Cover Album">
+        </div>
+        <div class="track-info">
+            <h2 id="trackTitle">Memuat...</h2>
+            <p id="trackArtist">Menunggu...</p>
+        </div>
+        <div class="progress-section">
+            <div class="progress-bar-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="time-stamps">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+        <div class="controls-main">
+            <div class="btn-icon" id="prevBtn"><span class="material-icons">skip_previous</span></div>
+            <div class="btn-icon" id="playBtn"><span class="material-icons" id="playIcon">play_arrow</span></div>
+            <div class="btn-icon" id="nextBtn"><span class="material-icons">skip_next</span></div>
+        </div>
+        <div id="playlist"></div>
     </div>
-    
-    <div class="song-details">
-        <h3 id="songTitle" class="song-title">Memuat Lagu...</h3>
-    </div>
-
-    <!-- Controls Utama (Prev, Play, Next) -->
-    <div class="controls">
-        <button class="btn btn-main" onclick="prevTrack()"><i class="fas fa-step-backward"></i></button>
-        <button class="btn btn-play" id="playBtn" onclick="togglePlay()"><i class="fas fa-play"></i></button>
-        <button class="btn btn-main" onclick="nextTrack()"><i class="fas fa-step-forward"></i></button>
-    </div>
-
-    <!-- Toggles (Shuffle, Repeat & Progress Bar) -->
-    <div class="controls" style="margin-top: 15px; margin-bottom: 15px; gap: 40px;">
-        <button class="btn" id="shuffleBtn" onclick="toggleShuffle()"><i class="fas fa-random"></i></button>
-        <button class="btn" id="repeatBtn" onclick="toggleRepeat()"><i class="fas fa-redo"></i></button>
-    </div>
-
-    <div class="progress-container">
-        <input type="range" id="progressBar" class="progress-bar" value="0" max="100" onchange="seekAudio()">
-    </div>
-
-    <!-- Footer Copyright -->
-    <div class="footer-credits">
-        Build with ❤️ by <span>Hafitz</span>
-    </div>
-</div>
-
-<script>
-    // 1. DATA PLAYLIST (Ubah isinya sesuai dengan file asli di github kamu)
-    // Jangan gunakan "/" di awal path agar dibaca sebagai relative path oleh GitHub Pages
-    const playlist = [
-        {
-            title: "Lagu Metalcore 1",
-            audio: "audio/lagu1.mp3", 
-            cover: "images/cover1.jpg"
-        },
-        {
-            title: "Lagu Metalcore 2",
-            audio: "audio/lagu2.mp3",
-            cover: "images/cover2.jpg"
-        }
-    ];
-
-    let currentTrackIndex = 0;
-    let isShuffle = false;
-    let isRepeat = false;
-    
-    const audioPlayer = new Audio();
-    const playBtn = document.getElementById('playBtn');
-    const songTitle = document.getElementById('songTitle');
-    const coverArt = document.getElementById('coverArt');
-    const progressBar = document.getElementById('progressBar');
-    const shuffleBtn = document.getElementById('shuffleBtn');
-    const repeatBtn = document.getElementById('repeatBtn');
-
-    // 2. LOAD TRACK
-    function loadTrack(index) {
-        if (playlist.length === 0) return;
-        
-        const track = playlist[index];
-        songTitle.innerText = track.title;
-        audioPlayer.src = track.audio;
-        coverArt.src = track.cover;
-        progressBar.value = 0;
-    }
-
-    // 3. TOGGLE PLAY / PAUSE
-    function togglePlay() {
-        if (audioPlayer.paused) {
-            audioPlayer.play().then(() => {
-                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            }).catch(error => {
-                // Menangkap error 404 dari GitHub Pages jika file tidak ada
-                alert("File audio tidak ditemukan! Mohon periksa kembali penulisan nama file Anda di repository GitHub.");
-                console.error("Playback error:", error);
-            });
-        } else {
-            audioPlayer.pause();
-            playBtn.innerHTML = '<i class="fas fa-play"></i>';
-        }
-    }
-
-    // 4. NEXT & PREV TRACK
-    function nextTrack() {
-        if (isShuffle) {
-            currentTrackIndex = Math.floor(Math.random() * playlist.length);
-        } else {
-            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-        }
-        loadTrack(currentTrackIndex);
-        audioPlayer.play().then(() => {
-            playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-        }).catch(() => {});
-    }
-
-    function prevTrack() {
-        currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
-        loadTrack(currentTrackIndex);
-        audioPlayer.play().then(() => {
-            playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-        }).catch(() => {});
-    }
-
-    // 5. SHUFFLE & REPEAT TOGGLES
-    function toggleShuffle() {
-        isShuffle = !isShuffle;
-        shuffleBtn.classList.toggle('active', isShuffle);
-    }
-
-    function toggleRepeat() {
-        isRepeat = !isRepeat;
-        repeatBtn.classList.toggle('active', isRepeat);
-    }
-
-    // 6. UPDATE PROGRESS BAR
-    audioPlayer.addEventListener('timeupdate', () => {
-        if (audioPlayer.duration) {
-            const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-            progressBar.value = progressPercent;
-        }
-    });
-
-    // 7. SEEK AUDIO (GESER TIMELINE)
-    function seekAudio() {
-        if (audioPlayer.duration) {
-            const seekTo = (progressBar.value / 100) * audioPlayer.duration;
-            audioPlayer.currentTime = seekTo;
-        }
-    }
-
-    // 8. HANDLE TRACK ENDED
-    audioPlayer.addEventListener('ended', () => {
-        if (isRepeat) {
-            audioPlayer.currentTime = 0;
-            audioPlayer.play();
-        } else {
-            nextTrack();
-        }
-    });
-
-    // Load lagu pertama saat halaman dimuat sepenuhnya
-    window.onload = () => {
-        loadTrack(currentTrackIndex);
-    };
-</script>
-
+    <footer class="footer-credit">
+        Build with ♥️ by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
+    </footer>
+    <audio id="mainAudio"></audio>
+    <script src="app.js"></script>
 </body>
 </html>
