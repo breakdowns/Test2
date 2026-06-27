@@ -3,14 +3,17 @@
 // ==========================================
 let playlist = [];
 let filteredPlaylist = [];
-let favorites = JSON.parse(localStorage.getItem('breakdowns_favs')) || [];
 let currentIndex = 0;
 let isShuffle = false;
 let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat One
 let isPlaying = false;
 
-// Audio Context untuk Visualizer Bawah Cover
-let audioCtx, analyser, source, canvasCtx, dataArray;
+// Audio Context untuk Visualizer Gelombang
+let audioCtx;
+let analyser;
+let source;
+let canvasCtx;
+let dataArray;
 let isAudioCtxInitialized = false;
 
 // ==========================================
@@ -22,7 +25,6 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const shuffleBtn = document.getElementById('shuffleBtn');
 const repeatBtn = document.getElementById('repeatBtn');
-const favBtn = document.getElementById('favBtn');
 
 const searchBar = document.getElementById('searchBar');
 const sortAZBtn = document.getElementById('sortAZ');
@@ -40,44 +42,41 @@ const trackCover = document.getElementById('trackCover');
 const bgBlur = document.getElementById('bgBlur');
 const visualizerCanvas = document.getElementById('visualizer');
 
+// Jalankan fungsi saat DOM selesai dimuat
+window.addEventListener('DOMContentLoaded', fetchPlaylist);
+
 // ==========================================
 // INISIALISASI & FETCH DATA
 // ==========================================
 async function fetchPlaylist() {
     try {
-        const response = await fetch('playlist.json');
-        playlist = await response.json();
+        const res = await fetch('playlist.json');
+        playlist = await res.json();
         filteredPlaylist = [...playlist];
         renderPlaylist(filteredPlaylist);
-        if (playlist.length > 0) loadTrack(0);
+        
+        if (playlist.length > 0) {
+            loadTrack(0);
+        }
     } catch (err) {
-        console.error("Gagal memuat playlist.json.", err);
-        // Fallback jika tidak ada JSON atau test lokal
-        playlist = [
-            { id: 1, title: "Lagu Belum Dimuat", artist: "Pastikan ada playlist.json", src: "", cover: "placeholder.jpg" }
-        ];
-        filteredPlaylist = [...playlist];
-        renderPlaylist(filteredPlaylist);
+        console.error("Gagal memuat playlist.json", err);
     }
 }
 
 function renderPlaylist(tracks) {
     playlistContainer.innerHTML = '';
+    
     tracks.forEach((track) => {
-        const isFav = favorites.includes(track.id);
         const isActive = playlist[currentIndex] && playlist[currentIndex].id === track.id;
-        
         const item = document.createElement('div');
         item.className = `track-item ${isActive ? 'active' : ''}`;
+        
         item.innerHTML = `
-            <img src="${track.cover}" alt="Cover">
+            <img src="${track.cover}">
             <div class="item-meta">
                 <h4>${track.title}</h4>
                 <p>${track.artist}</p>
             </div>
-            <span class="material-icons" style="color: ${isFav ? '#1db954' : 'transparent'}; margin-left: auto; font-size: 1.2rem;">
-                favorite
-            </span>
         `;
         
         item.addEventListener('click', () => {
@@ -85,6 +84,7 @@ function renderPlaylist(tracks) {
             loadTrack(realIndex);
             playTrack();
         });
+        
         playlistContainer.appendChild(item);
     });
 }
@@ -96,109 +96,111 @@ function loadTrack(index) {
     currentIndex = index;
     const track = playlist[index];
     if (!track) return;
-
+    
     audio.src = track.src;
     trackTitle.textContent = track.title;
     trackArtist.textContent = track.artist;
     trackCover.src = track.cover;
     bgBlur.style.backgroundImage = `url('${track.cover}')`;
-
+    
     progressBar.style.width = '0%';
     currentTimeEl.textContent = '0:00';
-    
-    updateFavoriteUI(track.id);
-    renderPlaylist(filteredPlaylist); // Update UI list bawah (highlight lagu aktif)
+    renderPlaylist(filteredPlaylist);
 }
 
 function playTrack() {
-    // Inisialisasi visualizer saat interaksi pertama
-    if (!isAudioCtxInitialized) initAudioVisualizer();
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
-    audio.play().then(() => {
-        isPlaying = true;
-        // Ganti ke icon Pause dan aktifkan warna orange (sesuai fix gambar referensi)
-        playBtn.innerHTML = '<span class="material-icons">pause</span>';
-        playBtn.classList.add('playing-state');
-    }).catch(err => console.log("Playback tertunda:", err));
+    if (!isAudioCtxInitialized) {
+        initAudioVisualizer();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    
+    audio.play()
+        .then(() => {
+            isPlaying = true;
+            playBtn.innerHTML = '<span class="material-icons">pause</span>';
+            playBtn.classList.add('playing-state');
+        })
+        .catch(err => console.log("Playback tertunda:", err));
 }
 
 function pauseTrack() {
     audio.pause();
     isPlaying = false;
-    // Kembalikan ke icon Play putih
     playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
     playBtn.classList.remove('playing-state');
 }
 
-// Event Listeners Utama
-playBtn.addEventListener('click', () => {
-    if (isPlaying) pauseTrack();
-    else playTrack();
-});
-
-function nextTrack() {
+function changeTrack(direction) {
     if (isShuffle) {
         currentIndex = Math.floor(Math.random() * playlist.length);
     } else {
-        currentIndex = (currentIndex + 1) % playlist.length;
+        currentIndex = (currentIndex + direction + playlist.length) % playlist.length;
     }
     loadTrack(currentIndex);
     playTrack();
 }
 
-function prevTrack() {
-    currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-    loadTrack(currentIndex);
-    playTrack();
-}
+// ==========================================
+// EVENT LISTENERS UTAMA
+// ==========================================
+playBtn.addEventListener('click', () => {
+    if (isPlaying) {
+        pauseTrack();
+    } else {
+        playTrack();
+    }
+});
 
-nextBtn.addEventListener('click', nextTrack);
-prevBtn.addEventListener('click', prevTrack);
+nextBtn.addEventListener('click', () => {
+    changeTrack(1);
+});
+
+prevBtn.addEventListener('click', () => {
+    changeTrack(-1);
+});
 
 // ==========================================
-// PROGRESS BAR & WAKTU
+// TIMELINE PROGRESS & DURASI
 // ==========================================
 audio.addEventListener('timeupdate', () => {
-    const { currentTime, duration } = audio;
-    if (isNaN(duration)) return;
+    if (isNaN(audio.duration)) return;
     
-    const progressPercent = (currentTime / duration) * 100;
+    const progressPercent = (audio.currentTime / audio.duration) * 100;
     progressBar.style.width = `${progressPercent}%`;
-
-    currentTimeEl.textContent = formatTime(currentTime);
-    durationEl.textContent = formatTime(duration);
+    
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+    durationEl.textContent = formatTime(audio.duration);
 });
 
 audio.addEventListener('ended', () => {
-    if (repeatMode === 2) { // Repeat One
+    if (repeatMode === 2) {
         audio.currentTime = 0;
         playTrack();
-    } else if (repeatMode === 1 || currentIndex < playlist.length - 1 || isShuffle) { 
-        nextTrack(); // Repeat All / Lanjut
+    } else if (repeatMode === 1 || currentIndex < playlist.length - 1 || isShuffle) {
+        changeTrack(1);
     } else {
-        pauseTrack(); // Berhenti jika lagu habis
+        pauseTrack();
     }
 });
 
-function formatTime(time) {
-    const min = Math.floor(time / 60);
-    const sec = Math.floor(time % 60).toString().padStart(2, '0');
+function formatTime(t) {
+    const min = Math.floor(t / 60);
+    const sec = Math.floor(t % 60).toString().padStart(2, '0');
     return `${min}:${sec}`;
 }
 
-// Seek lagu saat Progress bar diklik
 progressContainer.addEventListener('click', (e) => {
-    const width = progressContainer.clientWidth;
-    const clickX = e.offsetX;
-    const duration = audio.duration;
-    if (duration) {
-        audio.currentTime = (clickX / width) * duration;
+    if (audio.duration) {
+        const clickPositionX = e.offsetX;
+        const containerWidth = progressContainer.clientWidth;
+        audio.currentTime = (clickPositionX / containerWidth) * audio.duration;
     }
 });
 
 // ==========================================
-// UTILITY (VOLUME, SHUFFLE, REPEAT, FAVORITE)
+// UTILITAS (VOLUME, SHUFFLE, REPEAT)
 // ==========================================
 volumeSlider.addEventListener('input', (e) => {
     audio.volume = e.target.value;
@@ -213,79 +215,52 @@ repeatBtn.addEventListener('click', () => {
     repeatMode = (repeatMode + 1) % 3;
     const icon = repeatBtn.querySelector('.material-icons');
     
-    if (repeatMode === 0) { // Off
-        repeatBtn.classList.remove('active');
-        icon.textContent = 'repeat';
-    } else if (repeatMode === 1) { // Repeat All
-        repeatBtn.classList.add('active');
-        icon.textContent = 'repeat';
-    } else if (repeatMode === 2) { // Repeat One
-        repeatBtn.classList.add('active');
-        icon.textContent = 'repeat_one';
-    }
-});
-
-function updateFavoriteUI(id) {
-    const isFav = favorites.includes(id);
-    const icon = favBtn.querySelector('.material-icons');
-    if (isFav) {
-        icon.textContent = 'favorite';
-        favBtn.style.color = '#1db954';
-    } else {
-        icon.textContent = 'favorite_border';
-        favBtn.style.color = '#ffffff';
-    }
-}
-
-favBtn.addEventListener('click', () => {
-    const trackId = playlist[currentIndex]?.id;
-    if (!trackId) return;
-
-    if (favorites.includes(trackId)) {
-        favorites = favorites.filter(id => id !== trackId); // Remove
-    } else {
-        favorites.push(trackId); // Add
-    }
+    repeatBtn.classList.toggle('active', repeatMode > 0);
     
-    localStorage.setItem('breakdowns_favs', JSON.stringify(favorites));
-    updateFavoriteUI(trackId);
-    renderPlaylist(filteredPlaylist);
+    if (repeatMode === 2) {
+        icon.textContent = 'repeat_one';
+    } else {
+        icon.textContent = 'repeat';
+    }
 });
 
 // ==========================================
-// PENCARIAN & SORTING
+// FITUR PENCARIAN & SORTIR
 // ==========================================
 searchBar.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
-    filteredPlaylist = playlist.filter(track => 
-        track.title.toLowerCase().includes(term) || 
-        track.artist.toLowerCase().includes(term)
+    
+    filteredPlaylist = playlist.filter(t => 
+        t.title.toLowerCase().includes(term) || 
+        t.artist.toLowerCase().includes(term)
     );
+    
     renderPlaylist(filteredPlaylist);
 });
 
-let isSortedAsc = false;
+let isAZ = false;
 sortAZBtn.addEventListener('click', () => {
-    isSortedAsc = !isSortedAsc;
+    isAZ = !isAZ;
+    
     filteredPlaylist.sort((a, b) => {
-        const titleA = a.title.toLowerCase();
-        const titleB = b.title.toLowerCase();
-        return isSortedAsc ? titleA.localeCompare(titleB) : titleB.localeCompare(titleA);
+        return isAZ 
+            ? a.title.localeCompare(b.title) 
+            : b.title.localeCompare(a.title);
     });
+    
     renderPlaylist(filteredPlaylist);
 });
 
 // ==========================================
-// VISUALIZER AUDIO (EFEK GELOMBANG BAWAH COVER)
+// AUDIO VISUALIZER MANAGEMENT
 // ==========================================
 function initAudioVisualizer() {
-    if (!visualizerCanvas) return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
     
-    // Setup Context Audio
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioContext();
+    audioCtx = new AudioContextClass();
     analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 64; // Resolusi gelombang
+    analyser.fftSize = 64;
     
     source = audioCtx.createMediaElementSource(audio);
     source.connect(analyser);
@@ -293,41 +268,34 @@ function initAudioVisualizer() {
     
     dataArray = new Uint8Array(analyser.frequencyBinCount);
     canvasCtx = visualizerCanvas.getContext('2d');
-    
     isAudioCtxInitialized = true;
+    
     drawVisualizer();
 }
 
 function drawVisualizer() {
     requestAnimationFrame(drawVisualizer);
     if (!isPlaying) return;
-
+    
     analyser.getByteFrequencyData(dataArray);
     
-    // Responsive Canvas
     visualizerCanvas.width = visualizerCanvas.offsetWidth;
     visualizerCanvas.height = visualizerCanvas.offsetHeight;
     
-    const width = visualizerCanvas.width;
-    const height = visualizerCanvas.height;
-    const barWidth = (width / dataArray.length) * 1.5;
-    let barHeight;
+    const w = visualizerCanvas.width;
+    const h = visualizerCanvas.height;
+    const barWidth = (w / dataArray.length) * 1.5;
     let x = 0;
     
-    canvasCtx.clearRect(0, 0, width, height);
+    canvasCtx.clearRect(0, 0, w, h);
     
-    // Draw batang gelombang
     for (let i = 0; i < dataArray.length; i++) {
-        barHeight = (dataArray[i] / 255) * height;
+        let barHeight = (dataArray[i] / 255) * h;
         
-        const r = 29;
-        const g = 114 + (barHeight * 2); 
-        const b = 254; // Base warna timeline-blue
-        
-        canvasCtx.fillStyle = `rgba(${r},${g},${b}, 0.8)`;
-        canvasCtx.fillRect(x, height - barHeight, barWidth, barHeight);
+        // Membuat gradasi warna biru dinamis berdasarkan tinggi gelombang
+        canvasCtx.fillStyle = `rgba(29, ${114 + barHeight}, 254, 0.7)`;
+        canvasCtx.fillRect(x, h - barHeight, barWidth, barHeight);
         
         x += barWidth + 2;
     }
-    }
-                    
+}
