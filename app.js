@@ -1,4 +1,3 @@
-
 // ==========================================
 // STATE MANAGEMENT & KONFIGURASI
 // ==========================================
@@ -22,6 +21,7 @@ let isAudioCtxInitialized = false;
 // ==========================================
 const audio = document.getElementById('mainAudio');
 const playBtn = document.getElementById('playBtn');
+const playIcon = document.getElementById('playIcon');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const shuffleBtn = document.getElementById('shuffleBtn');
@@ -97,7 +97,7 @@ function loadTrack(index) {
     progressBar.style.width = '0%';
     currentTimeEl.textContent = '0:00';
     
-    // WARNA CARD ADAPTIF: Jalankan fungsi ekstrak warna saat gambar selesai dimuat
+    // WARNA CARD ADAPTIF
     trackCover.onload = () => {
         updateCardColor(trackCover);
     };
@@ -105,7 +105,6 @@ function loadTrack(index) {
     renderPlaylist(filteredPlaylist);
 }
 
-// Fungsi mengekstrak rata-rata warna cover untuk background card
 function updateCardColor(imgElement) {
     try {
         const canvas = document.createElement('canvas');
@@ -128,18 +127,15 @@ function updateCardColor(imgElement) {
         g = Math.floor(g / count);
         b = Math.floor(b / count);
         
-        // Dibuat tone gelap redup agar kontras teks putih di atas card terjaga aman
         const darkR = Math.floor(r * 0.15);
         const darkG = Math.floor(g * 0.22);
         const darkB = Math.floor(b * 0.18);
         
-        // Perbarui custom property CSS (--card-gradient) secara real-time
         document.documentElement.style.setProperty(
             '--card-gradient', 
             `linear-gradient(135deg, rgb(${darkR + 10}, ${darkG + 15}, ${darkB + 12}) 0%, #0d1013 100%)`
         );
     } catch (e) {
-        // Fallback warna default jika terjadi issue CORS gambar lokal/eksternal
         document.documentElement.style.setProperty('--card-gradient', 'linear-gradient(135deg, #18221c 0%, #0d1013 100%)');
     }
 }
@@ -150,7 +146,7 @@ function playTrack() {
     
     audio.play().then(() => {
         isPlaying = true;
-        playBtn.innerHTML = '<span class="material-icons">pause</span>';
+        playIcon.textContent = 'pause';
         playBtn.classList.add('playing-state');
     }).catch(err => console.log("Playback tertunda:", err));
 }
@@ -158,10 +154,9 @@ function playTrack() {
 function pauseTrack() {
     audio.pause();
     isPlaying = false;
-    playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
+    playIcon.textContent = 'play_arrow';
     playBtn.classList.remove('playing-state');
     
-    // Pembersihan canvas langsung saat pause biar visualizer menghilang
     if (canvasCtx && visualizerCanvas) {
         canvasCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
     }
@@ -252,7 +247,7 @@ function initAudioVisualizer() {
 
 function drawVisualizer() {
     requestAnimationFrame(drawVisualizer);
-    if (!isPlaying) return; // Menghentikan rendering jika tidak berputar
+    if (!isPlaying) return;
     
     analyser.getByteFrequencyData(dataArray);
     visualizerCanvas.width = visualizerCanvas.offsetWidth;
@@ -270,4 +265,4 @@ function drawVisualizer() {
         canvasCtx.fillRect(x, h - barHeight, barWidth, barHeight);
         x += barWidth + 2;
     }
-}
+                           }
