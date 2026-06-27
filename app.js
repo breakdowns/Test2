@@ -1,3 +1,4 @@
+
 // ==========================================
 // STATE MANAGEMENT & KONFIGURASI
 // ==========================================
@@ -269,4 +270,4 @@ function drawVisualizer() {
         canvasCtx.fillRect(x, h - barHeight, barWidth, barHeight);
         x += barWidth + 2;
     }
-                            }
+}
