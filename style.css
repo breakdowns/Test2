@@ -193,8 +193,8 @@ body {
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     
-    /* FIX: Untuk efek opasitas memudar yang mulus ketika lagu diganti */
     opacity: 1;
+    /* FIX: Durasi transisi pudar dikunci di 0.2 detik agar pas dengan jeda loading JS */
     transition: opacity 0.2s ease-in-out;
 }
 
@@ -252,3 +252,4 @@ body {
     filter: brightness(1.2);
     text-decoration: underline !important; 
    }
+               
