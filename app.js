@@ -9,7 +9,11 @@ const progressContainer = document.getElementById('progressContainer'), progress
 const currentTimeEl = document.getElementById('currentTime'), durationEl = document.getElementById('duration');
 const volumeSlider = document.getElementById('volumeSlider');
 
-let tracks = [], parsedLyrics = [], audioCtx, analyser, dataArray, currentIndex = 0;
+// Kunci utamanya di dua selector baru ini:
+const playlistContainer = document.getElementById('playlist');
+const searchBar = document.getElementById('searchBar');
+
+let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyser, dataArray, currentIndex = 0;
 let isShuffle = false, isRepeat = false;
 
 // Memuat data dari playlist.json
@@ -17,7 +21,10 @@ fetch('playlist.json')
     .then(res => res.json())
     .then(data => { 
         tracks = data.playlist; 
-        if(tracks.length > 0) loadTrack(0); 
+        currentTracksDisplay = tracks; // Simpan tracks default untuk list display
+        if(tracks.length > 0) {
+            loadTrack(0); 
+        }
     });
 
 function loadTrack(index) {
@@ -50,7 +57,49 @@ function loadTrack(index) {
     } else {
         lyricsContainer.style.display = "none";
     }
+
+    // Perbarui tampilan playlist untuk menandai lagu mana yang sedang aktif
+    renderPlaylist(currentTracksDisplay);
 }
+
+// FUNGSI BARU: Menampilkan daftar lagu ke dalam HTML
+function renderPlaylist(tracksToRender) {
+    playlistContainer.innerHTML = '';
+    tracksToRender.forEach((track) => {
+        // Cari index asli dari array utama 'tracks'
+        const originalIndex = tracks.findIndex(t => t.src === track.src);
+        
+        const item = document.createElement('div');
+        // Jika index lagu ini sama dengan yang sedang diputar, tambahkan class 'active'
+        item.className = `track-item ${originalIndex === currentIndex ? 'active' : ''}`;
+        item.innerHTML = `
+            <img src="${track.cover}" alt="${track.title}">
+            <div>
+                <strong>${track.title}</strong><br>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">${track.artist}</small>
+            </div>
+        `;
+        
+        // Event ketika baris lagu di dalam daftar diklik
+        item.addEventListener('click', () => {
+            initVisualizer();
+            loadTrack(originalIndex);
+            audio.play().then(() => playIcon.textContent = 'pause');
+        });
+        
+        playlistContainer.appendChild(item);
+    });
+}
+
+// FUNGSI BARU: Menangani filter pencarian lagu
+searchBar.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    currentTracksDisplay = tracks.filter(track => 
+        track.title.toLowerCase().includes(query) || 
+        track.artist.toLowerCase().includes(query)
+    );
+    renderPlaylist(currentTracksDisplay);
+});
 
 function parseLRC(lrcText) {
     const result = [];
@@ -72,7 +121,7 @@ function renderLyrics() {
         p.id = `line-${index}`;
         p.textContent = line.text;
         p.style.cursor = 'pointer';
-        p.onclick = () => { audio.currentTime = line.time; }; // CLICK TO SEEK WORK
+        p.onclick = () => { audio.currentTime = line.time; };
         lyricsWrapper.appendChild(p);
     });
 }
@@ -116,12 +165,11 @@ function drawVisualizer() {
         grad.addColorStop(0, '#1ed760'); grad.addColorStop(1, '#66ff99');
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.roundRect(i * (barWidth + 3), canvas.height - h, barWidth, h, [5, 5, 0, 0]); // ROUNDED CORNER
+        ctx.roundRect(i * (barWidth + 3), canvas.height - h, barWidth, h, [5, 5, 0, 0]);
         ctx.fill();
     });
 }
 
-// Play & Pause Event
 playBtn.addEventListener('click', () => {
     initVisualizer();
     if (audio.paused) {
@@ -132,7 +180,6 @@ playBtn.addEventListener('click', () => {
     }
 });
 
-// Next Track
 nextBtn.addEventListener('click', () => {
     let nextIndex = currentIndex + 1;
     if (isShuffle) nextIndex = Math.floor(Math.random() * tracks.length);
@@ -141,7 +188,6 @@ nextBtn.addEventListener('click', () => {
     audio.play().then(() => playIcon.textContent = 'pause');
 });
 
-// Previous Track
 prevBtn.addEventListener('click', () => {
     let prevIndex = currentIndex - 1;
     if (prevIndex < 0) prevIndex = tracks.length - 1;
@@ -149,7 +195,6 @@ prevBtn.addEventListener('click', () => {
     audio.play().then(() => playIcon.textContent = 'pause');
 });
 
-// Toggle Fitur Shuffle & Repeat
 shuffleBtn.addEventListener('click', () => {
     isShuffle = !isShuffle;
     shuffleBtn.classList.toggle('active', isShuffle);
@@ -160,12 +205,10 @@ repeatBtn.addEventListener('click', () => {
     repeatBtn.classList.toggle('active', isRepeat);
 });
 
-// Mengatur Volume Audio
 volumeSlider.addEventListener('input', (e) => {
     audio.volume = e.target.value;
 });
 
-// Helper Mengubah Detik ke Format Menit:Detik
 function formatTime(secs) {
     if (isNaN(secs)) return '0:00';
     const min = Math.floor(secs / 60);
@@ -173,12 +216,10 @@ function formatTime(secs) {
     return `${min}:${sec < 10 ? '0' : ''}${sec}`;
 }
 
-// Durasi Total Lagu Dimuat
 audio.addEventListener('loadedmetadata', () => {
     durationEl.textContent = formatTime(audio.duration);
 });
 
-// Pembaruan Progress Bar & Auto Scroll Lirik
 audio.addEventListener('timeupdate', () => {
     currentTimeEl.textContent = formatTime(audio.currentTime);
     const progressPercent = (audio.currentTime / audio.duration) * 100;
@@ -193,7 +234,6 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
-// Lompat Waktu dengan Mengetuk Progress Bar
 progressContainer.addEventListener('click', (e) => {
     const width = progressContainer.clientWidth;
     const clickX = e.offsetX;
@@ -203,7 +243,6 @@ progressContainer.addEventListener('click', (e) => {
     }
 });
 
-// Mengatur Perpindahan Lagu Saat Durasi Habis
 audio.addEventListener('ended', () => {
     if (isRepeat) {
         audio.play();
@@ -211,4 +250,4 @@ audio.addEventListener('ended', () => {
         nextBtn.click();
     }
 });
-        
+    
