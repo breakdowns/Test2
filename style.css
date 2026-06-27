@@ -107,20 +107,21 @@ body {
 .btn-icon { background: transparent !important; border: none !important; color: var(--text-pure) !important; cursor: pointer; display: inline-flex !important; }
 .btn-icon .material-icons { font-size: 38px !important; }
 
-/* Tombol Play/Pause Putih */
+/* Tombol Play/Pause Biru (Senada dengan Volume) */
 #playBtn {
     width: 64px !important;
     height: 64px !important;
-    background: #ffffff !important;
+    background: var(--timeline-blue) !important;
     border-radius: 50% !important;
     display: inline-flex !important;
     justify-content: center !important;
     align-items: center !important;
-    box-shadow: 0 6px 12px rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 10px rgba(29, 114, 254, 0.3) !important;
+    transition: transform 0.2s, background 0.2s;
 }
 
-#playBtn .material-icons { font-size: 42px !important; color: #000000 !important; }
-#playBtn:hover { background: #e0e0e0 !important; transform: scale(1.05); }
+#playBtn .material-icons { font-size: 42px !important; color: #ffffff !important; }
+#playBtn:hover { filter: brightness(1.2); transform: scale(1.05); }
 
 /* =======================================
    UTILITY & VOLUME (FIXED ROW)
@@ -147,21 +148,20 @@ body {
 #playlist { max-height: 200px; overflow-y: auto; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 12px; }
 
 @media (min-width: 769px) {
-    body { padding: 50px; }
+    body { padding: 40px; }
     
     .player-card {
-        max-width: 600px !important; /* Ditingkatkan untuk layar lebar */
-        padding: 48px !important;
-        border-radius: 48px;
+        width: 440px !important;
+        padding: 32px !important;
+        border-radius: 32px;
+        margin: 0 auto;
     }
     
-    .track-info h2 { font-size: 2.2rem !important; }
-    .track-info p { font-size: 1.25rem !important; }
+    .track-info h2 { font-size: 1.6rem !important; }
     
-    .controls-main { gap: 60px !important; margin: 40px 0 !important; }
+    .controls-main { gap: 36px !important; margin: 24px 0 !important; }
 
-    #playBtn { width: 84px !important; height: 84px !important; }
-    #playBtn .material-icons { font-size: 58px !important; }
+    #playBtn { width: 64px !important; height: 64px !important; }
     
     .controls-utility-row { gap: 20px !important; padding-top: 26px; margin-bottom: 32px; }
     #playlist { max-height: 280px; padding-top: 16px; }
