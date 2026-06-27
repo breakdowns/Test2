@@ -8,8 +8,6 @@ const lyricsWrapper = document.getElementById('lyricsWrapper'), lyricsContainer 
 const progressContainer = document.getElementById('progressContainer'), progressBar = document.getElementById('progressBar');
 const currentTimeEl = document.getElementById('currentTime'), durationEl = document.getElementById('duration');
 const volumeSlider = document.getElementById('volumeSlider');
-
-// Kunci utamanya di dua selector baru ini:
 const playlistContainer = document.getElementById('playlist');
 const searchBar = document.getElementById('searchBar');
 
@@ -21,7 +19,7 @@ fetch('playlist.json')
     .then(res => res.json())
     .then(data => { 
         tracks = data.playlist; 
-        currentTracksDisplay = tracks; // Simpan tracks default untuk list display
+        currentTracksDisplay = tracks; 
         if(tracks.length > 0) {
             loadTrack(0); 
         }
@@ -58,19 +56,15 @@ function loadTrack(index) {
         lyricsContainer.style.display = "none";
     }
 
-    // Perbarui tampilan playlist untuk menandai lagu mana yang sedang aktif
     renderPlaylist(currentTracksDisplay);
 }
 
-// FUNGSI BARU: Menampilkan daftar lagu ke dalam HTML
 function renderPlaylist(tracksToRender) {
     playlistContainer.innerHTML = '';
     tracksToRender.forEach((track) => {
-        // Cari index asli dari array utama 'tracks'
         const originalIndex = tracks.findIndex(t => t.src === track.src);
         
         const item = document.createElement('div');
-        // Jika index lagu ini sama dengan yang sedang diputar, tambahkan class 'active'
         item.className = `track-item ${originalIndex === currentIndex ? 'active' : ''}`;
         item.innerHTML = `
             <img src="${track.cover}" alt="${track.title}">
@@ -80,7 +74,6 @@ function renderPlaylist(tracksToRender) {
             </div>
         `;
         
-        // Event ketika baris lagu di dalam daftar diklik
         item.addEventListener('click', () => {
             initVisualizer();
             loadTrack(originalIndex);
@@ -91,7 +84,6 @@ function renderPlaylist(tracksToRender) {
     });
 }
 
-// FUNGSI BARU: Menangani filter pencarian lagu
 searchBar.addEventListener('input', (e) => {
     const query = e.target.value.toLowerCase();
     currentTracksDisplay = tracks.filter(track => 
@@ -205,8 +197,12 @@ repeatBtn.addEventListener('click', () => {
     repeatBtn.classList.toggle('active', isRepeat);
 });
 
+// FIX: Mengatur Volume Audio & Update Jalur Warna Hijau Secara Dinamis
 volumeSlider.addEventListener('input', (e) => {
-    audio.volume = e.target.value;
+    const val = e.target.value;
+    audio.volume = val;
+    const pct = val * 100;
+    volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${pct}%, #4f4f4f ${pct}%)`;
 });
 
 function formatTime(secs) {
@@ -220,6 +216,7 @@ audio.addEventListener('loadedmetadata', () => {
     durationEl.textContent = formatTime(audio.duration);
 });
 
+// FIX: Pembaruan Progress Bar & Auto Scroll Lirik Terisolasi (Hanya di dalam box lirik)
 audio.addEventListener('timeupdate', () => {
     currentTimeEl.textContent = formatTime(audio.currentTime);
     const progressPercent = (audio.currentTime / audio.duration) * 100;
@@ -229,7 +226,14 @@ audio.addEventListener('timeupdate', () => {
         const active = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
         document.querySelectorAll('.lyric-line').forEach((el, i) => {
             el.classList.toggle('active', i === active);
-            if (i === active) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            if (i === active) {
+                const containerHeight = lyricsContainer.clientHeight;
+                lyricsContainer.scrollTo({
+                    top: el.offsetTop - (containerHeight / 2) + (el.clientHeight / 2),
+                    behavior: 'smooth'
+                });
+            }
         });
     }
 });
@@ -250,4 +254,4 @@ audio.addEventListener('ended', () => {
         nextBtn.click();
     }
 });
-    
+        
