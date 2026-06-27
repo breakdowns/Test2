@@ -15,7 +15,8 @@
 }
 
 body {
-    background-color: var(--bg-dark);
+    /* BARU: Latar Belakang Adaptif berbasis warna album dengan transisi halus */
+    background: radial-gradient(circle, rgba(var(--dynamic-r, 18), var(--dynamic-g, 18), var(--dynamic-b, 18), 0.4) 0%, var(--bg-dark) 100%);
     color: var(--text-pure);
     display: flex;
     flex-direction: column;
@@ -23,6 +24,7 @@ body {
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
+    transition: background 1s ease-in-out;
 }
 
 .player-card {
@@ -48,7 +50,6 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* FITUR: Animasi halus pembesaran gambar */
     transition: transform 0.4s ease;
 }
 
@@ -88,7 +89,7 @@ body {
 }
 
 .progress-section {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .progress-bar-container {
@@ -114,6 +115,15 @@ body {
     color: var(--text-muted);
 }
 
+/* BARU: Styling untuk Audio Visualizer Canvas */
+#visualizer {
+    width: 100%;
+    height: 32px;
+    margin-bottom: 16px;
+    display: block;
+    border-radius: 4px;
+}
+
 .controls-main {
     display: flex;
     justify-content: center;
@@ -122,7 +132,6 @@ body {
     margin-bottom: 24px;
 }
 
-/* FITUR: Animasi Halas Tombol Saat Di-hover & Di-klik */
 .btn-icon {
     background: none;
     border: none;
@@ -134,17 +143,9 @@ body {
     transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.btn-icon:hover {
-    transform: scale(1.1);
-}
-
-.btn-icon:active {
-    transform: scale(0.95);
-}
-
-.btn-icon .material-icons {
-    font-size: 2rem;
-}
+.btn-icon:hover { transform: scale(1.1); }
+.btn-icon:active { transform: scale(0.95); }
+.btn-icon .material-icons { font-size: 2rem; }
 
 #playBtn {
     width: 56px;
@@ -160,9 +161,7 @@ body {
     background-color: #22e668;
 }
 
-#playBtn .material-icons {
-    font-size: 2.2rem;
-}
+#playBtn .material-icons { font-size: 2.2rem; }
 
 .controls-utility-row {
     display: flex;
@@ -194,6 +193,59 @@ body {
     cursor: pointer;
 }
 
+/* BARU: Styling Kotak Lirik Berjalan Ala Aplikasi Premium */
+.lyrics-container {
+    width: 100%;
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 20px;
+    display: none; /* Auto-hide bawaan, aktif via JS jika ada lirik */
+    text-align: center;
+    /* Efek fade atas-bawah biar teks lirik estetik */
+    mask-image: linear-gradient(to bottom, transparent 0%, white 25%, white 75%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 25%, white 75%, transparent 100%);
+}
+
+#lyricsWrapper {
+    transition: transform 0.3s ease-out;
+}
+
+.lyric-line {
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 8px 0;
+    color: var(--text-muted);
+    opacity: 0.4;
+    transform: scale(0.92);
+    transition: all 0.3s ease;
+}
+
+.lyric-line.active {
+    color: var(--spotify-green);
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* BARU: Styling Kolom Pencarian Lagu (Search Bar) */
+#searchBar {
+    width: 100%;
+    padding: 10px 14px;
+    background: #1a1a1a;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-pure);
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+#searchBar:focus {
+    border-color: var(--spotify-green);
+    background: #222222;
+}
+
 #playlist {
     max-height: 180px;
     overflow-y: auto;
@@ -201,24 +253,11 @@ body {
     padding-right: 4px;
 }
 
-/* FITUR: Kustomisasi Scrollbar Playlist Ala Spotify */
-#playlist::-webkit-scrollbar {
-    width: 6px;
-}
-
-#playlist::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 4px;
-}
-
-#playlist::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 4px;
-}
-
-#playlist::-webkit-scrollbar-thumb:hover {
-    background: var(--spotify-green);
-}
+/* Custom Scrollbar Playlist */
+#playlist::-webkit-scrollbar { width: 6px; }
+#playlist::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 4px; }
+#playlist::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+#playlist::-webkit-scrollbar-thumb:hover { background: var(--spotify-green); }
 
 .track-item {
     display: flex;
@@ -230,17 +269,9 @@ body {
     transition: background 0.2s;
 }
 
-.track-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.track-item.active {
-    background: rgba(30, 215, 96, 0.1);
-}
-
-.track-item.active h4 {
-    color: var(--spotify-green);
-}
+.track-item:hover { background: rgba(255, 255, 255, 0.05); }
+.track-item.active { background: rgba(30, 215, 96, 0.1); }
+.track-item.active h4 { color: var(--spotify-green); }
 
 .track-item img {
     width: 40px;
@@ -256,42 +287,28 @@ body {
     text-overflow: ellipsis;
 }
 
-.track-meta p {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-.footer-credit {
-    margin-top: 24px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-align: center;
-}
-
-.footer-credit a {
-    color: var(--spotify-green);
-    text-decoration: none;
-}
+.track-meta p { font-size: 0.75rem; color: var(--text-muted); }
+.footer-credit { margin-top: 24px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+.footer-credit a { color: var(--spotify-green); text-decoration: none; }
 
 /* Mode Desktop */
 @media (min-width: 768px) {
-    .player-card {
-        max-width: 580px; 
-        padding: 36px;     
-        border-radius: 36px;
-    }
-
+    .player-card { max-width: 580px; padding: 36px; border-radius: 36px; }
     .cover-container { border-radius: 24px; margin-bottom: 30px; }
     .track-info h2 { font-size: 2rem; margin-bottom: 8px; }
     .track-info p { font-size: 1.2rem; }
     .progress-bar-container { height: 6px; }
     .time-stamps { font-size: 0.9rem; }
+    #visualizer { height: 45px; margin-bottom: 20px; }
     .controls-main { gap: 40px; margin-bottom: 32px; }
     .btn-icon .material-icons { font-size: 2.8rem; }
     #playBtn { width: 80px; height: 80px; }
     #playBtn .material-icons { font-size: 3.5rem; }
     .btn-small .material-icons { font-size: 1.8rem; }
     #volumeSlider { height: 6px; }
+    .lyrics-container { max-height: 160px; margin-bottom: 25px; }
+    .lyric-line { font-size: 1.2rem; }
+    #searchBar { padding: 12px 16px; font-size: 0.95rem; margin-bottom: 18px; }
     #playlist { max-height: 260px; }
     .track-item { padding: 12px; gap: 16px; }
     .track-item img { width: 54px; height: 54px; border-radius: 6px; }
@@ -299,3 +316,4 @@ body {
     .track-meta p { font-size: 0.9rem; }
     .footer-credit { margin-top: 40px; font-size: 1.05rem; }
     }
+                                    
