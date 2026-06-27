@@ -192,12 +192,15 @@ body {
     padding: 0 12px;
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
+    
+    /* FIX: Untuk efek opasitas memudar yang mulus ketika lagu diganti */
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
 }
 
 #lyricsWrapper {
     padding: 15px 0 40px 0; 
     text-align: center;
-    /* FIX: Animasi transisi yang jauh lebih halus, responsif, dan hemat beban rendering HP */
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     will-change: transform;
 }
@@ -248,4 +251,4 @@ body {
 .watermark a:hover { 
     filter: brightness(1.2);
     text-decoration: underline !important; 
-}
+   }
