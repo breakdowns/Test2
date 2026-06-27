@@ -1,15 +1,18 @@
 :root {
     --bg-main: #0c0f12;
     --card-gradient: linear-gradient(135deg, #131d17 0%, #0d1013 100%);
-    --btn-green: #1db954;
+    --btn-green: #1ed760;
     --text-muted: #9ca3af;
     --timeline-blue: #1d72fe;
     --spotify-orange: #ff9f0a;
 }
 
 * {
-    margin: 0; padding: 0; box-sizing: border-box;
-    font-family: 'Inter', sans-serif; user-select: none;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    user-select: none;
 }
 
 body {
@@ -24,8 +27,14 @@ body {
 }
 
 .bg-blur {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: -2; background-size: cover; background-position: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background-size: cover;
+    background-position: center;
     filter: blur(80px) brightness(0.15);
 }
 
@@ -38,6 +47,9 @@ body {
     gap: 20px;
 }
 
+/* =======================================
+   PLAYER CARD (Container Utama)
+   ======================================= */
 .player-card {
     background: var(--card-gradient);
     border: 1px solid rgba(255, 255, 255, 0.03);
@@ -61,25 +73,29 @@ body {
     height: 100%;
     border-radius: 20px;
     object-fit: cover;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
 }
 
 .visualizer-canvas {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
-    pointer-events: none; opacity: 0.4; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    pointer-events: none;
+    opacity: 0.4;
+    border-radius: 0 0 20px 20px;
 }
 
 .track-meta {
     width: 100%;
     text-align: left;
     margin-bottom: 20px;
-    padding-left: 2px;
 }
 
 .track-meta h1 {
     font-size: 1.8rem;
     font-weight: 700;
-    letter-spacing: -0.5px;
     margin-bottom: 4px;
 }
 
@@ -88,6 +104,9 @@ body {
     font-size: 1rem;
 }
 
+/* =======================================
+   PROGRESS TIMELINE
+   ======================================= */
 .progress-section {
     width: 100%;
     margin-bottom: 25px;
@@ -111,11 +130,13 @@ body {
     position: relative;
 }
 
-/* Knob Lingkaran Biru */
 .progress-bar::after {
     content: '';
-    position: absolute; right: -5px; top: -4px;
-    width: 12px; height: 12px;
+    position: absolute;
+    right: -5px;
+    top: -4px;
+    width: 12px;
+    height: 12px;
     background: var(--timeline-blue);
     border-radius: 50%;
 }
@@ -127,7 +148,9 @@ body {
     color: var(--text-muted);
 }
 
-/* Controls */
+/* =======================================
+   PLAYER NAVIGATION CONTROLS
+   ======================================= */
 .main-controls {
     display: flex;
     align-items: center;
@@ -149,28 +172,41 @@ body {
     transition: all 0.2s ease;
 }
 
-.btn-round:active { transform: scale(0.95); }
+.btn-round:active {
+    transform: scale(0.95);
+}
 
 .btn-side {
-    width: 55px; height: 55px;
+    width: 55px;
+    height: 55px;
 }
-.btn-side span { font-size: 1.6rem; color: #fff; }
 
-/* Tombol Tengah */
+.btn-side span {
+    font-size: 1.6rem;
+}
+
 .btn-center {
-    width: 65px; height: 65px;
+    width: 65px;
+    height: 65px;
 }
-.btn-center span { font-size: 2.2rem; color: #fff; } /* Default icon play warna putih */
 
-/* Ketika lagu berputar, berubah menjadi orange dan nge-glow */
+.btn-center span {
+    font-size: 2.2rem;
+    color: #ffffff; /* Default awal ▶️ warna putih bersih */
+}
+
+/* Dipicu JS saat musik menyala (Pause ⏸️ menyala orange) */
 .btn-center.playing-state {
     box-shadow: 0 0 20px rgba(30, 215, 96, 0.4);
 }
+
 .btn-center.playing-state span {
-    color: var(--spotify-orange); /* Menjadi orange saat pause muncul */
+    color: var(--spotify-orange);
 }
 
-/* Bottom Utility */
+/* =======================================
+   BOTTOM UTILITY (Volume & Toggles)
+   ======================================= */
 .bottom-utility {
     display: flex;
     align-items: center;
@@ -179,17 +215,23 @@ body {
 }
 
 .btn-util {
-    background: none; border: none;
-    color: #ffffff; cursor: pointer;
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
 }
-.btn-util span { font-size: 1.5rem; }
 
-.toggle-btn.active { color: var(--spotify-orange); }
-.btn-util.active { color: #ff3b30; }
+.btn-util span {
+    font-size: 1.5rem;
+}
+
+.toggle-btn.active {
+    color: var(--spotify-orange);
+}
 
 .volume-box {
     flex: 1;
-    margin-left: 15px;
+    margin-left: 20px;
     display: flex;
     align-items: center;
 }
@@ -201,29 +243,108 @@ body {
     cursor: pointer;
 }
 
-/* Playlist UI */
+/* =======================================
+   PLAYLIST SECTION (Bawah Card)
+   ======================================= */
 .playlist-section {
     background: rgba(21, 32, 25, 0.4);
     border-radius: 24px;
     padding: 20px;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.02);
+    border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
-.playlist-header { display: flex; gap: 10px; margin-bottom: 15px; }
-.search-box { display: flex; align-items: center; background: #151d19; border-radius: 10px; padding: 8px 12px; gap: 8px; flex: 1; }
-.search-box input { background: none; border: none; color: #fff; outline: none; width: 100%; font-size: 0.9rem; }
-.btn-sort { background: #151d19; border: none; color: #fff; padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+.playlist-header {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
 
-.playlist-container { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
-.playlist-container::-webkit-scrollbar { width: 3px; }
-.playlist-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #151d19;
+    border-radius: 10px;
+    padding: 8px 12px;
+    gap: 8px;
+    flex: 1;
+}
 
-.track-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; cursor: pointer; }
-.track-item:hover { background: rgba(255,255,255,0.03); }
-.track-item.active { background: rgba(30, 215, 96, 0.12); }
-.track-item.active h4 { color: var(--btn-green); }
+.search-box input {
+    background: none;
+    border: none;
+    color: #ffffff;
+    outline: none;
+    width: 100%;
+    font-size: 0.9rem;
+}
 
-.track-item img { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; }
-.item-meta h4 { font-size: 0.85rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
-.item-meta p { font-size: 0.75rem; color: var(--text-muted); }
+.btn-sort {
+    background: #151d19;
+    border: none;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.playlist-container {
+    max-height: 220px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.playlist-container::-webkit-scrollbar {
+    width: 3px;
+}
+
+.playlist-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.track-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.track-item.active {
+    background: rgba(30, 215, 96, 0.12);
+}
+
+.track-item.active h4 {
+    color: var(--btn-green);
+}
+
+.track-item img {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.item-meta {
+    overflow: hidden;
+}
+
+.item-meta h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-meta p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    }
