@@ -15,7 +15,6 @@ const trackTitle = document.getElementById('trackTitle');
 const trackArtist = document.getElementById('trackArtist');
 const trackCover = document.getElementById('trackCover');
 
-// BARU: Deklarasi Element Tambahan Fitur Baru
 const searchBar = document.getElementById('searchBar');
 const lyricsContainer = document.getElementById('lyricsContainer');
 const lyricsWrapper = document.getElementById('lyricsWrapper');
@@ -29,19 +28,16 @@ let analyser = null;
 let dataArray = null;
 let source = null;
 
-// LocalStorage data state
 let currentIndex = parseInt(localStorage.getItem('brkdown_index')) || 0;
 let isShuffle = localStorage.getItem('brkdown_shuffle') === 'true';
 let isRepeat = localStorage.getItem('brkdown_repeat') === 'true';
 let savedVolume = localStorage.getItem('brkdown_volume') !== null ? parseFloat(localStorage.getItem('brkdown_volume')) : 1;
 
-// Sinkronisasi awal volume & utility
 shuffleBtn.classList.toggle('active', isShuffle);
 repeatBtn.classList.toggle('active', isRepeat);
 volumeSlider.value = savedVolume;
 audio.volume = savedVolume;
 
-// Beri ijin CORS Gambar agar canvas bisa membaca warna dominan tanpa blokir keamanan
 trackCover.crossOrigin = "anonymous";
 
 fetch('playlist.json')
@@ -70,7 +66,6 @@ function loadTrack(index) {
     currentIndex = index;
     localStorage.setItem('brkdown_index', currentIndex);
     
-    // Reset visual animasi teks judul
     trackTitle.classList.remove('marquee');
     trackTitle.style.transform = 'translateX(0)';
     
@@ -79,7 +74,6 @@ function loadTrack(index) {
     trackCover.src = track.cover;
     audio.src = track.src;
     
-    // 1. FITUR BARU: Ambil Warna Dominan Cover (Dynamic Background)
     trackCover.onload = function() {
         try {
             const tempCanvas = document.createElement('canvas');
@@ -88,19 +82,16 @@ function loadTrack(index) {
             tempCanvas.height = 1;
             tempCtx.drawImage(trackCover, 0, 0, 1, 1);
             const data = tempCtx.getImageData(0, 0, 1, 1).data;
-            // Suntik variabel CSS global ke root body
             document.body.style.setProperty('--dynamic-r', data[0]);
             document.body.style.setProperty('--dynamic-g', data[1]);
             document.body.style.setProperty('--dynamic-b', data[2]);
         } catch (e) {
-            // Fallback jika terjadi error cross-origin lokal
             document.body.style.setProperty('--dynamic-r', '18');
             document.body.style.setProperty('--dynamic-g', '18');
             document.body.style.setProperty('--dynamic-b', '18');
         }
     };
 
-    // 2. FITUR BARU: Loader Lirik Berjalan (.lrc) dengan Mekanisme Auto-Hide
     parsedLyrics = [];
     lyricsWrapper.innerHTML = '';
     
@@ -114,19 +105,18 @@ function loadTrack(index) {
                 parsedLyrics = parseLRC(text);
                 if (parsedLyrics.length > 0) {
                     renderLyrics();
-                    lyricsContainer.style.display = "block"; // Tampilkan jika lirik ada
+                    lyricsContainer.style.display = "block";
                 } else {
-                    lyricsContainer.style.display = "none"; // Sembunyikan jika kosong
+                    lyricsContainer.style.display = "none";
                 }
             })
             .catch(() => {
-                lyricsContainer.style.display = "none"; // Sembunyikan otomatis jika gagal load
+                lyricsContainer.style.display = "none";
             });
     } else {
-        lyricsContainer.style.display = "none"; // FITUR REQ: Auto-hide jika tidak didefinisikan di JSON
+        lyricsContainer.style.display = "none";
     }
 
-    // Hitung ulang pergeseran Marquee teks
     setTimeout(() => {
         const containerWidth = trackTitle.parentElement.getBoundingClientRect().width;
         const textWidth = trackTitle.getBoundingClientRect().width;
@@ -137,7 +127,6 @@ function loadTrack(index) {
         }
     }, 300);
     
-    // Media Session API (Lock Screen HP)
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: track.title,
@@ -157,7 +146,6 @@ function loadTrack(index) {
     updatePlaylistHighlight();
 }
 
-// Mesin Pemecah Struktur File .lrc ke bentuk Detek & Teks
 function parseLRC(lrcText) {
     const lines = lrcText.split('\n');
     const result = [];
@@ -172,7 +160,6 @@ function parseLRC(lrcText) {
                 const min = parseInt(minMax[1]);
                 const sec = parseInt(minMax[2]);
                 const ms = minMax[3] ? parseInt(minMax[3]) : 0;
-                // Ubah format menit ke total detik murni
                 const totalSec = min * 60 + sec + (ms / (minMax[3].length === 2 ? 100 : 1000));
                 if (text) result.push({ time: totalSec, text: text });
             });
@@ -192,9 +179,8 @@ function renderLyrics() {
     });
 }
 
-// 3. FITUR BARU: Audio Visualizer (Membaca Frekuensi Audio Asli Lewat Browser)
 function initVisualizer() {
-    if (audioCtx) return; // Mencegah duplikasi inisialisasi
+    if (audioCtx) return; 
     
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
@@ -203,7 +189,7 @@ function initVisualizer() {
     source.connect(analyser);
     analyser.connect(audioCtx.destination);
     
-    analyser.fftSize = 64; // Menentukan kehalusan bar gelombang suara
+    analyser.fftSize = 64; 
     const bufferLength = analyser.frequencyBinCount;
     dataArray = new Uint8Array(bufferLength);
     
@@ -213,6 +199,12 @@ function initVisualizer() {
 function drawVisualizer() {
     requestAnimationFrame(drawVisualizer);
     if (!analyser) return;
+    
+    // UPDATE: Menyesuaikan resolusi internal canvas agar jernih di dalam cover
+    if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+    }
     
     const bufferLength = analyser.frequencyBinCount;
     analyser.getByteFrequencyData(dataArray);
@@ -224,19 +216,18 @@ function drawVisualizer() {
     let x = 0;
     
     for (let i = 0; i < bufferLength; i++) {
-        barHeight = dataArray[i] / 4.5; // Batasi tinggi agar rapi di kotak card
+        // Skala tinggi gelombang menyesuaikan tinggi canvas cover baru
+        barHeight = dataArray[i] / (canvas.height > 60 ? 3.5 : 4.5); 
         
-        // Atur warna bar visualizer agar seragam dengan Hijau Spotify
         ctx.fillStyle = '#1ed760';
-        // Gambar bar secara simetris atas bawah membentuk wave gelombang
-        ctx.fillRect(x, (canvas.height / 2) - (barHeight / 2), barWidth, barHeight);
+        // Menggambar bar dari bawah canvas agar seolah menari di atas tepi foto album
+        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
         
         x += barWidth + 3;
     }
 }
 
 function togglePlay() {
-    // Hidupkan AudioContext saat tombol play di klik pertama kali (syarat kebijakan browser)
     if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
     } else {
@@ -266,17 +257,15 @@ function prevTrack() {
     audio.play().then(() => playIcon.textContent = 'pause').catch(() => {});
 }
 
-// 4. FITUR BARU: Render Playlist Mendukung Pencarian (Search Filter)
 function renderPlaylist(query = '') {
     playlistContainer.innerHTML = '';
     const filteredQuery = query.toLowerCase().trim();
     
     tracks.forEach((track, index) => {
-        // Cek filter kecocokan judul atau nama artist
         if (track.title.toLowerCase().includes(filteredQuery) || track.artist.toLowerCase().includes(filteredQuery)) {
             const item = document.createElement('div');
             item.className = `track-item track-item-selector ${index === currentIndex ? 'active' : ''}`;
-            item.setAttribute('data-absolute-index', index); // Amankan index asli lagu
+            item.setAttribute('data-absolute-index', index); 
             
             item.innerHTML = `
                 <img src="${track.cover}" onerror="this.src='https://via.placeholder.com/150'">
@@ -314,12 +303,10 @@ function formatTime(time) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-// Event Listener untuk Kolom Input Pencarian Lagu
 searchBar.addEventListener('input', (e) => {
     renderPlaylist(e.target.value);
 });
 
-// Sinkronisasi Detik Lagu & Pergeseran Teks Lirik Berjalan
 audio.addEventListener('timeupdate', () => {
     const { currentTime, duration } = audio;
     if (duration) {
@@ -328,7 +315,6 @@ audio.addEventListener('timeupdate', () => {
     }
     currentTimeEl.textContent = formatTime(currentTime);
 
-    // Algoritma Penyelaras Baris Lirik
     if (parsedLyrics.length > 0) {
         let activeIndex = -1;
         for (let i = 0; i < parsedLyrics.length; i++) {
@@ -347,7 +333,6 @@ audio.addEventListener('timeupdate', () => {
             if (activeLineElement) {
                 activeLineElement.classList.add('active');
                 
-                // Geser wrapper lirik naik secara otomatis agar posisi baris aktif selalu di tengah kotak
                 const containerHeight = lyricsContainer.clientHeight;
                 const lineOffsetTop = activeLineElement.offsetTop;
                 const lineHeight = activeLineElement.clientHeight;
@@ -359,7 +344,6 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
-// Event Controls bawaan
 playBtn.addEventListener('click', togglePlay);
 nextBtn.addEventListener('click', nextTrack);
 prevBtn.addEventListener('click', prevTrack);
@@ -390,4 +374,4 @@ volumeSlider.addEventListener('input', (e) => {
     audio.volume = e.target.value;
     localStorage.setItem('brkdown_volume', e.target.value);
 });
-            
+    
