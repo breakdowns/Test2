@@ -57,19 +57,62 @@ body {
     width: 100%;
     overflow: hidden;
     position: relative;
-    padding: 0 4px;
+    padding: 0 8px;
 }
 
-.track-info h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; white-space: nowrap; }
+.track-info h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.track-info p { color: var(--text-muted); font-size: 1rem; }
 
 .progress-section { margin-bottom: 12px; }
 .progress-bar-container { width: 100%; height: 4px; background: #4f4f4f; border-radius: 2px; cursor: pointer; margin-bottom: 8px; }
 .progress-bar { height: 100%; width: 0%; background: var(--spotify-green); border-radius: 2px; }
 .time-stamps { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
 
-.controls-main { display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 24px; }
+.controls-main { display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 20px; }
 .btn-icon { background: none; border: none; color: var(--text-pure); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.btn-icon:hover { opacity: 0.8; }
 #playBtn { width: 56px; height: 56px; background: var(--spotify-green); border-radius: 50%; color: #000; }
+#playBtn .material-icons { font-size: 32px; }
+
+/* FIX TATA LETAK TOMBOL UTILITY DAN VOLUME SLIDER */
+.controls-utility-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    gap: 16px; 
+    margin-bottom: 24px; 
+    width: 100%; 
+}
+.btn-small { color: var(--text-muted); }
+.btn-small.active { color: var(--spotify-green); }
+.btn-small .material-icons { font-size: 22px; }
+
+.volume-inline-container { display: flex; align-items: center; flex-grow: 1; margin-left: 8px; }
+#volumeSlider { 
+    -webkit-appearance: none; 
+    appearance: none; 
+    width: 100%; 
+    height: 4px; 
+    background: #4f4f4f; 
+    border-radius: 2px; 
+    outline: none; 
+    cursor: pointer;
+}
+#volumeSlider::-webkit-slider-thumb { 
+    -webkit-appearance: none; 
+    appearance: none; 
+    width: 12px; 
+    height: 12px; 
+    border-radius: 50%; 
+    background: var(--spotify-green); 
+}
+#volumeSlider::-moz-range-thumb { 
+    width: 12px; 
+    height: 12px; 
+    border-radius: 50%; 
+    background: var(--spotify-green); 
+    border: none; 
+}
 
 .lyrics-container { width: 100%; max-height: 120px; overflow: hidden; position: relative; margin-bottom: 20px; display: none; text-align: center; mask-image: linear-gradient(to bottom, transparent 0%, white 25%, white 75%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 25%, white 75%, transparent 100%); }
 .lyric-line { font-size: 0.95rem; font-weight: 700; padding: 8px 0; color: var(--text-muted); opacity: 0.4; transition: all 0.3s ease; }
@@ -80,5 +123,8 @@ body {
 .track-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; cursor: pointer; }
 .track-item.active { background: rgba(30, 215, 96, 0.1); color: var(--spotify-green); }
 .track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
+
 .footer-credit { margin-top: 24px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
-                   
+.footer-credit a { color: var(--text-muted); text-decoration: none; font-weight: bold; }
+.footer-credit a:hover { color: var(--spotify-green); }
+    
