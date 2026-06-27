@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breakdowns Music</title>
     
-    <!-- FITUR: Favicon Logo Website Kustom Kamu -->
+    <!-- Favicon Logo Website -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
     
-    <link rel="stylesheet" href="style.css?v=3">
+    <!-- Menggunakan cache buster v=4 untuk memaksa browser memuat pembaruan terbaru -->
+    <link rel="stylesheet" href="style.css?v=4">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
@@ -33,6 +34,9 @@
             </div>
         </div>
 
+        <!-- BARU: Canvas untuk Audio Visualizer (Gelombang Suara) -->
+        <canvas id="visualizer"></canvas>
+
         <div class="controls-main">
             <button class="btn-icon" id="prevBtn"><span class="material-icons">skip_previous</span></button>
             <button class="btn-icon" id="playBtn"><span class="material-icons" id="playIcon">play_arrow</span></button>
@@ -47,6 +51,14 @@
             </div>
         </div>
 
+        <!-- BARU: Container Lirik Berjalan (Auto-Hide secara bawaan) -->
+        <div id="lyricsContainer" class="lyrics-container">
+            <div id="lyricsWrapper"></div>
+        </div>
+
+        <!-- BARU: Search Bar Input di Atas Playlist -->
+        <input type="text" id="searchBar" placeholder="Cari judul lagu atau musisi...">
+
         <div id="playlist"></div>
     </div>
 
@@ -55,6 +67,7 @@
     </footer>
 
     <audio id="mainAudio"></audio>
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=4"></script>
 </body>
-</html>
+                                                                                  </html>
+                                                                                  
