@@ -27,12 +27,12 @@ body {
 
 .player-card {
     width: 100%;
-    max-width: 380px; /* Standar ukuran Mobile */
+    max-width: 380px; /* Ukuran standar pas di HP (Mode Mobile) */
     background: var(--card-bg);
     border-radius: 24px;
     padding: 24px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
-    transition: all 0.3s ease; /* Biar transisi perubahan ukuran mulus */
+    transition: all 0.2s ease-in-out;
 }
 
 .cover-container {
@@ -220,53 +220,88 @@ body {
 
 
 /* ==========================================================
-   KODE KHUSUS DESKTOP (Otomatis Aktif di Layar Lebar)
+   OPTIMASI UKURAN BESAR (Mode Desktop / Situs Desktop Aktif)
    ========================================================== */
 @media (min-width: 768px) {
     .player-card {
-        max-width: 460px; /* Ukuran card dibuat lebih lebar dan proporsional di PC */
-        padding: 32px;    /* Padding dalam card lebih luas */
-        border-radius: 32px;
+        max-width: 580px;  /* Ditambah dari 460px ke 580px agar card terlihat padat dan dominan */
+        padding: 36px;     /* Spasi dalam card dibuat lebih lebar */
+        border-radius: 36px;
     }
 
-    .track-info h2 {
-        font-size: 1.7rem; /* Judul lagu lebih besar di desktop */
-        margin-bottom: 6px;
-    }
-
-    .track-info p {
-        font-size: 1rem; /* Nama musisi disesuaikan */
-    }
-
-    .controls-main {
-        gap: 32px; /* Jarak tombol navigasi musik lebih renggang */
+    .cover-container {
+        border-radius: 24px;
         margin-bottom: 30px;
     }
 
+    .track-info h2 {
+        font-size: 2rem;   /* Ukuran judul lagu diperbesar drastis */
+        margin-bottom: 8px;
+    }
+
+    .track-info p {
+        font-size: 1.2rem; /* Nama musisi diperbesar */
+    }
+
+    .progress-bar-container {
+        height: 6px;       /* Bar penunjuk menit lagu dipertebal */
+    }
+
+    .time-stamps {
+        font-size: 0.9rem; /* Angka menit lagu diperbesar */
+    }
+
+    .controls-main {
+        gap: 40px;         /* Jarak tombol navigasi direnggangkan */
+        margin-bottom: 32px;
+    }
+
+    .btn-icon .material-icons {
+        font-size: 2.8rem; /* Icon backward & forward diperbesar */
+    }
+
     #playBtn {
-        width: 64px;  /* Tombol play dibuat lebih besar menjulang */
-        height: 64px;
+        width: 80px;       /* Tombol lingkaran hijau utama diperbesar */
+        height: 80px;
+    }
+
+    #playBtn .material-icons {
+        font-size: 3.5rem; /* Icon play/pause di dalam lingkaran diperbesar */
+    }
+
+    .btn-small .material-icons {
+        font-size: 1.8rem; /* Tombol shuffle & repeat diperbesar */
+    }
+
+    #volumeSlider {
+        height: 6px;       /* Slider volume dipertebal */
     }
 
     #playlist {
-        max-height: 240px; /* Kotak list lagu bisa menampung list lebih panjang di PC */
+        max-height: 260px; /* Kotak list lagu bisa menampung ruang lebih tinggi */
     }
 
     .track-item {
-        padding: 10px; /* List lagu lebih tebal */
+        padding: 12px;     /* List daftar lagu dibuat lebih renggang & lega */
+        gap: 16px;
     }
 
     .track-item img {
-        width: 48px; /* Gambar mini di list lagu diperbesar */
-        height: 48px;
+        width: 54px;       /* Gambar mini di list lagu diperbesar */
+        height: 54px;
+        border-radius: 6px;
     }
 
     .track-meta h4 {
-        font-size: 1rem;
+        font-size: 1.15rem; /* Judul lagu di list diperbesar */
+    }
+
+    .track-meta p {
+        font-size: 0.9rem;  /* Nama artis di list diperbesar */
     }
     
     .footer-credit {
-        margin-top: 32px;
-        font-size: 0.9rem; /* Ukuran footer credit disesuaikan */
+        margin-top: 40px;
+        font-size: 1.05rem; /* Teks "Build with ♥️ by Hafitz" diperbesar */
     }
-    }
+}
