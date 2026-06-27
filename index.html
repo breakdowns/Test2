@@ -6,25 +6,33 @@
     <title>Breakdowns Music</title>
     <!-- Material Icons & Google Fonts -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Dynamic Blurred Background -->
     <div class="bg-blur" id="bgBlur"></div>
+    <div class="bg-overlay"></div>
 
-    <!-- Main Container Layout Vertikal -->
+    <!-- Main Container -->
     <div class="container">
         
-        <!-- PLAYER UTAMA (DI ATAS) -->
-        <div class="main-player panel">
-            <!-- Album Art Zone -->
+        <!-- PLAYER CARD (SATU LAYAR PENUH DI ATAS) -->
+        <div class="main-player">
+            <!-- Header Kecil Khas Spotify -->
+            <div class="player-header">
+                <span class="material-icons">keyboard_arrow_down</span>
+                <span class="header-title">PLAYING FROM PLAYLIST</span>
+                <span class="material-icons">more_vert</span>
+            </div>
+
+            <!-- Album Art Besar -->
             <div class="cover-wrapper">
                 <img src="placeholder.jpg" alt="Cover Album" id="trackCover" class="track-cover">
                 <canvas id="visualizer" class="visualizer-canvas"></canvas>
             </div>
 
-            <!-- Track Info -->
+            <!-- Track Info (Teks Kiri, Fav Kanan) -->
             <div class="track-info">
                 <div class="title-wrapper">
                     <h1 id="trackTitle">Memuat lagu...</h1>
@@ -37,29 +45,29 @@
 
             <!-- Progress Bar Area -->
             <div class="progress-area">
-                <div class="time-display">
-                    <span id="currentTime">00:00</span>
-                    <span id="duration">00:00</span>
-                </div>
                 <div class="progress-bar-container" id="progressContainer">
                     <div class="progress-bar" id="progressBar">
                         <div class="progress-knob"></div>
                     </div>
                 </div>
+                <div class="time-display">
+                    <span id="currentTime">00:00</span>
+                    <span id="duration">00:00</span>
+                </div>
             </div>
 
-            <!-- Playback Controls -->
+            <!-- Playback Controls (Susunan Tombol Spotify) -->
             <div class="controls-area">
                 <button id="shuffleBtn" class="btn-control toggle-btn" title="Shuffle">
                     <span class="material-icons">shuffle</span>
                 </button>
-                <button id="prevBtn" class="btn-control" title="Sebelumnya">
+                <button id="prevBtn" class="btn-control icon-large" title="Sebelumnya">
                     <span class="material-icons">skip_previous</span>
                 </button>
                 <button id="playBtn" class="btn-control btn-main" title="Putar">
-                    <span class="material-icons">play_arrow</span>
+                    <span class="material-icons">play_circle_filled</span>
                 </button>
-                <button id="nextBtn" class="btn-control" title="Selanjutnya">
+                <button id="nextBtn" class="btn-control icon-large" title="Selanjutnya">
                     <span class="material-icons">skip_next</span>
                 </button>
                 <button id="repeatBtn" class="btn-control toggle-btn" title="Repeat Mode">
@@ -67,7 +75,7 @@
                 </button>
             </div>
 
-            <!-- Volume & Speed -->
+            <!-- Volume & Speed (Ramping di Bawah Kontrol Utama) -->
             <div class="extra-controls">
                 <div class="volume-container">
                     <span class="material-icons" id="volumeIcon">volume_up</span>
@@ -83,22 +91,27 @@
                     </select>
                 </div>
             </div>
+
+            <!-- Hint Indikator Scroll Ke Bawah -->
+            <div class="scroll-hint">
+                <p>Scroll ke bawah untuk melihat playlist</p>
+                <span class="material-icons">expand_more</span>
+            </div>
         </div>
 
-        <!-- PLAYLIST / DAFTAR LAGU (DI BAWAH) -->
-        <div class="sidebar panel">
+        <!-- PLAYLIST SECTION (MUNCUL SAAT DI-SCROLL) -->
+        <div class="sidebar">
             <div class="sidebar-header">
+                <h3>Daftar Lagu</h3>
                 <div class="search-box">
                     <span class="material-icons">search</span>
-                    <input type="text" id="searchBar" placeholder="Cari lagu...">
+                    <input type="text" id="searchBar" placeholder="Cari di dalam playlist...">
                 </div>
-                <div class="sort-controls">
-                    <button id="sortAZ" class="btn-sm"><span class="material-icons">sort_by_alpha</span> A-Z</button>
-                </div>
+                <button id="sortAZ" class="btn-sm"><span class="material-icons">sort_by_alpha</span></button>
             </div>
             
             <div class="playlist-container" id="playlist">
-                <!-- Lagu di-render di sini -->
+                <!-- Lagu di-render di sini via JavaScript -->
             </div>
         </div>
 
@@ -107,9 +120,7 @@
     <!-- Audio Element Hidden -->
     <audio id="mainAudio" crossorigin="anonymous"></audio>
 
-    <!-- Script Otomatis Menghilangkan Overlay & Load Musik -->
     <script>
-        // Trigger otomatis agar tidak perlu klik tombol selamat datang
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof initAudioVisualizer === 'function') initAudioVisualizer();
             if (typeof fetchPlaylist === 'function') fetchPlaylist();
@@ -117,4 +128,5 @@
     </script>
     <script src="app.js"></script>
 </body>
-</html>
+                </html>
+                
