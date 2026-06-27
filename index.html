@@ -2,30 +2,28 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Breakdowns Music</title>
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Pastikan link stylesheet mengarah ke file style.css yang sudah diupdate -->
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
+    <!-- Background Blur -->
     <div class="bg-blur" id="bgBlur"></div>
 
+    <!-- Main Player Card -->
     <div class="player-card">
-        <!-- Cover Art & Visualizer Canvas -->
         <div class="cover-container">
             <img id="trackCover" src="placeholder.jpg" alt="Cover Album">
-            <canvas id="visualizer"></canvas>
         </div>
-
-        <!-- Track Meta Data -->
+        
         <div class="track-info">
             <h2 id="trackTitle">Judul Lagu</h2>
             <p id="trackArtist">Nama Artis</p>
         </div>
 
-        <!-- Progress Timeline & Durasi -->
         <div class="progress-section">
             <div class="progress-bar-container" id="progressContainer">
                 <div class="progress-bar" id="progressBar"></div>
@@ -36,38 +34,32 @@
             </div>
         </div>
 
-        <!-- Player Controller Buttons -->
         <div class="controls-main">
-            <div class="btn-icon" id="prevBtn" role="button" tabindex="0">
-                <span class="material-icons">skip_previous</span>
-            </div>
-            <div class="btn-icon" id="playBtn" role="button" tabindex="0">
-                <span class="material-icons" id="playIcon">play_arrow</span>
-            </div>
-            <div class="btn-icon" id="nextBtn" role="button" tabindex="0">
-                <span class="material-icons">skip_next</span>
-            </div>
+            <div class="btn-icon" id="prevBtn"><span class="material-icons">skip_previous</span></div>
+            <div class="btn-icon" id="playBtn"><span class="material-icons" id="playIcon">play_arrow</span></div>
+            <div class="btn-icon" id="nextBtn"><span class="material-icons">skip_next</span></div>
         </div>
 
-        <!-- Utility & Volume Section (Sejajar Sampingan Pas) -->
         <div class="controls-utility-row">
-            <div class="btn-icon btn-small" id="shuffleBtn" role="button" tabindex="0">
-                <span class="material-icons">shuffle</span>
-            </div>
-            <div class="btn-icon btn-small" id="repeatBtn" role="button" tabindex="0">
-                <span class="material-icons">repeat</span>
-            </div>
+            <div class="btn-icon btn-small" id="shuffleBtn"><span class="material-icons">shuffle</span></div>
+            <div class="btn-icon btn-small" id="repeatBtn"><span class="material-icons">repeat</span></div>
             <div class="volume-inline-container">
                 <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
             </div>
         </div>
 
-        <!-- Playlist Container -->
-        <div id="playlist"></div>
+        <div id="playlist">
+            <!-- Playlist akan diisi oleh app.js -->
+        </div>
     </div>
 
-    <audio id="mainAudio"></audio>
+    <!-- Footer Credit -->
+    <footer class="footer-credit">
+        Build with ♥️ by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
+    </footer>
 
+    <!-- Audio & Script -->
+    <audio id="mainAudio"></audio>
     <script src="app.js"></script>
 </body>
 </html>
