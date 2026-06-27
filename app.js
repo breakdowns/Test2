@@ -51,6 +51,7 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
+    // 1. GANTI DATA AUDIO DAN COVER SECARA INSTAN (ANTI-LAG)
     trackTitle.textContent = track.title; 
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
@@ -61,39 +62,38 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // 1. BUANG LIRIK LAMA: Buat memudar hilang secara visual terlebih dahulu
+    // 2. FADE-OUT LIRIK LAMA INSTAN
     lyricsContainer.style.opacity = '0';
+    lyricsWrapper.style.transition = 'none';
+    lyricsWrapper.style.transform = 'translateY(0px)';
+    lyricsWrapper.innerHTML = ''; 
     
-    // 2. AMBIL DATA LIRIK BARU SECARA PARALEL (ANTI BALAPAN DATA/RACE CONDITION)
+    // 3. FETCH LIRIK DI LATAR BELAKANG (TIDAK MEMBLOKIR PEMUTARAN LAGU)
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
             .then(res => res.text())
             .then(text => { 
-                // KUNCI UTAMA: Hanya hapus dan render DOM saat file lirik benar-benar selesai diunduh
-                lyricsWrapper.style.transition = 'none';
-                lyricsWrapper.style.transform = 'translateY(0px)';
+                // Pastikan user belum nge-skip ke lagu lain saat fetch ini selesai
+                if (tracks[currentIndex].src !== track.src) return;
+
                 lyricsWrapper.innerHTML = ''; 
-                
                 parsedLyrics = parseLRC(text); 
                 parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
                 
                 lyricsContainer.style.display = "block"; 
-                void lyricsWrapper.offsetWidth; // Memaksa browser me-reset siklus render gaya (reflow)
+                void lyricsWrapper.offsetWidth; 
                 
-                // Tampilkan lirik baru dengan efek transisi pudar naik yang 100% konsisten smooth
+                // Fade-in lirik baru
                 lyricsContainer.style.opacity = '1';
                 lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
             })
             .catch(() => {
-                lyricsWrapper.innerHTML = '';
-                lyricsContainer.style.display = "none";
+                if (tracks[currentIndex].src === track.src) {
+                    lyricsContainer.style.display = "none";
+                }
             });
     } else { 
-        // Jika lagu tidak memiliki lirik, bersihkan wadahnya setelah efek transisi pudar selesai
-        setTimeout(() => {
-            lyricsWrapper.innerHTML = '';
-            lyricsContainer.style.display = "none";
-        }, 200);
+        lyricsContainer.style.display = "none"; 
     }
     
     const isFav = favorites.includes(track.src);
@@ -103,7 +103,7 @@ function loadTrack(index) {
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
 
-    // KONTROL MARQUEE OTOMATIS: Hanya jalan jika teks kepotong
+    // KONTROL MARQUEE OTOMATIS
     setTimeout(() => {
         const marqueeContainer = document.querySelector('.marquee-container');
         const trackTitleEl = document.getElementById('trackTitle');
@@ -240,13 +240,15 @@ playBtn.addEventListener('click', () => {
     if (typeof updateMediaSession === 'function') updateMediaSession();
 });
 
-nextBtn.addEventListener('click', () => { 
+function playNextTrack() {
     let n = currentIndex + 1; 
     if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
     else if (n >= tracks.length) n = 0; 
     loadTrack(n); 
     audio.play().then(() => playIcon.textContent = 'pause'); 
-});
+}
+
+nextBtn.addEventListener('click', playNextTrack);
 
 prevBtn.addEventListener('click', () => { 
     let p = currentIndex - 1; 
@@ -289,7 +291,7 @@ audio.addEventListener('timeupdate', () => {
 });
 
 progressContainer.addEventListener('click', (e) => { if (audio.duration) audio.currentTime = (e.offsetX / progressContainer.clientWidth) * audio.duration; });
-audio.addEventListener('ended', () => { isRepeat ? audio.play() : nextBtn.click(); });
+audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
@@ -312,5 +314,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-          }
-              
+}
