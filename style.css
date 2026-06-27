@@ -31,16 +31,29 @@ body {
     transition: background 0.8s ease;
 }
 
+/* ==========================================
+   MAIN CONTAINER (RESPONSIVE & LARGER FOR DESKTOP)
+   ========================================== */
 .player-container {
     background-color: rgba(26, 26, 26, 0.75);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    max-width: 420px;
+    /* Default untuk mobile layout tetap pas genggaman tangan */
+    max-width: 420px; 
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+    transition: max-width 0.3s ease;
+}
+
+/* Kunci Perubahan Ukuran: Otomatis membesar saat mendeteksi layar Desktop atau Mode Desktop Android */
+@media (min-width: 768px) {
+    .player-container {
+        max-width: 500px; /* Melebarkan kontainer utama player sebesar +80px */
+        padding: 32px; /* Memberikan ruang napas elemen dalam agar lebih premium */
+    }
 }
 
 /* ==========================================
@@ -100,7 +113,6 @@ body {
     color: var(--text-main);
     white-space: nowrap;
     display: inline-block;
-    /* Animasi diatur via JS agar judul pendek tidak ikut bergeser */
 }
 
 .track-info p {
@@ -144,7 +156,6 @@ body {
 .btn-control:active { transform: scale(0.95); }
 .btn-control.active { color: var(--spotify-green); }
 
-/* FIX TOMBOL PLAY ANTI INVERSI WARNA BROWSER */
 .btn-play-pause {
     background-color: #ffffff !important;
     color: #121212 !important;
@@ -177,14 +188,15 @@ body {
 .lyrics-container {
     max-height: 160px;
     overflow-y: hidden;
-    margin-bottom: 24px;
+    margin-bottom: 20px; /* Merapatkan gap bawah sedikit */
     position: relative;
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
 }
 
 #lyricsWrapper {
-    padding: 40px 0;
+    /* PERBAIKAN: Mengurangi padding atas (dari 40px jadi 15px) agar lirik terangkat naik lebih dekat ke kontrol volume */
+    padding: 15px 0 40px 0; 
     text-align: center;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -203,7 +215,7 @@ body {
 }
 
 /* ==========================================
-   PLAYLIST & SEARCH & KREDIT WATERMARK HAFITZ
+   PLAYLIST & SEARCH & KREDIT WATERMARK
    ========================================== */
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 .playlist-container { max-height: 180px; overflow-y: auto; }
@@ -216,7 +228,6 @@ body {
 .track-item.active strong { color: var(--spotify-green); }
 .track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
 
-/* Menghidupkan Teks Kredit Hafitz Menjadi Hijau Spotify Permanen */
 .watermark { 
     text-align: center; 
     font-size: 0.75rem; 
