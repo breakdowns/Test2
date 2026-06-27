@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS WEB PLAYER GLOBAL LOGIC
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -82,6 +82,26 @@ function loadTrack(index) {
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
+
+    // KONTROL MARQUEE OTOMATIS: Hanya jalan jika teks kepotong
+    setTimeout(() => {
+        const marqueeContainer = document.querySelector('.marquee-container');
+        const trackTitleEl = document.getElementById('trackTitle');
+        const trackInfoEl = document.querySelector('.track-info');
+        
+        if (marqueeContainer && trackTitleEl && trackInfoEl) {
+            const parentWidth = trackInfoEl.clientWidth;
+            const textWidth = trackTitleEl.scrollWidth;
+            
+            if (textWidth > parentWidth) {
+                trackTitleEl.style.animation = 'marqueeSpotify 12s linear infinite';
+                trackTitleEl.style.paddingRight = '50px';
+            } else {
+                trackTitleEl.style.animation = 'none';
+                trackTitleEl.style.paddingRight = '0px';
+            }
+        }
+    }, 50);
 }
 
 audio.addEventListener('loadedmetadata', () => { 
@@ -185,7 +205,7 @@ function drawVisualizer() {
     dataArray.forEach((val, i) => { 
         const h = val / 3.5, 
               grad = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - h); 
-        grad.addColorStop(0, 'rgba(30, 215, 96, 0.9)'); // Hijau Spotify Transparan di Cover
+        grad.addColorStop(0, 'rgba(30, 215, 96, 0.9)'); 
         grad.addColorStop(1, 'rgba(102, 255, 153, 0.4)'); 
         ctx.fillStyle = grad; 
         ctx.beginPath(); 
@@ -225,7 +245,6 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-// LOGIKA FIX TOTAL LIRIK SCROLL TENGAH HALUS
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
@@ -273,4 +292,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
+                                              }
