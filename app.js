@@ -20,10 +20,10 @@ let currentIndex = 0;
 let isShuffle = false;
 let isRepeat = false;
 
-// Ambil data playlist dari package.json
-fetch('package.json')
+// Memanggil playlist.json yang aman dari blokir GitHub Pages
+fetch('playlist.json')
     .then(res => {
-        if (!res.ok) throw new Error('Gagal fetch package.json');
+        if (!res.ok) throw new Error('Gagal fetch playlist.json');
         return res.json();
     })
     .then(data => {
@@ -48,7 +48,7 @@ function loadTrack(index) {
     trackCover.src = track.cover;
     audio.src = track.src;
     
-    // Update active style di playlist UI
+    // Update kelas active pada UI playlist
     const items = document.querySelectorAll('.track-item');
     items.forEach((item, idx) => {
         if (idx === index) item.classList.add('active');
@@ -61,7 +61,7 @@ function togglePlay() {
         audio.play()
             .then(() => playIcon.textContent = 'pause')
             .catch(err => {
-                alert("File tidak ditemukan! Cek kembali penulisan nama file .mp3 / .jpg kamu di package.json.");
+                alert("File tidak ditemukan! Cek kembali apakah nama file musik/folder di playlist.json sudah sama persis dengan di GitHub.");
                 console.error(err);
             });
     } else {
@@ -123,7 +123,7 @@ function formatTime(time) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-// Event Listeners
+// Pasang semua Event Listener Fitur Utama
 playBtn.addEventListener('click', togglePlay);
 nextBtn.addEventListener('click', nextTrack);
 prevBtn.addEventListener('click', prevTrack);
