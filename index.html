@@ -36,7 +36,7 @@
             </div>
         </div>
 
-        <!-- Player Controller Buttons (Menggunakan DIV agar kebal paksaan browser) -->
+        <!-- Player Controller Buttons -->
         <div class="controls-main">
             <div class="btn-icon" id="prevBtn" role="button" tabindex="0">
                 <span class="material-icons">skip_previous</span>
@@ -49,27 +49,21 @@
             </div>
         </div>
 
-        <!-- Utility Bar (Shuffle, Repeat, Volume) -->
+        <!-- Utility Bar (Shuffle & Repeat) -->
         <div class="controls-utility">
             <div class="btn-icon btn-small" id="shuffleBtn" role="button" tabindex="0">
                 <span class="material-icons">shuffle</span>
-            </div>
-            <div class="volume-container">
-                <span class="material-icons">volume_down</span>
-                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
-                <span class="material-icons">volume_up</span>
             </div>
             <div class="btn-icon btn-small" id="repeatBtn" role="button" tabindex="0">
                 <span class="material-icons">repeat</span>
             </div>
         </div>
 
-        <!-- Search Bar & Sort -->
-        <div class="search-sort-row">
-            <input type="text" id="searchBar" placeholder="Cari lagu...">
-            <button id="sortAZ" class="btn-icon">
-                <span class="material-icons">sort_by_alpha</span>
-            </button>
+        <!-- Volume Slider Section (Kembali ke versi awal di bawah kontrol) -->
+        <div class="volume-container">
+            <span class="material-icons">volume_down</span>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+            <span class="material-icons">volume_up</span>
         </div>
 
         <!-- Playlist Container -->
