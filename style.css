@@ -229,32 +229,28 @@ body {
 }
 
 /* =======================================
-   UTILITY & VOLUME INLINE ROW
+   UTILITY & VOLUME INLINE ROW (FIX SEJAJAR)
    ======================================= */
 .controls-utility-row {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    justify-content: space-between !important;
-    gap: 20px !important;
+    justify-content: flex-start !important;
+    gap: 16px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     padding-top: 20px;
     margin-bottom: 24px;
-    width: 100%;
+    width: 100% !important;
 }
 
-.utility-buttons {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-}
-
-.utility-buttons .btn-icon .material-icons {
-    font-size: 24px !important;
+.controls-utility-row .btn-icon .material-icons {
+    font-size: 26px !important;
+    display: block !important;
 }
 
 .btn-small {
     color: var(--text-muted) !important;
+    flex-shrink: 0 !important;
 }
 
 .btn-small.active {
@@ -265,6 +261,7 @@ body {
     flex-grow: 1 !important;
     display: flex !important;
     align-items: center !important;
+    margin-left: 4px;
 }
 
 #volumeSlider {
@@ -275,6 +272,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
     outline: none;
+    display: block !important;
 }
 
 /* =======================================
@@ -341,27 +339,51 @@ body {
    ======================================= */
 @media (min-width: 769px) {
     body {
-        padding: 40px;
+        padding: 50px;
         background-color: #040608;
     }
     
     .player-card {
-        max-width: 440px;
-        padding: 32px;
-        border-radius: 40px;
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+        max-width: 520px; /* Ukuran card diperbesar signifikan */
+        padding: 40px;
+        border-radius: 48px;
+        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.85);
     }
     
     .track-info h2 {
-        font-size: 1.8rem;
+        font-size: 2rem;
+    }
+
+    .track-info p {
+        font-size: 1.15rem;
     }
     
     .controls-main {
-        gap: 44px !important;
-        margin: 32px 0 !important;
+        gap: 52px !important;
+        margin: 36px 0 !important;
+    }
+
+    .controls-main .btn-icon .material-icons {
+        font-size: 44px !important;
+    }
+
+    #playBtn {
+        width: 76px !important;
+        height: 76px !important;
+    }
+
+    #playBtn .material-icons {
+        font-size: 52px !important;
+    }
+    
+    .controls-utility-row {
+        gap: 20px !important;
+        padding-top: 26px;
+        margin-bottom: 32px;
     }
 
     #playlist {
-        max-height: 250px;
+        max-height: 280px;
+        padding-top: 16px;
     }
-}
+   }
