@@ -302,12 +302,17 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
-// FIX UTAMA: Perhitungan penekanan progres durasi yang 100% akurat di semua browser mobile/desktop mode
+// FIX UTAMA: Kebal terhadap simulasi viewport zoom desktop di Firefox Android
 progressContainer.addEventListener('click', (e) => { 
     if (audio.duration) {
-        const rect = progressContainer.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const widthRatio = Math.max(0, Math.min(clickX / rect.width, 1));
+        let clickX = e.offsetX;
+        
+        // Proteksi jika sentuhan mengenai elemen anak (.progress-bar)
+        if (e.target !== e.currentTarget) {
+            clickX = e.offsetX + e.target.offsetLeft;
+        }
+        
+        const widthRatio = Math.max(0, Math.min(clickX / e.currentTarget.clientWidth, 1));
         audio.currentTime = widthRatio * audio.duration; 
     } 
 });
@@ -335,4 +340,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
+          }
+                  
