@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (AUTO-PLAY & CALM TRANSITION)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (BUTTON LOADING INTEGRATED)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -32,6 +32,7 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
+let isFirstLoad = true; // Melacak refresh awal web
 
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
@@ -46,11 +47,10 @@ fetch('playlist.json')
         tracks = data.playlist; 
         currentTracksDisplay = tracks; 
         const savedIndex = parseInt(localStorage.getItem('currentIndex')) || 0; 
-        if (tracks.length > 0) loadTrack(savedIndex >= 0 && savedIndex < tracks.length ? savedIndex : 0, false); 
+        if (tracks.length > 0) loadTrack(savedIndex >= 0 && savedIndex < tracks.length ? savedIndex : 0); 
     });
 
-// ⚡ SEKARANG FUNGSINYA MENERIMA PARAMETER 'shouldPlay' (Default true agar ganti lagu otomatis play)
-function loadTrack(index, shouldPlay = true) {
+function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
 
@@ -58,12 +58,18 @@ function loadTrack(index, shouldPlay = true) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    // Efek memudar halus
+    // Efek memudar halus (fade-out)
     const coverWrapper = document.querySelector('.cover-wrapper');
     if (coverWrapper) coverWrapper.style.opacity = '0.3';
     lyricsContainer.style.opacity = '0';
 
-    // Jeda 200ms agar transisi fade-out selesai
+    // ⚡ INTERUPSI LOADING BUTTON: Jika ini refresh awal, paksa tombol play jadi spinner berputar
+    if (isFirstLoad) {
+        playIcon.textContent = ''; // Kosongkan teks icon
+        playIcon.className = 'btn-loading'; // Berubah wujud jadi spinner bulat
+    }
+
+    // Jeda 200ms untuk sinkronisasi visual kalem
     setTimeout(() => {
         trackTitle.textContent = track.title; 
         trackArtist.textContent = track.artist; 
@@ -81,13 +87,6 @@ function loadTrack(index, shouldPlay = true) {
         lyricsWrapper.style.transform = 'translateY(0px)';
         lyricsWrapper.innerHTML = ''; 
         
-        // ⚡ FIX AUTO-PLAY: Putar musik di sini setelah src audio resmi terpasang oleh browser
-        if (shouldPlay) {
-            audio.play()
-                .then(() => { playIcon.textContent = 'pause'; })
-                .catch((e) => { console.log("Autoplay diblokir browser:", e); });
-        }
-
         const currentTrackSrc = track.src;
         if (track.lyricsSrc) {
             fetch(track.lyricsSrc)
@@ -155,12 +154,24 @@ audio.addEventListener('canplay', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
     }
+    // ⚡ KEMBALIKAN ICON: Musik selesai download, kembalikan spinner jadi icon segitiga play biasa
+    if (isFirstLoad) {
+        playIcon.className = 'material-icons';
+        playIcon.textContent = 'play_arrow';
+        isFirstLoad = false; // Matikan flag load pertama
+    }
 });
 
 audio.addEventListener('playing', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
+    }
+    // Proteksi cadangan pengembalian icon tombol
+    if (isFirstLoad) {
+        playIcon.className = 'material-icons';
+        playIcon.textContent = 'play_arrow';
+        isFirstLoad = false;
     }
 });
 
@@ -179,11 +190,10 @@ function renderPlaylist(arr) {
               item = document.createElement('div');
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
-        
-        // ⚡ FIX PLAYLIST CLICK: Panggil loadTrack, fungsi internalnya yang otomatis memutar audio
         item.addEventListener('click', () => { 
             initVisualizer(); 
-            loadTrack(oIdx, true); 
+            loadTrack(oIdx); 
+            audio.play().then(() => playIcon.textContent = 'pause'); 
         }); 
         playlistContainer.appendChild(item);
     });
@@ -246,6 +256,12 @@ function renderStaticLyrics(text) {
 
 audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
+    // Jika error memuat lagu awal, kembalikan tombol ke normal
+    if (isFirstLoad) {
+        playIcon.className = 'material-icons';
+        playIcon.textContent = 'play_arrow';
+        isFirstLoad = false;
+    }
 });
 
 function initVisualizer() { 
@@ -290,15 +306,16 @@ function playNextTrack() {
     let n = currentIndex + 1; 
     if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
     else if (n >= tracks.length) n = 0; 
-    // Jika lagu diputar otomatis karena habis atau tombol next, langsung play
-    loadTrack(n, true); 
+    loadTrack(n); 
+    audio.play().then(() => playIcon.textContent = 'pause'); 
 }
 
 nextBtn.addEventListener('click', playNextTrack);
 prevBtn.addEventListener('click', () => { 
     let p = currentIndex - 1; 
     if (p < 0) p = tracks.length - 1; 
-    loadTrack(p, true); 
+    loadTrack(p); 
+    audio.play().then(() => playIcon.textContent = 'pause'); 
 });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
@@ -361,5 +378,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-    }
-        
+          }
