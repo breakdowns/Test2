@@ -51,7 +51,7 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    // 1. UBAH DATA UTAMA SECARA INSTAN (LAGU & COVER LANGSUNG RESPONSIV)
+    // GANTI DATA AUDIO DAN COVER SECARA INSTAN
     trackTitle.textContent = track.title; 
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
@@ -61,21 +61,20 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // 2. ANIMASI PUDAR: Mulai pudar lirik lama (jangan langsung dihapus teksnya!)
+    // FADE-OUT LIRIK LAMA INSTAN
     lyricsContainer.style.opacity = '0';
+    lyricsWrapper.style.transition = 'none';
+    lyricsWrapper.style.transform = 'translateY(0px)';
+    lyricsWrapper.innerHTML = ''; 
     
-    // Simpan reference track saat ini untuk divalidasi nanti
+    // FETCH LIRIK DI LATAR BELAKANG
     const currentTrackSrc = track.src;
-
-    // 3. JALANKAN FETCH LIRIK SECARA ASINKRONUS
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
             .then(res => res.text())
             .then(text => { 
-                // Cek apakah user sudah buru-buru nge-skip ke lagu lain sebelum fetch beres
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
 
-                // TUNGGU TRANSISI PUDAR CSS SELESAI (200ms), BARU BERSIHKAN & ISI DOM
                 setTimeout(() => {
                     if (tracks[currentIndex].src !== currentTrackSrc) return;
 
@@ -87,9 +86,8 @@ function loadTrack(index) {
                     parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
                     
                     lyricsContainer.style.display = "block"; 
-                    void lyricsWrapper.offsetWidth; // Paksa reflow layout browser
+                    void lyricsWrapper.offsetWidth; 
                     
-                    // Lirik baru memudar muncul secara elegan
                     lyricsContainer.style.opacity = '1';
                     lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
                 }, 200);
@@ -101,7 +99,6 @@ function loadTrack(index) {
                 }
             });
     } else { 
-        // Jika tidak ada lirik, tunggu pudar dulu baru kosongkan kontainer
         setTimeout(() => {
             if (tracks[currentIndex].src === currentTrackSrc) {
                 parsedLyrics = [];
@@ -305,7 +302,16 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
-progressContainer.addEventListener('click', (e) => { if (audio.duration) audio.currentTime = (e.offsetX / progressContainer.clientWidth) * audio.duration; });
+// FIX UTAMA: Perhitungan penekanan progres durasi yang 100% akurat di semua browser mobile/desktop mode
+progressContainer.addEventListener('click', (e) => { 
+    if (audio.duration) {
+        const rect = progressContainer.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const widthRatio = Math.max(0, Math.min(clickX / rect.width, 1));
+        audio.currentTime = widthRatio * audio.duration; 
+    } 
+});
+
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
 
 function formatTime(s) { 
@@ -329,4 +335,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                                                                                              }
+}
