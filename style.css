@@ -20,7 +20,7 @@
 }
 
 /* ==========================================
-   IZINKAN PULL-TO-REFRESH, KUNCI WARNA ALAS CHROME
+   IZINKAN PULL-TO-REFRESH & BASE BACKGROUND
    ========================================== */
 html {
     background-color: #121212 !important; 
@@ -178,12 +178,15 @@ body {
 .btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
 /* ==========================================
-   VOLUME & LYRICS & PLAYLIST
+   VOLUME AREA
    ========================================== */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); }
 
+/* ==========================================
+   LYRICS WIDGET (MOBILE PERFORMANCE OPTIMIZED)
+   ========================================== */
 .lyrics-container {
     max-height: 160px;
     overflow-y: hidden;
@@ -196,10 +199,11 @@ body {
     transition: opacity 0.2s ease-in-out;
 }
 
-/* FIX ANTIMALFUNGSI HP: Properti 'transition' dihapus murni agar tidak berantakan dengan requestAnimationFrame JavaScript */
 #lyricsWrapper { 
     padding: 15px 0 40px 0; 
     text-align: center; 
+    /* ⚡ TRANSISI GPU NATIVE: Ditugaskan menangkap satu kali perintah koordinat piksel dari JS agar meluncur smooth */
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     will-change: transform; 
     transform: translate3d(0, 0, 0);
     -webkit-transform: translate3d(0, 0, 0);
@@ -224,6 +228,9 @@ body {
     font-size: 1.12rem;
 }
 
+/* ==========================================
+   SEARCH BAR & PLAYLIST
+   ========================================== */
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 
 .playlist-container { 
@@ -239,6 +246,10 @@ body {
 .track-item.active strong { color: var(--spotify-green); }
 .track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
 
+/* ==========================================
+   WATERMARK
+   ========================================== */
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
+   
