@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC (LYRICS INTERACTION LOCK FIX)
+// APP.JS - BREAKDOWNS MUSIC (ISOLATED LOADER ENGINE FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -25,6 +25,9 @@ const trackTitle = document.getElementById('trackTitle'),
       volumeSlider = document.getElementById('volumeSlider'), 
       playlistContainer = document.getElementById('playlist'), 
       searchBar = document.getElementById('searchBar');
+
+// Deklarasi element loader baru
+const globalLoader = document.getElementById('globalLoader');
 
 let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyser, dataArray;
 let currentIndex = 0, isShuffle = false, isRepeat = false;
@@ -71,16 +74,12 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // 1. KUNCI TOTAL INTERAKSI: Tambahkan class 'loading-active' agar container tidak bisa di-scroll jari
-    lyricsContainer.classList.add('loading-active');
-    lyricsContainer.style.opacity = '1';
+    // 1. TAMPILKAN LOADER KAKU & SEMBUNYIKAN AREA SCROLL LIRIK TOTAL
     lyricsContainer.scrollTop = 0;
-    lyricsWrapper.innerHTML = `
-        <div class="lyrics-loader">
-            <div class="spinner"></div>
-            <p>Memuat musik...</p>
-        </div>
-    `;
+    lyricsWrapper.innerHTML = ''; 
+    lyricsWrapper.style.display = 'none'; 
+    if (globalLoader) globalLoader.style.display = 'flex';
+    lyricsContainer.classList.add('loading-active');
 
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -92,7 +91,6 @@ function loadTrack(index) {
                 parsedLyrics = parseLRC(text); 
                 temporaryTextStorage = text;
                 isLyricsFetched = true; 
-                lyricsContainer.style.display = "block";
                 
                 if (audio.readyState >= 3) {
                     finalizeLyrics();
@@ -100,17 +98,19 @@ function loadTrack(index) {
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
+                    if (globalLoader) globalLoader.style.display = 'none';
                     lyricsWrapper.innerHTML = '';
-                    lyricsContainer.style.display = "none";
-                    lyricsContainer.classList.remove('loading-active'); // Buka kunci jika error
+                    lyricsWrapper.style.display = 'block';
+                    lyricsContainer.classList.remove('loading-active');
                     isChangingTrack = false;
                 }
             });
     } else { 
         parsedLyrics = [];
+        if (globalLoader) globalLoader.style.display = 'none';
         lyricsWrapper.innerHTML = '';
-        lyricsContainer.style.display = "none";
-        lyricsContainer.classList.remove('loading-active'); // Buka kunci jika tidak ada lirik
+        lyricsWrapper.style.display = 'block';
+        lyricsContainer.classList.remove('loading-active');
         isChangingTrack = false;
     }
     
@@ -155,13 +155,14 @@ function finalizeLyrics() {
     if (!isChangingTrack) return; 
     isChangingTrack = false; 
     
-    // 2. BUKA KUNCI INTERAKSI: Hapus class 'loading-active' agar lirik bisa di-scroll normal kembali
+    // 2. MATIKAN LOADER KAKU & MUNCULKAN AREA LIRIK ASLI
+    if (globalLoader) globalLoader.style.display = 'none';
     lyricsContainer.classList.remove('loading-active');
     lyricsWrapper.innerHTML = ''; 
+    lyricsWrapper.style.display = 'block'; 
     
     if (parsedLyrics.length > 0) {
         renderLyrics();
-        
         const lines = lyricsWrapper.children;
         if(lines.length > 0 && audio.currentTime === 0) {
              lines[0].className = 'lyric-line active';
@@ -362,4 +363,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                       }
+}
