@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC (RACE CONDITION & AUTO-LOAD FIX)
+// APP.JS - BREAKDOWNS MUSIC (INSTANT CACHE / ANTI-STUCK FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -33,7 +33,7 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 let isChangingTrack = false; 
 let currentLyricIndex = -1; 
 let temporaryTextStorage = ""; 
-let isLyricsFetched = false; // FLAG BARU: Mengawasi apakah lirik sudah beres di-download
+let isLyricsFetched = false; 
 
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
@@ -54,7 +54,7 @@ function loadTrack(index) {
     currentLyricIndex = -1; 
     parsedLyrics = []; 
     temporaryTextStorage = "";
-    isLyricsFetched = false; // Reset status lirik tiap ganti lagu
+    isLyricsFetched = false; 
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -90,10 +90,11 @@ function loadTrack(index) {
                 
                 parsedLyrics = parseLRC(text); 
                 temporaryTextStorage = text;
-                isLyricsFetched = true; // Tandai lirik sudah di tangan
+                isLyricsFetched = true; 
                 lyricsContainer.style.display = "block";
                 
-                // ANTI-BALAPAN: Jika lagu ternyata sudah siap LEBIH DULU dari lirik, langsung eksekusi!
+                // PENGECEKAN GANDA (ANTI-STUCK REFRESH): 
+                // Jika lagu ternyata SUDAH SIAP atau cached (readyState >= 3) pas lirik beres di-fetch, langsung buka!
                 if (audio.readyState >= 3) {
                     finalizeLyrics();
                 }
@@ -137,13 +138,15 @@ function loadTrack(index) {
     }, 50);
 }
 
-// ==========================================
-// FUNGSI EKSEKUTOR (MENGHANCURKAN SPINNER)
-// ==========================================
-
-// Gunakan 'canplay' bukan 'playing'. Ini akan me-render lirik walau lagu posisi pause (saat baru buka web)
+// Menangani kondisi saat lagu berproses muat secara normal dari server luar
 audio.addEventListener('canplay', () => {
-    // ANTI-BALAPAN: Pastikan lirik sudah selesai di-fetch sebelum spinner dihancurkan
+    if (isChangingTrack && isLyricsFetched) {
+        finalizeLyrics();
+    }
+});
+
+// Menangani pelatuk cadangan jika browser menahan status audio hingga tombol play ditekan
+audio.addEventListener('playing', () => {
     if (isChangingTrack && isLyricsFetched) {
         finalizeLyrics();
     }
@@ -151,26 +154,26 @@ audio.addEventListener('canplay', () => {
 
 function finalizeLyrics() {
     if (!isChangingTrack) return; 
-    isChangingTrack = false; // Buka kunci pergeseran scroll lirik
+    isChangingTrack = false; 
     
-    lyricsWrapper.innerHTML = ''; // Hancurkan icon loading spinner
+    lyricsWrapper.innerHTML = ''; // Hancurkan icon loading spinner secara total
     
     if (parsedLyrics.length > 0) {
         renderLyrics();
         
-        // Pemanis: Warnai baris pertama sesaat setelah dirender agar tidak pucat
-        const lines = document.querySelectorAll('.lyric-line');
+        // Pemanis: Warnai baris pertama jika lagu ada di detik ke-0
+        const lines = lyricsWrapper.children;
         if(lines.length > 0 && audio.currentTime === 0) {
-             lines[0].classList.add('active');
+             lines[0].className = 'lyric-line active';
         }
     } else if (temporaryTextStorage) {
         renderStaticLyrics(temporaryTextStorage);
     }
 }
 
-// ==========================================
-// SISA LOGIKA MUSIC PLAYER
-// ==========================================
+// ========================================================
+// SISA LOGIKA MUSIC PLAYER DASAR
+// ========================================================
 
 audio.addEventListener('loadedmetadata', () => { 
     durationEl.textContent = formatTime(audio.duration); 
@@ -369,3 +372,4 @@ function updateDynamicBackground(src) {
         } catch (e) {} 
     };
       }
+                             
