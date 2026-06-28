@@ -196,11 +196,10 @@ body {
     transition: opacity 0.2s ease-in-out;
 }
 
-/* FIX LIRIK SMOOTH: Dipaksa menggunakan akselerasi Hardware 3D GPU milik HP */
+/* FIX ANTIMALFUNGSI HP: Properti 'transition' dihapus murni agar tidak berantakan dengan requestAnimationFrame JavaScript */
 #lyricsWrapper { 
     padding: 15px 0 40px 0; 
     text-align: center; 
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
     will-change: transform; 
     transform: translate3d(0, 0, 0);
     -webkit-transform: translate3d(0, 0, 0);
