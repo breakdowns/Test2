@@ -32,7 +32,7 @@ body {
 }
 
 /* ==========================================
-   MAIN CONTAINER (MOBILE PORTRAIT DEFAULTS)
+   MAIN CONTAINER (RESPONSIVE BASE)
    ========================================== */
 .player-container {
     background-color: rgba(26, 26, 26, 0.75);
@@ -40,18 +40,14 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    max-width: 420px; /* Lebar default pas genggaman pas mode HP biasa */
+    max-width: 420px; /* Lebar pas untuk portrait HP biasa */
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
 }
 
-/* 
-   FIX UTAMA SCREEN DESKTOP MODE (FIREFOX / CHROME / PC):
-   Dongkrak width menjadi 90% dan max-width ke 820px agar player mengembang lebar 
-   dan padat mengisi ruang kosong di resolusi virtual desktop Firefox Android.
-*/
+/* Kunci pelebaran khusus layar resolusi desktop/PC/Firefox Mode Desktop */
 @media (min-width: 768px) {
     .player-container {
         width: 90%;
@@ -60,17 +56,14 @@ body {
         border-radius: 24px;
     }
     
-    /* Perbesar skala teks agar seimbang dengan layout kontainer yang melebar */
     .track-info h2 { font-size: 1.85rem !important; }
     .track-info p { font-size: 1.15rem !important; }
     .lyric-line { font-size: 1.35rem !important; }
     
-    /* Perbesar kontrol tombol navigasi utama */
     .btn-control .material-icons { font-size: 2.4rem !important; }
     .btn-play-pause { width: 72px !important; height: 72px !important; }
     .btn-play-pause .material-icons { font-size: 3rem !important; }
     
-    /* Beri ruang ekstra yang lega pada list lagu */
     .playlist-container { max-height: 260px !important; }
     .track-item { padding: 12px !important; }
     .track-item img { width: 52px !important; height: 52px !important; }
@@ -162,14 +155,56 @@ body {
 .btn-fav.active { color: var(--spotify-green); }
 
 /* ==========================================
-   CONTROLS & PROGRESS BAR
+   PROGRESS BAR (INPUT RANGE OPTIMIZED)
    ========================================== */
-.progress-area { margin-bottom: 24px; }
-.progress-bar-container { width: 100%; height: 4px; background-color: #4f4f4f; border-radius: 2px; cursor: pointer; margin-bottom: 8px; }
-.progress-bar { height: 100%; width: 0%; background-color: var(--text-main); border-radius: 2px; }
-.progress-bar-container:hover .progress-bar { background-color: var(--spotify-green); }
-.time-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+.progress-area { 
+    margin-bottom: 24px; 
+}
 
+#progressBar {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: #4f4f4f;
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 8px;
+    display: block;
+    transition: background 0.1s ease;
+}
+
+#progressBar::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+}
+
+/* Menghilangkan tombol lingkaran/thumb agar clean ala bar Spotify */
+#progressBar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0;
+    height: 0;
+}
+
+#progressBar::-moz-range-thumb {
+    width: 0;
+    height: 0;
+    border: none;
+}
+
+.time-info { 
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 0.75rem; 
+    color: var(--text-muted); 
+}
+
+/* ==========================================
+   CONTROLS AREA
+   ========================================== */
 .controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .btn-control { background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s, transform 0.1s; }
 .btn-control:hover { color: var(--text-main); }
@@ -199,7 +234,7 @@ body {
 .btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
 /* ==========================================
-   VOLUME & LYRICS (SMOOTH TRANSITION FIX)
+   VOLUME & LYRICS CONTEXTS
    ========================================== */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
@@ -213,7 +248,6 @@ body {
     padding: 0 12px;
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
-    
     opacity: 1;
     transition: opacity 0.2s ease-in-out;
 }
@@ -242,7 +276,7 @@ body {
 }
 
 /* ==========================================
-   PLAYLIST & SEARCH & WATERMARK HAFITZ
+   PLAYLIST & SEARCH & WATERMARK
    ========================================== */
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 .playlist-container { max-height: 180px; overflow-y: auto; }
