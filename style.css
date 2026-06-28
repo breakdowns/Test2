@@ -162,7 +162,8 @@ body {
 .btn-control.active { color: var(--spotify-green); }
 
 .btn-play-pause {
-    background-color: #ffffff !important;
+    /* ⚡ FIX TOMBOL HITAM QUETTA: Mengubah solid color jadi gradien murni agar dilewati oleh sistem auto-invert Quetta */
+    background-image: linear-gradient(#ffffff, #ffffff) !important;
     color: #121212 !important;
     color-scheme: only light !important;
     width: 56px;
@@ -176,11 +177,16 @@ body {
     cursor: pointer;
     transition: background-color 0.2s ease; 
 }
-.btn-play-pause .material-icons { font-size: 2.2rem; color: #121212 !important; color-scheme: only light !important; }
+.btn-play-pause .material-icons { 
+    font-size: 2.2rem; 
+    /* Force warna hitam pekat untuk segitiga play-nya agar tidak dipaksa memutih */
+    color: #121212 !important; 
+    color-scheme: only light !important; 
+}
 
 @media (hover: hover) {
     .btn-play-pause:hover { 
-        background-color: #ffffff; 
+        background-image: linear-gradient(#ffffff, #ffffff) !important;
         transform: scale(1.05); 
     }
 }
@@ -245,15 +251,7 @@ body {
 .track-item:hover { background-color: rgba(255, 255, 255, 0.05); }
 .track-item.active { background-color: rgba(30, 215, 96, 0.15); }
 .track-item.active strong { color: var(--spotify-green); }
-
-.track-item img { 
-    width: 40px; 
-    height: 40px; 
-    border-radius: 4px; 
-    object-fit: cover; 
-    /* ⚡ FIX COVER PUTHIH: Melarang engine browser memaksa pembalikan warna gambar (Force Dark Mode) */
-    color-scheme: only light !important;
-}
+.track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
 
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
