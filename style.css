@@ -61,11 +61,37 @@ body {
     transition: all 0.3s ease;
 }
 
+/* ==========================================
+   MEDIA QUERY DESKTOP & DESKTOP MODE ANDROID
+   ========================================== */
 @media (min-width: 768px) {
     .player-container {
-        width: 85%;
-        max-width: 520px; 
-        padding: 30px;
+        /* Diubah ke 410px: Ramping di monitor PC (lirik aman), 
+           dan tetap besar padat di mode Situs Desktop Android */
+        width: 100%;
+        max-width: 410px; 
+        padding: 24px;
+    }
+
+    /* Merapatkan margin antar elemen di layar lebar agar lirik & playlist naik */
+    .cover-wrapper {
+        margin-bottom: 16px;
+    }
+
+    .track-header {
+        margin-bottom: 16px;
+    }
+
+    .progress-area {
+        margin-bottom: 16px;
+    }
+
+    .controls-area {
+        margin-bottom: 16px;
+    }
+
+    .volume-area {
+        margin-bottom: 16px;
     }
 }
 
@@ -221,3 +247,4 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
+               
