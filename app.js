@@ -302,20 +302,33 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
-// FIX UTAMA: Kebal terhadap simulasi viewport zoom desktop di Firefox Android
-progressContainer.addEventListener('click', (e) => { 
-    if (audio.duration) {
-        let clickX = e.offsetX;
-        
-        // Proteksi jika sentuhan mengenai elemen anak (.progress-bar)
-        if (e.target !== e.currentTarget) {
-            clickX = e.offsetX + e.target.offsetLeft;
-        }
-        
-        const widthRatio = Math.max(0, Math.min(clickX / e.currentTarget.clientWidth, 1));
-        audio.currentTime = widthRatio * audio.duration; 
-    } 
-});
+// =========================================================================
+// FIX ABADI PROGRESS BAR: KEBAL ZOOM MODE DESKTOP FIREFOX & CHROME MOBILE
+// =========================================================================
+function handleProgressSeek(e) {
+    if (!audio.duration) return;
+    
+    const rect = progressContainer.getBoundingClientRect();
+    let clientX = e.clientX;
+    
+    // Deteksi koordinat jika interaksi berupa Touch Event di layar HP
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+        clientX = e.changedTouches[0].clientX;
+    }
+    
+    // Hitung posisi horizontal murni berdasarkan piksel fisik kaca layar HP
+    const clickX = clientX - rect.left;
+    const widthRatio = Math.max(0, Math.min(clickX / rect.width, 1));
+    
+    audio.currentTime = widthRatio * audio.duration;
+}
+
+// Pasang Event Listener Gabungan Mouse Klik (PC) & Touch Sentuh (HP)
+progressContainer.addEventListener('click', handleProgressSeek);
+progressContainer.addEventListener('touchstart', handleProgressSeek, { passive: true });
+progressContainer.addEventListener('touchmove', handleProgressSeek, { passive: true });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
 
@@ -341,4 +354,4 @@ function updateDynamicBackground(src) {
         } catch (e) {} 
     };
           }
-                  
+              
