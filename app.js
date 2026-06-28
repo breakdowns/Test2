@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (UPDATED)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -54,6 +54,10 @@ function loadTrack(index) {
     trackTitle.textContent = track.title; 
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
+    
+    // PERBAIKAN: Beri izin CORS agar file eksternal (Catbox) bisa dibaca oleh Audio Visualizer
+    audio.crossOrigin = "anonymous"; 
+    
     audio.src = track.src;
     
     progressBar.style.width = '0%'; 
@@ -313,4 +317,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
+                              }
+          
