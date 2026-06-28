@@ -19,10 +19,14 @@
     font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 }
 
-/* FIX UTAMA: Kunci overscroll di root HTML agar efek karet putih hilang di Android */
-html, body {
+/* ==========================================
+   KUNCI AMAN ANTI-PANTULAN PUTIH (CHROMIUM/BRAVE ANDROID)
+   ========================================== */
+html {
     overscroll-behavior: none !important;
     overscroll-behavior-y: none !important;
+    height: 100%;
+    overflow: hidden; /* Mematikan tarikan paksa di level terluar jendela browser */
 }
 
 body {
@@ -32,9 +36,20 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    
+    /* Mengikuti tinggi layar aplikasi secara presisi */
+    height: 100%;
     min-height: 100vh;
     padding: 20px;
     transition: background 0.8s ease;
+    
+    /* Implementasi saran Google dengan proteksi ekstra */
+    overscroll-behavior-y: none !important;
+    overscroll-behavior: none !important;
+    
+    /* Memindahkan area scroll aktif secara aman ke body */
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ==========================================
@@ -51,6 +66,10 @@ body {
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
+    
+    /* Mengunci area internal player kontainer */
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
 }
 
 @media (min-width: 768px) {
@@ -130,7 +149,7 @@ body {
 .progress-bar { 
     height: 100%; 
     width: 0%; 
-    background-color: #ffffff !important; 
+    background-color: #ffffff !important; /* Warna hex murni agar tidak terpengaruh sistem mode gelap */
     border-radius: 2px; 
     color-scheme: only light !important;
 }
@@ -208,4 +227,3 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
-   
