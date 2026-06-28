@@ -40,14 +40,14 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    max-width: 420px; /* Lebar pas untuk portrait HP biasa */
+    max-width: 420px; /* Lebar pas genggaman saat portrait HP biasa */
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
 }
 
-/* Kunci pelebaran khusus layar resolusi desktop/PC/Firefox Mode Desktop */
+/* Kunci pelebaran maksimal di mode desktop agar padat dan gagah mengisi ruang virtual */
 @media (min-width: 768px) {
     .player-container {
         width: 90%;
@@ -155,44 +155,34 @@ body {
 .btn-fav.active { color: var(--spotify-green); }
 
 /* ==========================================
-   PROGRESS BAR (INPUT RANGE OPTIMIZED)
+   PROGRESS BAR STYLING (CLEAN DIV)
    ========================================== */
 .progress-area { 
     margin-bottom: 24px; 
 }
 
-#progressBar {
-    width: 100%;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 4px;
-    border-radius: 2px;
-    background: #4f4f4f;
-    outline: none;
-    cursor: pointer;
-    margin-bottom: 8px;
-    display: block;
-    transition: background 0.1s ease;
+.progress-bar-container { 
+    width: 100%; 
+    height: 4px; 
+    background-color: #4f4f4f; 
+    border-radius: 2px; 
+    cursor: pointer; 
+    margin-bottom: 8px; 
+    position: relative;
+    padding: 4px 0; /* Memberikan padding area agar lebih mudah ditekan jari */
+    margin-top: -4px;
 }
 
-#progressBar::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 4px;
-    cursor: pointer;
+.progress-bar { 
+    height: 4px; 
+    width: 0%; 
+    background-color: var(--text-main); 
+    border-radius: 2px; 
+    transition: width 0.1s linear;
 }
 
-/* Menghilangkan tombol lingkaran/thumb agar clean ala bar Spotify */
-#progressBar::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 0;
-    height: 0;
-}
-
-#progressBar::-moz-range-thumb {
-    width: 0;
-    height: 0;
-    border: none;
+.progress-bar-container:hover .progress-bar { 
+    background-color: var(--spotify-green); 
 }
 
 .time-info { 
@@ -305,4 +295,4 @@ body {
 .watermark a:hover { 
     filter: brightness(1.2);
     text-decoration: underline !important; 
-}
+   }
