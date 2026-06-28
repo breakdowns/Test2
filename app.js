@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (SMART LOADER & INSTANT DURATION)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (PREVENT ZERO FLASH)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -37,6 +37,9 @@ let isLyricsFetched = false;
 let temporaryTextStorage = "";
 let isFirstLoad = true; 
 
+// ⚡ VARIABEL BARU: Menyimpan teks durasi terakhir agar tidak dipaksa ke 0:00 oleh browser
+let lastKnownDurationText = durationEl.textContent || '0:00';
+
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
@@ -72,7 +75,9 @@ function loadTrack(index) {
     
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
-    // ⚡ FIX: durationEl.textContent = '0:00' sudah dihapus total agar durasi tidak berkedip nol
+    
+    // ⚡ KUNCI DURASI LUAR: Tahan teks durasi lama di layar agar tidak berkedip ke 0:00
+    durationEl.textContent = lastKnownDurationText;
 
     // Reset posisi element lirik ke atas secara instan
     lyricsContainer.style.opacity = '0';
@@ -151,8 +156,9 @@ function loadTrack(index) {
 
 // Event trigger saat lagu siap diputar
 audio.addEventListener('canplay', () => {
-    if (audio.duration) {
-        durationEl.textContent = formatTime(audio.duration);
+    if (audio.duration && !isNaN(audio.duration)) {
+        lastKnownDurationText = formatTime(audio.duration);
+        durationEl.textContent = lastKnownDurationText;
     }
     if (isChangingTrack && isLyricsFetched) {
         finalizeLyrics();
@@ -160,8 +166,9 @@ audio.addEventListener('canplay', () => {
 });
 
 audio.addEventListener('playing', () => {
-    if (audio.duration) {
-        durationEl.textContent = formatTime(audio.duration);
+    if (audio.duration && !isNaN(audio.duration)) {
+        lastKnownDurationText = formatTime(audio.duration);
+        durationEl.textContent = lastKnownDurationText;
     }
     if (isChangingTrack && isLyricsFetched) {
         finalizeLyrics();
@@ -194,8 +201,9 @@ function finalizeLyrics() {
 }
 
 audio.addEventListener('loadedmetadata', () => { 
-    if (audio.duration) {
-        durationEl.textContent = formatTime(audio.duration); 
+    if (audio.duration && !isNaN(audio.duration)) {
+        lastKnownDurationText = formatTime(audio.duration);
+        durationEl.textContent = lastKnownDurationText; 
     }
     if (typeof updateMediaSession === 'function') updateMediaSession(); 
 });
@@ -270,6 +278,11 @@ function renderStaticLyrics(text) {
         } 
     }); 
 }
+
+// Menjaga agar tulisan durasi tidak melompat ke 0:00 jika terjadi interupsi error di tengah jalan
+audio.addEventListener('error', () => {
+    durationEl.textContent = lastKnownDurationText;
+});
 
 function initVisualizer() { 
     if (audioCtx) return; 
@@ -385,5 +398,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                         }
-      
+                              }
+                                  
