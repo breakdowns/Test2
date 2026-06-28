@@ -23,8 +23,6 @@
    IZINKAN PULL-TO-REFRESH, KUNCI WARNA ALAS CHROME
    ========================================== */
 html {
-    /* Mengunci dasar kanvas terluar Chrome menjadi hitam pekat agar 
-       saat ditarik ke bawah untuk refresh, area yang melar berwarna gelap */
     background-color: #121212 !important; 
     min-height: 100%;
 }
@@ -39,8 +37,6 @@ body {
     min-height: 100vh;
     padding: 24px 20px 40px 20px;
     transition: background 0.8s ease;
-    
-    /* Mengaktifkan kembali gesture pull-to-refresh bawaan browser */
     overscroll-behavior-y: auto !important; 
     touch-action: auto !important;
 }
@@ -200,8 +196,25 @@ body {
     transition: opacity 0.2s ease-in-out;
 }
 #lyricsWrapper { padding: 15px 0 40px 0; text-align: center; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
-.lyric-line { font-size: 1.05rem; font-weight: 700; color: rgba(255, 255, 255, 0.25); padding: 8px 0; cursor: pointer; transition: color 0.3s, transform 0.3s; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; }
-.lyric-line.active { color: var(--text-main); transform: scale(1.05); }
+
+/* FIX LIRIK SMOOTH: Hapus transisi transform individual agar tidak tabrakan dengan wrapper */
+.lyric-line { 
+    font-size: 1.05rem; 
+    font-weight: 700; 
+    color: rgba(255, 255, 255, 0.25); 
+    padding: 8px 0; 
+    cursor: pointer; 
+    transition: color 0.3s ease, font-size 0.3s ease; 
+    white-space: normal; 
+    word-wrap: break-word; 
+    overflow-wrap: break-word; 
+}
+
+/* FIX LIRIK SMOOTH: Menggunakan font-size sedikit lebih besar untuk highlight teks aktif */
+.lyric-line.active { 
+    color: var(--text-main); 
+    font-size: 1.12rem;
+}
 
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 
