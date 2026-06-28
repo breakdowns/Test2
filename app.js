@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (NATIVE BUTTON LOADER FIX)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (PURE INSTANT STABLE)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -32,9 +32,6 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
-
-// ⚡ FLAG UNTUK LOADING AWAL REFRESH WEB
-let isFirstLoad = true; 
 
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
@@ -71,17 +68,11 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
-    // Efek memudar halus lirik
+    // Reset posisi element lirik ke atas secara instan
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
-
-    // ⚡ JIKA REFRESH AWAL: Paksa teks ikon jadi 'refresh' Google dan pasang kelas animasi berputar
-    if (isFirstLoad) {
-        playIcon.textContent = 'refresh';
-        playIcon.classList.add('btn-spinning-active');
-    }
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -139,16 +130,10 @@ function loadTrack(index) {
     }, 50);
 }
 
-// ⚡ KETIKA AUDIO SIAP: Cabut efek loading berputar dan balikkan ke logo segitiga play biasa
 audio.addEventListener('canplay', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
-    }
-    if (isFirstLoad) {
-        playIcon.classList.remove('btn-spinning-active');
-        playIcon.textContent = 'play_arrow';
-        isFirstLoad = false; 
     }
 });
 
@@ -156,11 +141,6 @@ audio.addEventListener('playing', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
-    }
-    if (isFirstLoad) {
-        playIcon.classList.remove('btn-spinning-active');
-        playIcon.textContent = 'play_arrow';
-        isFirstLoad = false;
     }
 });
 
@@ -245,11 +225,6 @@ function renderStaticLyrics(text) {
 
 audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
-    if (isFirstLoad) {
-        playIcon.classList.remove('btn-spinning-active');
-        playIcon.textContent = 'play_arrow';
-        isFirstLoad = false;
-    }
 });
 
 function initVisualizer() { 
@@ -366,5 +341,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
-      
+                  }
