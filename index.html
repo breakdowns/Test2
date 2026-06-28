@@ -2,39 +2,41 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breakdowns Music</title>
+    <!-- Favicon Baru dari GitHub -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- Link File CSS External -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="player-container">
-        <!-- COVER ALBUM & LAYOVER VISUALIZER -->
+        
+        <!-- BAGIAN 1: COVER LAGU & KANVAS VISUALIZER -->
         <div class="cover-wrapper">
-            <img id="trackCover" src="" alt="Cover Album">
+            <img id="trackCover" src="" alt="Cover Lagu">
             <canvas id="visualizer"></canvas>
         </div>
 
-        <!-- DETIL INFORMASI TRACK & TOMBOL FAVORIT -->
+        <!-- BAGIAN 2: INFORMASI JUDUL & TOMBOL FAVORIT -->
         <div class="track-header">
             <div class="track-info">
                 <div class="marquee-container">
-                    <h2 id="trackTitle">Memuat Judul...</h2>
+                    <h2 id="trackTitle">-</h2>
                 </div>
-                <p id="trackArtist">Memuat Artis...</p>
+                <p id="trackArtist">-</p>
             </div>
             <button id="favoriteBtn" class="btn-fav">
                 <span class="material-icons">favorite_border</span>
             </button>
         </div>
 
-        <!-- PROGRESS TIMELINE BAR -->
+        <!-- BAGIAN 3: PROGRESS BAR -->
         <div class="progress-area">
-            <div id="progressContainer" class="progress-bar-container">
-                <div id="progressBar" class="progress-bar"></div>
+            <div class="progress-bar-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
             </div>
             <div class="time-info">
                 <span id="currentTime">0:00</span>
@@ -42,7 +44,7 @@
             </div>
         </div>
 
-        <!-- CONTROLS PLAYER UTAMA -->
+        <!-- BAGIAN 4: TOMBOL NAVIGASI UTAMA -->
         <div class="controls-area">
             <button id="shuffleBtn" class="btn-control">
                 <span class="material-icons">shuffle</span>
@@ -61,41 +63,41 @@
             </button>
         </div>
 
-        <!-- PENGATUR VOLUME SUARA -->
+        <!-- BAGIAN 5: KONTROL VOLUME -->
         <div class="volume-area">
             <span class="material-icons" style="font-size: 1.2rem;">volume_down</span>
-            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="1">
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" class="volume-slider">
             <span class="material-icons" style="font-size: 1.2rem;">volume_up</span>
         </div>
 
-        <!-- WIDGET INTEGRASI LIRIK (NATIVE ISOLATED LOADER) -->
+        <!-- BAGIAN 6: WADAH LIRIK DINAMIS + SPINNER ENGINE -->
         <div id="lyricsContainer" class="lyrics-container">
-            <!-- Elemen loader kaku yang memblokir interaksi gestur jari -->
+            <!-- Elemen loader kaku terisolasi -->
             <div id="globalLoader" class="lyrics-loader" style="display: none;">
                 <div class="spinner"></div>
                 <p>Memuat musik...</p>
             </div>
-            <!-- Wadah utama teks lirik lagu -->
+            <!-- Pembungkus lirik asli bawaan kode awal -->
             <div id="lyricsWrapper"></div>
         </div>
 
-        <!-- KOTAK PENCARIAN TRACK -->
+        <!-- BAGIAN 7: SEARCH BAR & DAFTAR PLAYLIST -->
         <input type="text" id="searchBar" class="search-box" placeholder="Cari lagu atau artis...">
-
-        <!-- DAFTAR PUTAR / PLAYLIST TRACKS -->
         <div id="playlist" class="playlist-container"></div>
 
-        <!-- WATERMARK HAK CIPTA -->
+        <!-- BAGIAN 8: WATERMARK HAFITZ -->
         <div class="watermark">
-            Made with 💚 by <a href="#" target="_blank">Hafitz</a>
+            Made with <span style="color: #e91e63;">❤️</span> by <a href="#" target="_blank">Hafitz</a>
         </div>
+
     </div>
 
-    <!-- ELEMEN AUDIO CORE (HIDDEN) -->
-    <audio id="mainAudio"></audio>
+    <!-- ELEMEN AUDIO TERSEMBUNYI -->
+    <audio id="mainAudio" crossorigin="anonymous"></audio>
 
-    <!-- Link File Logic JavaScript External -->
+    <!-- HUBUNGKAN KEMBALI MEDIA SESSION API DAN APP.JS -->
+    <script src="media.js"></script>
     <script src="app.js"></script>
 </body>
-                </html>
-                
+    </html>
+    
