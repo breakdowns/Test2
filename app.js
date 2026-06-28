@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (STRICT LOCK FIX)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (FINAL TIMEOUT FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -30,7 +30,6 @@ let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyse
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-// KUNCI UTAMA: Blokir pergerakan lirik liar saat proses muat lagu Catbox
 let isChangingTrack = false; 
 
 // Setup Volume
@@ -50,7 +49,6 @@ fetch('playlist.json')
     });
 
 function loadTrack(index) {
-    // Aktifkan pengunci agar lirik tidak lompat akibat lompatan detik awal audio
     isChangingTrack = true; 
 
     currentIndex = index; 
@@ -61,7 +59,6 @@ function loadTrack(index) {
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
     
-    // Perbaikan CORS Catbox agar visualizer bekerja lancar
     audio.crossOrigin = "anonymous"; 
     audio.src = track.src;
     
@@ -69,14 +66,13 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // RESET TOTAL: Matikan transisi, kembalikan posisi kontainer ke 0px teratas
+    // 1. MATIKAN TRANSISI TOTAL & RESET INSTAN KE ATAS
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translate3d(0, 0px, 0)';
     lyricsWrapper.innerHTML = ''; 
     
-    // Paksa browser membaca ulang perubahan layout (Reflow)
-    void lyricsWrapper.offsetWidth; 
+    void lyricsWrapper.offsetWidth; // Force Reflow
 
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -88,17 +84,17 @@ function loadTrack(index) {
                 parsedLyrics = parseLRC(text); 
                 lyricsContainer.style.display = "block"; 
                 
-                // Pasang transisi halurnya terlebih dahulu sebelum lirik dimunculkan
-                lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                lyricsWrapper.innerHTML = ''; 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                
-                // Munculkan kontainer lirik secara halus (fade in)
-                requestAnimationFrame(() => {
-                    if (tracks[currentIndex].src === currentTrackSrc) {
-                        lyricsContainer.style.opacity = '1';
-                    }
-                });
+                // 2. BERI JEDA AGAR BROWSER SELESAI RESET KE 0PX TANPA ANIMASI
+                setTimeout(() => {
+                    if (tracks[currentIndex].src !== currentTrackSrc) return;
+                    
+                    // Pasang transisi kembali setelah posisi dipastikan diam di atas (0px)
+                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                    lyricsWrapper.innerHTML = ''; 
+                    
+                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                    lyricsContainer.style.opacity = '1';
+                }, 100); // Jeda 100ms sudah sangat cukup bagi browser
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -137,7 +133,6 @@ function loadTrack(index) {
     }, 50);
 }
 
-// Buka kunci lirik HANYA setelah lagu benar-benar siap berputar stabil dari awal
 audio.addEventListener('playing', () => {
     isChangingTrack = false;
 });
@@ -287,7 +282,6 @@ audio.addEventListener('timeupdate', () => {
     currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
-    // PENJAGA KUNCI: Jangan geser lirik sama sekali jika flag ganti lagu masih aktif
     if (isChangingTrack) return;
 
     if (parsedLyrics.length > 0) {
@@ -305,7 +299,6 @@ audio.addEventListener('timeupdate', () => {
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
             
             requestAnimationFrame(() => {
-                // Hanya geser secara transisi jika posisi stabil bukan saat muat data awal
                 if (!isChangingTrack) {
                     lyricsWrapper.style.transform = `translate3d(0, ${-scrollAmount}px, 0)`;
                 }
@@ -345,4 +338,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
+      }
+      
