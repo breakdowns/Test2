@@ -32,6 +32,11 @@ audio.volume = savedVolume;
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
+function isFirefoxAndroid() {
+    const ua = navigator.userAgent;
+    return /Android/i.test(ua) && /Firefox/i.test(ua);
+}
+
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
     const m = Math.floor(s / 60), sec = Math.floor(s % 60); 
@@ -39,7 +44,7 @@ function formatTime(s) {
 }
 
 function updateMediaSession() {
-    if ('mediaSession' in navigator) {
+    if ('mediaSession' in navigator && !isFirefoxAndroid()) {
         const track = tracks[currentIndex];
         navigator.mediaSession.metadata = new MediaMetadata({
             title: track.title,
@@ -66,8 +71,15 @@ function updateMediaSession() {
 }
 
 function updateMediaSessionState() {
-    if ('mediaSession' in navigator) {
+    if ('mediaSession' in navigator && !isFirefoxAndroid() && audio.duration && !isNaN(audio.duration)) {
         navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: audio.duration,
+                playbackRate: audio.playbackRate,
+                position: audio.currentTime
+            });
+        } catch (e) {}
     }
 }
 
@@ -336,10 +348,11 @@ progressContainer.addEventListener('click', (e) => {
         const clickX = e.offsetX;
         const totalWidth = progressContainer.clientWidth;
         audio.currentTime = (clickX / totalWidth) * audio.duration;
+        updateMediaSessionState();
     }
 });
 
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-            
+              
