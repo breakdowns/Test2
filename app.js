@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (ISOLATION FIX)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (SMOOTH JAVASCRIPT ANIMATION)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -30,8 +30,10 @@ let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyse
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-// Flag pengunci pergerakan lirik liar
-let isChangingTrack = false; 
+// Variabel untuk sistem animasi halus JS
+let currentScrollY = 0;
+let targetScrollY = 0;
+let animationFrameId = null;
 
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
@@ -50,10 +52,6 @@ fetch('playlist.json')
     });
 
 function loadTrack(index) {
-    // 1. KUNCI TOTAL EMIT TIMEUPDATE & KOSONGKAN ARRAY DATA
-    isChangingTrack = true; 
-    parsedLyrics = []; 
-
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
@@ -69,13 +67,17 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // 2. SEMBUNYIKAN & PAKSA BROWSER MATIKAN TRANSISI SECARA INSTAN
+    // RESET TOTAL POSISI ANIMASI
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    currentScrollY = 0;
+    targetScrollY = 0;
+    
     lyricsContainer.style.opacity = '0';
-    lyricsWrapper.style.transition = 'none';
+    lyricsWrapper.style.transition = 'none'; // Matikan transisi CSS selamanya
     lyricsWrapper.style.transform = 'translate3d(0, 0px, 0)';
     lyricsWrapper.innerHTML = ''; 
     
-    void lyricsWrapper.offsetWidth; // Force Reflow agar posisi 0px langsung terkunci oleh browser
+    void lyricsWrapper.offsetWidth; // Force Reflow
 
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -84,24 +86,14 @@ function loadTrack(index) {
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
                 
-                // Simpan lirik ke memori sementara, tapi JANGAN di-render dulu ke HTML
-                const incomingLyrics = parseLRC(text); 
+                parsedLyrics = parseLRC(text); 
+                lyricsContainer.style.display = "block"; 
+                lyricsWrapper.innerHTML = ''; 
+                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                lyricsContainer.style.opacity = '1';
                 
-                // 3. BERI JEDA ISOLASI AGAR BUFFER AUDIO CATBOX SELESAI TRANSAKSI AWAL
-                setTimeout(() => {
-                    if (tracks[currentIndex].src !== currentTrackSrc) return;
-                    
-                    // Pasang transisi halusnya kembali saat container sudah bersih dan tenang di 0px
-                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                    lyricsWrapper.innerHTML = ''; 
-                    
-                    // Masukkan data memori ke array utama dan render ke layar
-                    parsedLyrics = incomingLyrics;
-                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                    
-                    lyricsContainer.style.display = "block"; 
-                    lyricsContainer.style.opacity = '1';
-                }, 120); 
+                // Jalankan loop animasi halus JS
+                smoothScrollLoop();
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -140,10 +132,15 @@ function loadTrack(index) {
     }, 50);
 }
 
-// Buka kunci lirik HANYA jika lagu benar-benar berputar secara stabil dari detik awal
-audio.addEventListener('playing', () => {
-    isChangingTrack = false;
-});
+// LOOPING UTAMA: Menghitung perpindahan posisi lirik per pixel agar super halus (Interpolasi Linear)
+function smoothScrollLoop() {
+    // Angka 0.1 di bawah ini mengontrol kelembutan pergeseran (semakin kecil makin smooth)
+    currentScrollY += (targetScrollY - currentScrollY) * 0.1;
+    
+    lyricsWrapper.style.transform = `translate3d(0, ${-currentScrollY}px, 0)`;
+    
+    animationFrameId = requestAnimationFrame(smoothScrollLoop);
+}
 
 audio.addEventListener('loadedmetadata', () => { 
     durationEl.textContent = formatTime(audio.duration); 
@@ -285,34 +282,28 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
+// LOGIKA BARU UPDATE WAKTU: Hanya mengupdate target posisi, eksekusi geser halusnya dilakukan oleh smoothScrollLoop
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
-    // PEMBLOKIR UTAMA: Jika masih proses ganti lagu atau array kosong, JANGAN perbolehkan pergeseran koordinat
-    if (isChangingTrack || parsedLyrics.length === 0) return;
-
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
         const lines = document.querySelectorAll('.lyric-line');
         
-        if (activeIndex !== -1 && lines[activeIndex] && !lines[activeIndex].classList.contains('active')) {
-            lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
+        if (activeIndex !== -1 && lines[activeIndex]) {
+            if (!lines[activeIndex].classList.contains('active')) {
+                lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
+            }
             
             const activeLine = lines[activeIndex], 
                   containerHeight = lyricsContainer.clientHeight, 
                   offsetTop = activeLine.offsetTop, 
                   lineHeight = activeLine.clientHeight;
                   
-            const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
-            
-            requestAnimationFrame(() => {
-                // Pastikan ganda posisi terkunci aman
-                if (!isChangingTrack && parsedLyrics.length > 0) {
-                    lyricsWrapper.style.transform = `translate3d(0, ${-scrollAmount}px, 0)`;
-                }
-            });
+            // Set target koordinat baru, biarkan fungsi smoothScrollLoop yang menggesernya secara pixel-by-pixel
+            targetScrollY = offsetTop - (containerHeight / 2) + (lineHeight / 2);
         }
     }
 });
@@ -348,5 +339,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
+                      }
       
