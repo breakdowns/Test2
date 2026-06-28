@@ -30,13 +30,13 @@ let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyse
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-// Setup Volume di Awal Pembuatan Sesi
+// Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
-// Ambil Data Putar dari File JSON
+// Ambil Data Putar
 fetch('playlist.json')
     .then(res => res.json())
     .then(data => { 
@@ -51,7 +51,6 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    // GANTI DATA AUDIO DAN COVER SECARA INSTAN
     trackTitle.textContent = track.title; 
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
@@ -61,13 +60,11 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // FADE-OUT LIRIK LAMA INSTAN
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
     
-    // FETCH LIRIK DI LATAR BELAKANG
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
@@ -110,7 +107,6 @@ function loadTrack(index) {
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
 
-    // KONTROL MARQUEE OTOMATIS
     setTimeout(() => {
         const marqueeContainer = document.querySelector('.marquee-container');
         const trackTitleEl = document.getElementById('trackTitle');
@@ -240,6 +236,7 @@ function drawVisualizer() {
 playBtn.addEventListener('click', () => { 
     initVisualizer(); 
     audio.paused ? audio.play().then(() => playIcon.textContent = 'pause') : (audio.pause(), playIcon.textContent = 'play_arrow'); 
+    if (typeof updateMediaSession === 'function') updateMediaSession();
 });
 
 function playNextTrack() {
@@ -285,36 +282,13 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
-// =========================================================================
-// INTERAKSI DURASI: PERHITUNGAN KHUSUS SELESAI UNTUK FIREFOX MODE DESKTOP
-// =========================================================================
-function handleProgressSeek(e) {
-    if (!audio.duration) return;
-    
-    let clickX = 0;
-    
-    // 1. Deteksi koordinat murni dari sistem jika berupa Touch (HP)
-    if (e.touches && e.touches.length > 0) {
-        const rect = progressContainer.getBoundingClientRect();
-        clickX = e.touches[0].clientX - rect.left;
-    } else if (e.changedTouches && e.changedTouches.length > 0) {
-        const rect = progressContainer.getBoundingClientRect();
-        clickX = e.changedTouches[0].clientX - rect.left;
-    } else {
-        // 2. Deteksi murni menggunakan Klik Mouse biasa (PC)
-        // Amankan hitungan offset jika user tak sengaja menyentuh bilah progress-bar anak
-        clickX = (e.target === progressContainer) ? e.offsetX : e.offsetX + e.target.offsetLeft;
+progressContainer.addEventListener('click', (e) => {
+    if (audio.duration) {
+        const clickX = e.offsetX;
+        const totalWidth = progressContainer.clientWidth;
+        audio.currentTime = (clickX / totalWidth) * audio.duration;
     }
-    
-    const totalWidth = progressContainer.clientWidth;
-    const widthRatio = Math.max(0, Math.min(clickX / totalWidth, 1));
-    
-    audio.currentTime = widthRatio * audio.duration;
-}
-
-progressContainer.addEventListener('click', handleProgressSeek);
-progressContainer.addEventListener('touchstart', handleProgressSeek, { passive: true });
-progressContainer.addEventListener('touchmove', handleProgressSeek, { passive: true });
+});
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
 
@@ -339,4 +313,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                  }
+}
