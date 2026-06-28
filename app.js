@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (SMART LOADER INTEGRATED)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -26,16 +26,9 @@ const trackTitle = document.getElementById('trackTitle'),
       playlistContainer = document.getElementById('playlist'), 
       searchBar = document.getElementById('searchBar');
 
-const globalLoader = document.getElementById('globalLoader');
-
 let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyser, dataArray;
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-
-let isChangingTrack = false;
-let isLyricsFetched = false;
-let temporaryTextStorage = "";
-let isFirstLoad = true; // Flag untuk melacak refresh pertama kali
 
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
@@ -54,11 +47,6 @@ fetch('playlist.json')
     });
 
 function loadTrack(index) {
-    isChangingTrack = true;
-    isLyricsFetched = false;
-    temporaryTextStorage = "";
-    parsedLyrics = [];
-
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
@@ -66,28 +54,16 @@ function loadTrack(index) {
     trackTitle.textContent = track.title; 
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
-    
-    audio.crossOrigin = "anonymous";
     audio.src = track.src;
     
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // Reset posisi element lirik ke atas secara instan
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
-
-    // Atur tampilan loader: HANYA aktif jika pertama kali web dimuat/di-refresh
-    if (isFirstLoad) {
-        lyricsWrapper.style.display = 'none';
-        if (globalLoader) globalLoader.style.display = 'flex';
-    } else {
-        lyricsWrapper.style.display = 'block';
-        if (globalLoader) globalLoader.style.display = 'none';
-    }
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -95,33 +71,33 @@ function loadTrack(index) {
             .then(res => res.text())
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
-                
-                parsedLyrics = parseLRC(text); 
-                temporaryTextStorage = text;
-                isLyricsFetched = true;
-
-                // Jika ganti lagu biasa atau audio sudah cached, langsung pasang liriknya
-                if (!isFirstLoad || audio.readyState >= 3) {
-                    finalizeLyrics();
-                }
+                setTimeout(() => {
+                    if (tracks[currentIndex].src !== currentTrackSrc) return;
+                    lyricsWrapper.style.transition = 'none';
+                    lyricsWrapper.style.transform = 'translateY(0px)';
+                    lyricsWrapper.innerHTML = ''; 
+                    parsedLyrics = parseLRC(text); 
+                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                    lyricsContainer.style.display = "block"; 
+                    void lyricsWrapper.offsetWidth; 
+                    lyricsContainer.style.opacity = '1';
+                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                }, 200);
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
-                    if (globalLoader) globalLoader.style.display = 'none';
                     lyricsWrapper.innerHTML = '';
-                    lyricsWrapper.style.display = 'block';
                     lyricsContainer.style.display = "none";
-                    isChangingTrack = false;
-                    isFirstLoad = false;
                 }
             });
     } else { 
-        if (globalLoader) globalLoader.style.display = 'none';
-        lyricsWrapper.innerHTML = '';
-        lyricsWrapper.style.display = 'block';
-        lyricsContainer.style.display = "none";
-        isChangingTrack = false;
-        isFirstLoad = false;
+        setTimeout(() => {
+            if (tracks[currentIndex].src === currentTrackSrc) {
+                parsedLyrics = [];
+                lyricsWrapper.innerHTML = '';
+                lyricsContainer.style.display = "none";
+            }
+        }, 200);
     }
     
     const isFav = favorites.includes(track.src);
@@ -147,44 +123,6 @@ function loadTrack(index) {
             }
         }
     }, 50);
-}
-
-// Event trigger saat lagu siap diputar
-audio.addEventListener('canplay', () => {
-    if (isChangingTrack && isLyricsFetched) {
-        finalizeLyrics();
-    }
-});
-
-audio.addEventListener('playing', () => {
-    if (isChangingTrack && isLyricsFetched) {
-        finalizeLyrics();
-    }
-});
-
-function finalizeLyrics() {
-    if (!isChangingTrack) return;
-    isChangingTrack = false;
-
-    if (globalLoader) globalLoader.style.display = 'none';
-    lyricsWrapper.style.display = 'block';
-    
-    lyricsWrapper.style.transition = 'none';
-    lyricsWrapper.style.transform = 'translateY(0px)';
-    lyricsWrapper.innerHTML = ''; 
-
-    if (parsedLyrics.length > 0) {
-        renderLyrics();
-    } else if (temporaryTextStorage) {
-        renderStaticLyrics(temporaryTextStorage);
-    }
-
-    lyricsContainer.style.display = "block"; 
-    void lyricsWrapper.offsetWidth; 
-    lyricsContainer.style.opacity = '1';
-    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-
-    isFirstLoad = false; // Matikan mode muat pertama setelah inisiasi selesai
 }
 
 audio.addEventListener('loadedmetadata', () => { 
@@ -332,8 +270,6 @@ audio.addEventListener('timeupdate', () => {
     currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
-    if (isChangingTrack || parsedLyrics.length === 0) return;
-
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
         const lines = document.querySelectorAll('.lyric-line');
