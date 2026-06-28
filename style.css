@@ -76,6 +76,9 @@ body {
     margin-bottom: 24px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     position: relative;
+    /* ⚡ TAMBAHAN KALEM: Animasi memudar halus saat ganti lagu */
+    transition: opacity 0.3s ease-in-out; 
+    will-change: opacity;
 }
 
 .cover-wrapper img {
@@ -172,10 +175,22 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     border: none;
     cursor: pointer;
-    transition: transform 0.1s;
+    /* Bersihkan transisi melar dari basis kodenya */
+    transition: background-color 0.2s ease; 
 }
 .btn-play-pause .material-icons { font-size: 2.2rem; color: #121212 !important; color-scheme: only light !important; }
-.btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
+
+/* ⚡ FIX TOMBOL MELAR: Efek hover memperbesar tombol HANYA boleh berjalan di PC yang punya mouse kursor */
+@media (hover: hover) {
+    .btn-play-pause:hover { 
+        background-color: #ffffff; 
+        transform: scale(1.05); 
+    }
+}
+/* Untuk HP kita gunakan pelatuk active (pas ditekan sidik jari saja) */
+.btn-play-pause:active {
+    transform: scale(0.95) !important;
+}
 
 /* ==========================================
    VOLUME & LYRICS & PLAYLIST
@@ -194,13 +209,14 @@ body {
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     opacity: 1;
-    transition: opacity 0.2s ease-in-out;
+    /* ⚡ TAMBAHAN KALEM: Animasi transisi lirik memudar lembut saat ganti musik */
+    transition: opacity 0.3s ease-in-out; 
+    will-change: opacity;
 }
 
 #lyricsWrapper { 
     padding: 15px 0 40px 0; 
     text-align: center; 
-    /* ⚡ KUNCI GERAKAN MULUS: Mengontrol kehalusan translasi lirik saat tracking waktu */
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
     will-change: transform; 
 }
@@ -239,4 +255,4 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
-                                        
+   
