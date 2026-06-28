@@ -20,6 +20,13 @@
       "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/Dialogue%20-%20Blood%20The%20Face.mp3",
       "cover": "cover/Blood The Face - Dialogue.jpg",
       "lyricsSrc": "lyrics/Blood The Face - Dialogue.lrc"
+    },
+    {
+      "title": "Far from Home",
+      "artist": "Chrome Is Burning",
+      "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/Far%20from%20Home%20-%20Chrome%20Is%20Burning.mp3",
+      "cover": "cover/Chrome Is Burning - Far from Home.jpg",
+      "lyricsSrc": ""
     }
   ]
 }
