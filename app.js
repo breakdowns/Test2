@@ -1,7 +1,3 @@
-// ========================================================
-// APP.JS - BREAKDOWNS MUSIC (ULTRA LIGHT - NO VISUALIZER)
-// ========================================================
-
 const audio = document.getElementById('mainAudio'), 
       playBtn = document.getElementById('playBtn'), 
       playIcon = document.getElementById('playIcon'), 
@@ -31,21 +27,124 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
 
-// Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
-// Ambil Data Putar
-fetch('playlist.json')
-    .then(res => res.json())
-    .then(data => { 
-        tracks = data.playlist; 
-        currentTracksDisplay = tracks; 
-        const savedIndex = parseInt(localStorage.getItem('currentIndex')) || 0; 
-        if (tracks.length > 0) loadTrack(savedIndex >= 0 && savedIndex < tracks.length ? savedIndex : 0); 
+function formatTime(s) { 
+    if (isNaN(s)) return '0:00'; 
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60); 
+    return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
+}
+
+function updateMediaSession() {
+    if ('mediaSession' in navigator) {
+        const track = tracks[currentIndex];
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.title,
+            artist: track.artist,
+            album: 'Breakdowns Music',
+            artwork: [
+                { src: track.cover, sizes: '512x512', type: 'image/jpeg' }
+            ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => {
+            audio.play().then(() => playIcon.textContent = 'pause');
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+            audio.pause();
+            playIcon.textContent = 'play_arrow';
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
+            loadTrack(p); audio.play().then(() => playIcon.textContent = 'pause');
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', playNextTrack);
+    }
+}
+
+function updateMediaSessionState() {
+    if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
+        navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: audio.duration,
+                playbackRate: audio.playbackRate,
+                position: audio.currentTime
+            });
+        } catch (e) {}
+    }
+}
+
+function updateDynamicBackground(src) {
+    const img = new Image(); 
+    img.crossOrigin = "Anonymous"; 
+    img.src = src;
+    img.onload = () => { 
+        try { 
+            const cH = document.createElement('canvas'), ctxH = cH.getContext('2d'); 
+            cH.width = 1; cH.height = 1; 
+            ctxH.drawImage(img, 0, 0, 1, 1); 
+            const [r, g, b] = ctxH.getImageData(0, 0, 1, 1).data; 
+            document.body.style.setProperty('--dynamic-r', Math.max(12, Math.min(r, 45))); 
+            document.body.style.setProperty('--dynamic-g', Math.max(12, Math.min(g, 45))); 
+            document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
+        } catch (e) {} 
+    };
+}
+
+function parseLRC(text) { 
+    const res = []; 
+    text.split('\n').forEach(l => { 
+        const matches = [...l.matchAll(/\[(\d+):(\d+)(?:\.(\d+))?\]/g)]; 
+        matches.forEach(m => { 
+            const t = parseInt(m[1]) * 60 + parseInt(m[2]) + (m[3] ? parseInt(m[3]) / 100 : 0), 
+                  txt = l.replace(/\[.*?\]/g, '').trim(); 
+            if (txt) res.push({ time: t, text: txt }); 
+        }); 
+    }); 
+    return res.sort((a, b) => a.time - b.time); 
+}
+
+function renderLyrics() { 
+    parsedLyrics.forEach((line, i) => { 
+        const p = document.createElement('p'); 
+        p.className = 'lyric-line'; 
+        p.id = `line-${i}`; 
+        p.textContent = line.text; 
+        p.onclick = () => { audio.currentTime = line.time; }; 
+        lyricsWrapper.appendChild(p); 
+    }); 
+}
+
+function renderStaticLyrics(text) { 
+    text.split('\n').forEach(l => { 
+        const c = l.replace(/\[.*?\]/g, '').trim(); 
+        if (c) { 
+            const p = document.createElement('p'); 
+            p.className = 'lyric-line active'; 
+            p.textContent = c; 
+            lyricsWrapper.appendChild(p); 
+        } 
+    }); 
+}
+
+function renderPlaylist(arr) {
+    playlistContainer.innerHTML = ''; 
+    arr.forEach((track) => {
+        const oIdx = tracks.findIndex(t => t.src === track.src), 
+              item = document.createElement('div');
+        item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
+        item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
+        item.addEventListener('click', () => { 
+            loadTrack(oIdx); 
+            audio.play().then(() => playIcon.textContent = 'pause'); 
+        }); 
+        playlistContainer.appendChild(item);
     });
+}
 
 function loadTrack(index) {
     isChangingTrack = true;
@@ -128,6 +227,23 @@ function loadTrack(index) {
     }, 50);
 }
 
+function playNextTrack() {
+    let n = currentIndex + 1; 
+    if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
+    else if (n >= tracks.length) n = 0; 
+    loadTrack(n); 
+    audio.play().then(() => playIcon.textContent = 'pause'); 
+}
+
+fetch('playlist.json')
+    .then(res => res.json())
+    .then(data => { 
+        tracks = data.playlist; 
+        currentTracksDisplay = tracks; 
+        const savedIndex = parseInt(localStorage.getItem('currentIndex')) || 0; 
+        if (tracks.length > 0) loadTrack(savedIndex >= 0 && savedIndex < tracks.length ? savedIndex : 0); 
+    });
+
 audio.addEventListener('canplay', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
@@ -156,21 +272,6 @@ audio.addEventListener('loadedmetadata', () => {
     updateMediaSession(); 
 });
 
-function renderPlaylist(arr) {
-    playlistContainer.innerHTML = ''; 
-    arr.forEach((track) => {
-        const oIdx = tracks.findIndex(t => t.src === track.src), 
-              item = document.createElement('div');
-        item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
-        item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
-        item.addEventListener('click', () => { 
-            loadTrack(oIdx); 
-            audio.play().then(() => playIcon.textContent = 'pause'); 
-        }); 
-        playlistContainer.appendChild(item);
-    });
-}
-
 searchBar.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase(); 
     currentTracksDisplay = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)); 
@@ -190,42 +291,6 @@ favoriteBtn.addEventListener('click', () => {
     localStorage.setItem('favorites', JSON.stringify(favorites)); 
 });
 
-function parseLRC(text) { 
-    const res = []; 
-    text.split('\n').forEach(l => { 
-        const matches = [...l.matchAll(/\[(\d+):(\d+)(?:\.(\d+))?\]/g)]; 
-        matches.forEach(m => { 
-            const t = parseInt(m[1]) * 60 + parseInt(m[2]) + (m[3] ? parseInt(m[3]) / 100 : 0), 
-                  txt = l.replace(/\[.*?\]/g, '').trim(); 
-            if (txt) res.push({ time: t, text: txt }); 
-        }); 
-    }); 
-    return res.sort((a, b) => a.time - b.time); 
-}
-
-function renderLyrics() { 
-    parsedLyrics.forEach((line, i) => { 
-        const p = document.createElement('p'); 
-        p.className = 'lyric-line'; 
-        p.id = `line-${i}`; 
-        p.textContent = line.text; 
-        p.onclick = () => { audio.currentTime = line.time; }; 
-        lyricsWrapper.appendChild(p); 
-    }); 
-}
-
-function renderStaticLyrics(text) { 
-    text.split('\n').forEach(l => { 
-        const c = l.replace(/\[.*?\]/g, '').trim(); 
-        if (c) { 
-            const p = document.createElement('p'); 
-            p.className = 'lyric-line active'; 
-            p.textContent = c; 
-            lyricsWrapper.appendChild(p); 
-        } 
-    }); 
-}
-
 audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
 });
@@ -233,14 +298,6 @@ audio.addEventListener('error', () => {
 playBtn.addEventListener('click', () => { 
     audio.paused ? audio.play().then(() => playIcon.textContent = 'pause') : (audio.pause(), playIcon.textContent = 'play_arrow'); 
 });
-
-function playNextTrack() {
-    let n = currentIndex + 1; 
-    if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
-    else if (n >= tracks.length) n = 0; 
-    loadTrack(n); 
-    audio.play().then(() => playIcon.textContent = 'pause'); 
-}
 
 nextBtn.addEventListener('click', playNextTrack);
 prevBtn.addEventListener('click', () => { 
@@ -290,69 +347,4 @@ progressContainer.addEventListener('click', (e) => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-
-function formatTime(s) { 
-    if (isNaN(s)) return '0:00'; 
-    const m = Math.floor(s / 60), sec = Math.floor(s % 60); 
-    return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
-}
-
-function updateDynamicBackground(src) {
-    const img = new Image(); 
-    img.crossOrigin = "Anonymous"; 
-    img.src = src;
-    img.onload = () => { 
-        try { 
-            const cH = document.createElement('canvas'), ctxH = cH.getContext('2d'); 
-            cH.width = 1; cH.height = 1; 
-            ctxH.drawImage(img, 0, 0, 1, 1); 
-            const [r, g, b] = ctxH.getImageData(0, 0, 1, 1).data; 
-            document.body.style.setProperty('--dynamic-r', Math.max(12, Math.min(r, 45))); 
-            document.body.style.setProperty('--dynamic-g', Math.max(12, Math.min(g, 45))); 
-            document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
-        } catch (e) {} 
-    };
-}
-
-// ⚡ FIX NOTIFIKASI FIREFOX: Inisialisasi data metadata Media Session
-function updateMediaSession() {
-    if ('mediaSession' in navigator) {
-        const track = tracks[currentIndex];
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: track.title,
-            artist: track.artist,
-            album: 'Breakdowns Music',
-            artwork: [
-                { src: track.cover, sizes: '512x512', type: 'image/jpeg' }
-            ]
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => {
-            audio.play().then(() => playIcon.textContent = 'pause');
-        });
-        navigator.mediaSession.setActionHandler('pause', () => {
-            audio.pause();
-            playIcon.textContent = 'play_arrow';
-        });
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-            let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
-            loadTrack(p); audio.play().then(() => playIcon.textContent = 'pause');
-        });
-        navigator.mediaSession.setActionHandler('nexttrack', playNextTrack);
-    }
-}
-
-// ⚡ FIX NOTIFIKASI FIREFOX: Memaksa pembaruan posisi detik agar tidak stuck 00:00
-function updateMediaSessionState() {
-    if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
-        navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
-        try {
-            navigator.mediaSession.setPositionState({
-                duration: audio.duration,
-                playbackRate: audio.playbackRate,
-                position: audio.currentTime
-            });
-        } catch (e) {}
-    }
-          }
-      
+                           
