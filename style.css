@@ -20,15 +20,19 @@
 }
 
 /* ==========================================
-   KUNCI MATI TOTAL OVERFLOW & PULL-TO-REFRESH
+   KUNCI FINAl ANTI-PANTULAN PUTIH (CHROME MOBILE)
    ========================================== */
-html {
+html, body {
+    /* Menerapkan perintah overscroll langsung di level root jendela browser */
     overscroll-behavior: none !important;
     overscroll-behavior-y: none !important;
-    height: 100%;
+    
+    /* Paksa tinggi halaman presisi mengikuti ukuran layar kaca HP */
+    height: 100% !important;
+    max-height: 100vh !important;
+    
+    /* Matikan scrollbar luar agar Chrome tidak bisa menarik halaman ke bawah */
     overflow: hidden !important; 
-    /* Senjata rahasia untuk mematikan tarikan karet Chrome Android di level sistem */
-    -webkit-overflow-scrolling: auto !important; 
 }
 
 body {
@@ -37,18 +41,9 @@ body {
     color: var(--text-main);
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Mengubah dari center ke flex-start agar scroll internal body lebih natural */
-    
-    height: 100%;
-    min-height: 100vh;
-    padding: 24px 20px 80px 20px; /* Ditambahkan padding bawah 80px sebagai bemper pengaman agar tidak mentok layar */
+    align-items: center; /* Menjaga posisi player-container tetap presisi di tengah layar */
+    padding: 20px;
     transition: background 0.8s ease;
-    
-    overscroll-behavior-y: none !important;
-    overscroll-behavior: none !important;
-    
-    overflow-y: auto !important; 
-    -webkit-overflow-scrolling: touch;
 }
 
 /* ==========================================
@@ -65,8 +60,8 @@ body {
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
-    margin-top: 10px;
     
+    /* Mengunci area internal pembungkus agar kebal efek tarikan */
     overscroll-behavior: none !important;
     overscroll-behavior-y: none !important;
 }
@@ -76,7 +71,6 @@ body {
         width: 85%;
         max-width: 520px; 
         padding: 30px;
-        margin-top: 40px;
     }
 }
 
