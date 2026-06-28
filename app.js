@@ -32,11 +32,6 @@ audio.volume = savedVolume;
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
-function isFirefoxAndroid() {
-    const ua = navigator.userAgent;
-    return /Android/i.test(ua) && /Firefox/i.test(ua);
-}
-
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
     const m = Math.floor(s / 60), sec = Math.floor(s % 60); 
@@ -44,7 +39,7 @@ function formatTime(s) {
 }
 
 function updateMediaSession() {
-    if ('mediaSession' in navigator && !isFirefoxAndroid()) {
+    if ('mediaSession' in navigator) {
         const track = tracks[currentIndex];
         navigator.mediaSession.metadata = new MediaMetadata({
             title: track.title,
@@ -71,7 +66,7 @@ function updateMediaSession() {
 }
 
 function updateMediaSessionState() {
-    if ('mediaSession' in navigator && !isFirefoxAndroid() && audio.duration && !isNaN(audio.duration)) {
+    if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
         navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
         try {
             navigator.mediaSession.setPositionState({
@@ -355,4 +350,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-              
+      
