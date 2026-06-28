@@ -18,8 +18,8 @@ const trackTitle = document.getElementById('trackTitle'),
       ctx = canvas.getContext('2d'), 
       lyricsWrapper = document.getElementById('lyricsWrapper'), 
       lyricsContainer = document.getElementById('lyricsContainer'), 
-      progressContainer = document.getElementById('progressContainer'), 
-      progressBar = document.getElementById('progressBar'), 
+      musicSlider = document.getElementById('musicSlider'), // Slider range tersembunyi
+      progressBar = document.getElementById('progressBar'), // Garis visual buatan kita
       currentTimeEl = document.getElementById('currentTime'), 
       durationEl = document.getElementById('duration'), 
       volumeSlider = document.getElementById('volumeSlider'), 
@@ -51,43 +51,36 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    // GANTI DATA AUDIO DAN COVER SECARA INSTAN
     trackTitle.textContent = track.title; 
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
     audio.src = track.src;
     
-    progressBar.style.width = '0%'; 
+    musicSlider.value = 0;
+    progressBar.style.setProperty('--progress-width', '0%');
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // FADE-OUT LIRIK LAMA INSTAN
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
     
-    // FETCH LIRIK DI LATAR BELAKANG
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
             .then(res => res.text())
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
-
                 setTimeout(() => {
                     if (tracks[currentIndex].src !== currentTrackSrc) return;
-
                     lyricsWrapper.style.transition = 'none';
                     lyricsWrapper.style.transform = 'translateY(0px)';
                     lyricsWrapper.innerHTML = ''; 
-                    
                     parsedLyrics = parseLRC(text); 
                     parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                    
                     lyricsContainer.style.display = "block"; 
                     void lyricsWrapper.offsetWidth; 
-                    
                     lyricsContainer.style.opacity = '1';
                     lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
                 }, 200);
@@ -115,16 +108,13 @@ function loadTrack(index) {
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
 
-    // KONTROL MARQUEE OTOMATIS
     setTimeout(() => {
         const marqueeContainer = document.querySelector('.marquee-container');
         const trackTitleEl = document.getElementById('trackTitle');
         const trackInfoEl = document.querySelector('.track-info');
-        
         if (marqueeContainer && trackTitleEl && trackInfoEl) {
             const parentWidth = trackInfoEl.clientWidth;
             const textWidth = trackTitleEl.scrollWidth;
-            
             if (textWidth > parentWidth) {
                 trackTitleEl.style.animation = 'marqueeSpotify 12s linear infinite';
                 trackTitleEl.style.paddingRight = '50px';
@@ -157,7 +147,7 @@ function renderPlaylist(arr) {
     });
 }
 
-searchBar.addEventListener('input', (e) => { 
+searchBar.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase(); 
     currentTracksDisplay = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)); 
     renderPlaylist(currentTracksDisplay); 
@@ -232,11 +222,9 @@ function drawVisualizer() {
     } 
     analyser.getByteFrequencyData(dataArray); 
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
-    
     const w = (canvas.width / dataArray.length) * 1.4; 
     dataArray.forEach((val, i) => { 
-        const h = val / 3.5, 
-              grad = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - h); 
+        const h = val / 3.5, grad = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - h); 
         grad.addColorStop(0, 'rgba(30, 215, 96, 0.9)'); 
         grad.addColorStop(1, 'rgba(102, 255, 153, 0.4)'); 
         ctx.fillStyle = grad; 
@@ -249,7 +237,6 @@ function drawVisualizer() {
 playBtn.addEventListener('click', () => { 
     initVisualizer(); 
     audio.paused ? audio.play().then(() => playIcon.textContent = 'pause') : (audio.pause(), playIcon.textContent = 'play_arrow'); 
-    if (typeof updateMediaSession === 'function') updateMediaSession();
 });
 
 function playNextTrack() {
@@ -261,7 +248,6 @@ function playNextTrack() {
 }
 
 nextBtn.addEventListener('click', playNextTrack);
-
 prevBtn.addEventListener('click', () => { 
     let p = currentIndex - 1; 
     if (p < 0) p = tracks.length - 1; 
@@ -279,58 +265,35 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
+// LOGIKA UTAMA UPDATE: Sinkronisasi waktu dengan properti CSS variabel
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
-    progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+    
+    const progressPercent = (audio.currentTime / audio.duration) * 100;
+    musicSlider.value = progressPercent;
+    progressBar.style.setProperty('--progress-width', `${progressPercent}%`);
     
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
         const lines = document.querySelectorAll('.lyric-line');
-        
         lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
-
         if (activeIndex !== -1 && lines[activeIndex]) {
-            const activeLine = lines[activeIndex];
-            const containerHeight = lyricsContainer.clientHeight;
-            const offsetTop = activeLine.offsetTop;
-            const lineHeight = activeLine.clientHeight;
+            const activeLine = lines[activeIndex], containerHeight = lyricsContainer.clientHeight, offsetTop = activeLine.offsetTop, lineHeight = activeLine.clientHeight;
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
-            
             lyricsWrapper.style.transform = `translateY(${-scrollAmount}px)`;
         }
     }
 });
 
-// =========================================================================
-// FIX TOTAL SELECTION DURATION: KEBAL DISTORSI LAYAR VIRTUAL FIREFOX DESKTOP MODE
-// =========================================================================
-function handleProgressSeek(e) {
-    if (!audio.duration) return;
-    
-    const rect = progressContainer.getBoundingClientRect();
-    
-    // Ambil koordinat horizontal absolut murni dari sentuhan jari/mouse di layar
-    let pageX = 0;
-    if (e.touches && e.touches.length > 0) {
-        pageX = e.touches[0].clientX;
-    } else if (e.changedTouches && e.changedTouches.length > 0) {
-        pageX = e.changedTouches[0].clientX;
-    } else {
-        pageX = e.clientX;
+// MENGGUNAKAN VALUE PERSENTASE SLIDER: 100% Kebal Distorsi Koordinat Firefox Desktop Mode
+musicSlider.addEventListener('input', (e) => {
+    if (audio.duration) {
+        const newTime = (e.target.value / 100) * audio.duration;
+        audio.currentTime = newTime;
+        progressBar.style.setProperty('--progress-width', `${e.target.value}%`);
     }
-    
-    // Perhitungan murni jarak absolut titik sentuh dikurangi batas tepi kiri elemen fisik kontainer
-    const clickX = pageX - rect.left;
-    const widthRatio = Math.max(0, Math.min(clickX / rect.width, 1));
-    
-    audio.currentTime = widthRatio * audio.duration;
-}
-
-// Pasang ulang trigger untuk Mouse & Jari
-progressContainer.addEventListener('click', handleProgressSeek);
-progressContainer.addEventListener('touchstart', handleProgressSeek, { passive: true });
-progressContainer.addEventListener('touchmove', handleProgressSeek, { passive: true });
+});
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
 
@@ -351,9 +314,10 @@ function updateDynamicBackground(src) {
             ctxH.drawImage(img, 0, 0, 1, 1); 
             const [r, g, b] = ctxH.getImageData(0, 0, 1, 1).data; 
             document.body.style.setProperty('--dynamic-r', Math.max(12, Math.min(r, 45))); 
+            document.body.style.setProperty('--dynamic-r', Math.max(12, Math.min(r, 45))); 
             document.body.style.setProperty('--dynamic-g', Math.max(12, Math.min(g, 45))); 
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
                           }
-      
+                                                              
