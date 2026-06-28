@@ -153,7 +153,7 @@ body {
 }
 
 /* ==========================================
-   CONTROLS AREA (DENGAN UTILS LOADER KAKU)
+   CONTROLS AREA
    ========================================== */
 .controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .btn-control { background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s, transform 0.1s; }
@@ -174,7 +174,6 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     border: none;
     cursor: pointer;
-    position: relative; /* Diperlukan sebagai jangkar elemen topeng loading */
     transition: background-color 0.2s ease; 
 }
 .btn-play-pause .material-icons { font-size: 2.2rem; color: #121212 !important; color-scheme: only light !important; }
@@ -189,29 +188,17 @@ body {
     transform: scale(0.95) !important;
 }
 
-/* ⚡ TRIK CSS LOADER ENGINE: Selama browser belum selesai memuat seluruh elemen awal web (DOM/Media), 
-   buat topeng spinner lingkaran berputar di atas tombol play murni memakai pseudo-element CSS */
-html:not([data-ready="true"]) .btn-play-pause::after {
-    content: "";
-    position: absolute;
-    width: 22px;
-    height: 22px;
-    top: 17px;
-    left: 17px;
-    background-color: #ffffff;
-    border: 3px solid rgba(18, 18, 18, 0.15);
-    border-top-color: #121212;
-    border-radius: 50%;
-    z-index: 5;
-    animation: btnSpin 0.7s linear infinite;
+/* ⚡ SISTEM ANIMASI MINI LOADER NATIVE INDEPENDEN: 
+   Memutar icon google 'refresh' bawaan secara presisi tanpa merusak tata letak kontainer */
+.material-icons.btn-spinning-active {
+    animation: nativeBtnSpin 1s linear infinite !important;
+    display: inline-block;
+    color: #121212 !important;
+    font-size: 1.8rem !important; /* Dikecilkan sedikit biar pas presisi saat berputar bulat */
 }
 
-/* Sembunyikan icon segitiga asli di latar belakang saat topeng loader CSS sedang aktif */
-html:not([data-ready="true"]) .btn-play-pause .material-icons {
-    opacity: 0 !important;
-}
-
-@keyframes btnSpin {
+@keyframes nativeBtnSpin {
+    from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
@@ -277,4 +264,4 @@ html:not([data-ready="true"]) .btn-play-pause .material-icons {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
-                                
+   
