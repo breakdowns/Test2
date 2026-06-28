@@ -26,6 +26,7 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
+let mediaSessionInterval = null;
 
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
@@ -75,6 +76,22 @@ function updateMediaSessionState() {
                 position: audio.currentTime
             });
         } catch (e) {}
+    }
+}
+
+function startMediaSessionPolling() {
+    if (mediaSessionInterval) clearInterval(mediaSessionInterval);
+    mediaSessionInterval = setInterval(() => {
+        if (!audio.paused) {
+            updateMediaSessionState();
+        }
+    }, 1000);
+}
+
+function stopMediaSessionPolling() {
+    if (mediaSessionInterval) {
+        clearInterval(mediaSessionInterval);
+        mediaSessionInterval = null;
     }
 }
 
@@ -257,10 +274,12 @@ audio.addEventListener('playing', () => {
     }
     updateMediaSession();
     updateMediaSessionState();
+    startMediaSessionPolling();
 });
 
 audio.addEventListener('pause', () => {
     updateMediaSessionState();
+    stopMediaSessionPolling();
 });
 
 audio.addEventListener('loadedmetadata', () => { 
@@ -291,6 +310,7 @@ favoriteBtn.addEventListener('click', () => {
 
 audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
+    stopMediaSessionPolling();
 });
 
 playBtn.addEventListener('click', () => { 
@@ -323,10 +343,6 @@ audio.addEventListener('timeupdate', () => {
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
 
-    if (audio.currentTime % 2 < 0.3) {
-        updateMediaSessionState();
-    }
-
     if (isChangingTrack || parsedLyrics.length === 0) return;
     if (document.hidden) return;
 
@@ -351,4 +367,7 @@ progressContainer.addEventListener('click', (e) => {
     }
 });
 
-audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
+audio.addEventListener('ended', () => { 
+    isRepeat ? audio.play() : playNextTrack(); 
+});
+          
