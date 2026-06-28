@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (ANTI-BACKGROUND STUTTER)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (HIGH PERFORMANCE)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -69,6 +69,7 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
+    // Reset posisi element lirik ke atas secara instan
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
@@ -228,7 +229,10 @@ audio.addEventListener('error', () => {
 });
 
 function initVisualizer() { 
-    if (audioCtx) return; 
+    // ⚡ DETEKSI PERANGKAT: Jika HP/Tablet, bypass visualizer agar super ringan di Firefox Android
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile || audioCtx) return; 
+
     audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
     analyser = audioCtx.createAnalyser(); 
     audioCtx.createMediaElementSource(audio).connect(analyser); 
@@ -242,9 +246,10 @@ function drawVisualizer(timestamp) {
     requestAnimationFrame(drawVisualizer); 
     if (!analyser) return; 
 
-    // ⚡ PROTEKSI LATAR BELAKANG: Jika browser sedang ditinggal (hidden), matikan total fungsi gambar agar tidak membebani CPU
+    // Proteksi Latar Belakang
     if (document.hidden) return;
 
+    // Batasi render frame di kisaran ~30 FPS (tiap 33ms)
     if (timestamp - lastVisualizerRenderTime < 33) return;
     lastVisualizerRenderTime = timestamp;
 
@@ -303,10 +308,9 @@ audio.addEventListener('timeupdate', () => {
     currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
-    // Jelas terisolasi: Jika sedang ganti lagu atau tidak ada lirik, lewatkan pergeseran elemen
     if (isChangingTrack || parsedLyrics.length === 0) return;
 
-    // ⚡ OPTIMASI LATAR BELAKANG ANIMASI LIRIK: Jika ditinggal keluar browser, hentikan perhitungan matematika CSS-nya
+    // Optimasi animasi lirik saat browser tidak dilihat
     if (document.hidden) return;
 
     if (parsedLyrics.length > 0) {
@@ -352,4 +356,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                                      }
+}
