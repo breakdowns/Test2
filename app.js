@@ -37,7 +37,8 @@ let lastKnownDurationText = '0:00';
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
-volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
+// ⚡ FIX SLIDER HITAM QUETTA: Mengganti background sisa bar volume dinamis menjadi putih transparan saat load awal
+volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, rgba(255,255,255,0.25) ${savedVolume * 100}%)`;
 
 // Ambil Data Putar
 fetch('playlist.json')
@@ -288,7 +289,8 @@ volumeSlider.addEventListener('input', (e) => {
     const v = e.target.value; 
     audio.volume = v; 
     localStorage.setItem('volume', v); 
-    volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
+    // ⚡ FIX SLIDER HITAM QUETTA: Mengubah warna sisa bar volume dinamis menjadi putih transparan saat slider digeser
+    volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, rgba(255,255,255,0.25) ${v * 100}%)`; 
 });
 
 audio.addEventListener('timeupdate', () => {
@@ -341,4 +343,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                  }
+              }
