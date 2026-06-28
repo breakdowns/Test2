@@ -50,6 +50,13 @@
       "lyricsSrc": "lyrics/Comedown - Secrets.lrc"
     },
     {
+      "title": "Hellhound",
+      "artist": "Uni/Vs",
+      "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/Vs%20-%20Hellhound.mp3",
+      "cover": "cover/UNI_VS - Hellhound.jpg",
+      "lyricsSrc": "lyrics/Hellhound - UNI VS.lrc"
+    },
+    {
       "title": "You Belong Here",
       "artist": "PHRENIA",
       "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/You%20Belong%20Here%20-%20PHRENIA.mp3",
