@@ -20,13 +20,14 @@
 }
 
 /* ==========================================
-   FIX JALUR PUTIH: WARNAI ROOT DENGAN HITAM PEKAT
+   PEMBERSIH BUG OVERFLOW CHROME MOBILE 
    ========================================== */
 html {
-    /* Warnai dasar browser menjadi hitam pekat agar saat di-scroll mentok 
-       tidak memunculkan kilatan putih gaib lagi */
-    background-color: var(--background-base) !important;
-    height: 100%;
+    background-color: #121212 !important;
+    height: 100vh;
+    /* Kunci mutlak overscroll hanya pada sumbu Y di level jendela terluar */
+    overscroll-behavior-y: none !important;
+    overscroll-behavior: none !important;
 }
 
 body {
@@ -35,10 +36,15 @@ body {
     color: var(--text-main);
     display: flex;
     justify-content: center;
-    align-items: center; /* Menjaga posisi container tetap pas di tengah layar */
+    align-items: center; /* Kembali seimbang di tengah, tidak mepet ke atas lagi */
     min-height: 100vh;
-    padding: 24px 20px 60px 20px; /* Berikan bemper padding bawah agar proporsional */
+    min-height: -webkit-fill-available; /* Mengikuti tinggi area kerja Chrome Android dengan presisi */
+    padding: 24px 20px;
     transition: background 0.8s ease;
+    
+    /* Proteksi lapis kedua pada body agar Chrome tidak meloloskan efek glow */
+    overscroll-behavior-y: none !important;
+    overscroll-behavior: none !important;
 }
 
 /* ==========================================
@@ -55,6 +61,9 @@ body {
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
+    
+    /* Cegah container ikut memicu tarikan elastis */
+    overscroll-behavior-y: contain !important;
 }
 
 @media (min-width: 768px) {
@@ -178,7 +187,7 @@ body {
 .btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
 /* ==========================================
-   VOLUME & LYRICS & PLAYLIST (SCROLL BERFUNGSI NORMAL)
+   VOLUME & LYRICS & PLAYLIST
    ========================================== */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
@@ -203,8 +212,10 @@ body {
 
 .playlist-container { 
     max-height: 180px; 
-    overflow-y: auto; /* Mengembalikan fungsi scroll list lagu */
-    -webkit-overflow-scrolling: touch; 
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Isolasi efek karet scroll hanya boleh terjadi di dalam list lagu saja */
+    overscroll-behavior-y: contain !important; 
 }
 .playlist-container::-webkit-scrollbar { width: 4px; }
 .playlist-container::-webkit-scrollbar-thumb { background: #4f4f4f; border-radius: 2px; }
@@ -217,3 +228,4 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
+             
