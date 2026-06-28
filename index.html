@@ -7,7 +7,7 @@
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Hubungkan ke stylesheet utama dengan query anti-cache -->
-    <link rel="stylesheet" href="style.css?v=101">
+    <link rel="stylesheet" href="style.css?v=105">
 </head>
 <body>
 
@@ -32,10 +32,11 @@
             </button>
         </div>
 
-        <!-- BAGIAN 3: PROGRESS BAR (CUSTOM DIV STYLING) -->
+        <!-- BAGIAN 3: PROGRESS BAR (INPUT RANGE TOTAL CLEAN FOR FIREFOX) -->
         <div class="progress-area">
-            <div class="progress-bar-container" id="progressContainer">
-                <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-input-wrapper">
+                <input type="range" id="musicSlider" min="0" max="100" value="0" step="0.05">
+                <div class="progress-bar-visual" id="progressBar"></div>
             </div>
             <div class="time-info">
                 <span id="currentTime">0:00</span>
@@ -91,5 +92,5 @@
     <!-- LOGIKA JAVASCRIPT GLOBAL -->
     <script src="app.js"></script>
 </body>
-            </html>
-            
+                </html>
+                
