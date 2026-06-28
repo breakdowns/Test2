@@ -162,7 +162,7 @@ body {
 .btn-control.active { color: var(--spotify-green); }
 
 .btn-play-pause {
-    /* ⚡ KUNCI FIX QUETTA BROWSER: Mengubah warna solid jadi gradien linear agar dilewati mesin smart dark-mode Quetta */
+    /* ⚡ FIX TOMBOL HITAM QUETTA: Pakai gradien agar tidak dipaksa invert warna oleh browser Quetta */
     background-image: linear-gradient(#ffffff, #ffffff) !important;
     color: #121212 !important;
     color-scheme: only light !important;
@@ -247,10 +247,16 @@ body {
 .track-item.active { background-color: rgba(30, 215, 96, 0.15); }
 .track-item.active strong { color: var(--spotify-green); }
 
-/* ⚡ BALIK MURNI: Dikembalikan sebaris sesuai aslinya berdasarkan file 1002507498.jpg */
-.track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
+/* ⚡ FIX ALBUM PUTIH TETAP DIKUNCI (Berdasarkan baris merah 249-256 di file 1002507498.jpg) */
+.track-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    color-scheme: only light !important;
+}
 
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
-                                 
+   
