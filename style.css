@@ -32,7 +32,7 @@ body {
 }
 
 /* ==========================================
-   MAIN CONTAINER (FIX OVER-STRETCH CHROME)
+   MAIN CONTAINER (RESPONSIVE PC & MOBILE)
    ========================================== */
 .player-container {
     background-color: rgba(26, 26, 26, 0.75);
@@ -40,24 +40,24 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    max-width: 420px; /* Ukuran pas untuk portrait mobile normal */
+    max-width: 420px;
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
 }
 
-/* PERBAIKAN RESPONSIVITAS: Mengunci lebar di Chrome & Brave agar selalu tampak padat berisi */
+/* KUNCI BARU: Lebar optimal 85% tapi batas max-width didongkrak ke 640px agar gagah di Brave & padat di Chrome */
 @media (min-width: 768px) {
     .player-container {
-        width: 100%;
-        max-width: 500px; /* Dikunci di 500px agar tidak kempes memanjang ke bawah */
-        padding: 32px;
+        width: 85%;
+        max-width: 640px; 
+        padding: 36px;
     }
     
-    /* Menaikkan skala teks dikit di desktop biar ga keliatan kekecilan */
-    .track-info h2 { font-size: 1.55rem !important; }
-    .lyric-line { font-size: 1.15rem !important; }
+    /* Naikin ukuran teks & lirik dikit di mode desktop biar makin proporsional */
+    .track-info h2 { font-size: 1.55rem; }
+    .lyric-line { font-size: 1.15rem; }
 }
 
 /* ==========================================
@@ -255,4 +255,4 @@ body {
 .watermark a:hover { 
     filter: brightness(1.2);
     text-decoration: underline !important; 
-             }
+              }
