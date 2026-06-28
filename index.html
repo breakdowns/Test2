@@ -3,51 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Mencegah browser memaksa inversi warna pada elemen tertentu saat Dark Mode aktif -->
-    <meta name="color-scheme" content="dark light">
     <title>Breakdowns Music</title>
-    <!-- Favicon Resmi Breakdowns -->
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- File CSS Utama -->
-    <link rel="stylesheet" href="style.css">
+    <!-- Hubungkan ke stylesheet utama dengan query anti-cache -->
+    <link rel="stylesheet" href="style.css?v=100">
 </head>
 <body>
 
     <div class="player-container">
-        <!-- 1. Gambar Cover Album + Visualizer Bersatu di Sini -->
+        
+        <!-- BAGIAN 1: COVER LAGU & KANVAS VISUALIZER -->
         <div class="cover-wrapper">
-            <img id="trackCover" src="https://via.placeholder.com/300" alt="Cover Album">
+            <img id="trackCover" src="" alt="Cover Lagu">
             <canvas id="visualizer"></canvas>
         </div>
 
-        <!-- 2. Informasi Lagu & Tombol Favorit -->
+        <!-- BAGIAN 2: INFORMASI JUDUL & TOMBOL FAVORIT -->
         <div class="track-header">
             <div class="track-info">
-                <!-- Wrapper Khusus Animasi Judul Panjang Berjalan Ala Spotify -->
                 <div class="marquee-container">
-                    <h2 id="trackTitle">Memuat Judul...</h2>
+                    <h2 id="trackTitle">-</h2>
                 </div>
-                <p id="trackArtist">Memuat Artis...</p>
+                <p id="trackArtist">-</p>
             </div>
             <button id="favoriteBtn" class="btn-fav">
                 <span class="material-icons">favorite_border</span>
             </button>
         </div>
 
-        <!-- 3. Progress Durasi Lagu -->
+        <!-- BAGIAN 3: PROGRESS BAR (MENGGUNAKAN SLIDER ASLI HTML5) -->
         <div class="progress-area">
-            <div id="progressContainer" class="progress-bar-container">
-                <div id="progressBar" class="progress-bar"></div>
-            </div>
+            <input type="range" id="progressBar" min="0" max="100" value="0" step="0.1">
             <div class="time-info">
                 <span id="currentTime">0:00</span>
                 <span id="duration">0:00</span>
             </div>
         </div>
 
-        <!-- 4. Kontrol Musik (Dilengkapi Fix Pengecatan Tombol Play) -->
+        <!-- BAGIAN 4: TOMBOL NAVIGASI UTAMA (PLAY, NEXT, PREV, SHUFFLE, REPEAT) -->
         <div class="controls-area">
             <button id="shuffleBtn" class="btn-control">
                 <span class="material-icons">shuffle</span>
@@ -55,7 +49,7 @@
             <button id="prevBtn" class="btn-control">
                 <span class="material-icons">skip_previous</span>
             </button>
-            <button id="playBtn" class="btn-control btn-play-pause">
+            <button id="playBtn" class="btn-play-pause">
                 <span id="playIcon" class="material-icons">play_arrow</span>
             </button>
             <button id="nextBtn" class="btn-control">
@@ -66,34 +60,34 @@
             </button>
         </div>
 
-        <!-- 5. Kontrol Volume Suara -->
+        <!-- BAGIAN 5: KONTROL VOLUME -->
         <div class="volume-area">
             <span class="material-icons" style="font-size: 1.2rem;">volume_down</span>
-            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="1">
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" class="volume-slider">
             <span class="material-icons" style="font-size: 1.2rem;">volume_up</span>
         </div>
 
-        <!-- 6. Panel Teks Lirik Otomatis Sisi Tengah Halus -->
+        <!-- BAGIAN 6: WADAH LIRIK DINAMIS -->
         <div id="lyricsContainer" class="lyrics-container">
             <div id="lyricsWrapper"></div>
         </div>
 
-        <!-- 7. Kotak Pencarian & Daftar Putar Lagu -->
+        <!-- BAGIAN 7: SEARCH BAR & DAFTAR PLAYLIST -->
         <input type="text" id="searchBar" class="search-box" placeholder="Cari lagu atau artis...">
         <div id="playlist" class="playlist-container"></div>
 
-        <!-- 8. Watermark Kredit Pembuat Aktif -->
+        <!-- BAGIAN 8: WATERMARK HAFITZ -->
         <div class="watermark">
-            Made with ♥️ by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
+            Made with <span style="color: #e91e63;">❤️</span> by <a href="#" target="_blank">Hafitz</a>
         </div>
+
     </div>
 
-    <!-- Audio Element Utama -->
+    <!-- ELEMEN AUDIO TERSEMBUNYI -->
     <audio id="mainAudio" crossorigin="anonymous"></audio>
 
-    <!-- File Modul JS Terpisah (Supaya Tidak Terpotong) -->
+    <!-- LOGIKA JAVASCRIPT GLOBAL -->
     <script src="app.js"></script>
-    <script src="media.js"></script>
 </body>
-        </html>
-        
+    </html>
+    
