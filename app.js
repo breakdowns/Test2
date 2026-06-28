@@ -18,8 +18,8 @@ const trackTitle = document.getElementById('trackTitle'),
       ctx = canvas.getContext('2d'), 
       lyricsWrapper = document.getElementById('lyricsWrapper'), 
       lyricsContainer = document.getElementById('lyricsContainer'), 
-      musicSlider = document.getElementById('musicSlider'), // Slider range tersembunyi
-      progressBar = document.getElementById('progressBar'), // Garis visual buatan kita
+      progressContainer = document.getElementById('progressContainer'), 
+      progressBar = document.getElementById('progressBar'), 
       currentTimeEl = document.getElementById('currentTime'), 
       durationEl = document.getElementById('duration'), 
       volumeSlider = document.getElementById('volumeSlider'), 
@@ -51,21 +51,23 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
+    // GANTI DATA AUDIO DAN COVER SECARA INSTAN
     trackTitle.textContent = track.title; 
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
     audio.src = track.src;
     
-    musicSlider.value = 0;
-    progressBar.style.setProperty('--progress-width', '0%');
+    progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
+    // FADE-OUT LIRIK LAMA INSTAN
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
     
+    // FETCH LIRIK DI LATAR BELAKANG
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
@@ -108,6 +110,7 @@ function loadTrack(index) {
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
 
+    // KONTROL MARQUEE OTOMATIS
     setTimeout(() => {
         const marqueeContainer = document.querySelector('.marquee-container');
         const trackTitleEl = document.getElementById('trackTitle');
@@ -265,14 +268,10 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-// LOGIKA UTAMA UPDATE: Sinkronisasi waktu dengan properti CSS variabel
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
-    
-    const progressPercent = (audio.currentTime / audio.duration) * 100;
-    musicSlider.value = progressPercent;
-    progressBar.style.setProperty('--progress-width', `${progressPercent}%`);
+    progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
@@ -286,14 +285,36 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
-// MENGGUNAKAN VALUE PERSENTASE SLIDER: 100% Kebal Distorsi Koordinat Firefox Desktop Mode
-musicSlider.addEventListener('input', (e) => {
-    if (audio.duration) {
-        const newTime = (e.target.value / 100) * audio.duration;
-        audio.currentTime = newTime;
-        progressBar.style.setProperty('--progress-width', `${e.target.value}%`);
+// =========================================================================
+// INTERAKSI DURASI: PERHITUNGAN KHUSUS SELESAI UNTUK FIREFOX MODE DESKTOP
+// =========================================================================
+function handleProgressSeek(e) {
+    if (!audio.duration) return;
+    
+    let clickX = 0;
+    
+    // 1. Deteksi koordinat murni dari sistem jika berupa Touch (HP)
+    if (e.touches && e.touches.length > 0) {
+        const rect = progressContainer.getBoundingClientRect();
+        clickX = e.touches[0].clientX - rect.left;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+        const rect = progressContainer.getBoundingClientRect();
+        clickX = e.changedTouches[0].clientX - rect.left;
+    } else {
+        // 2. Deteksi murni menggunakan Klik Mouse biasa (PC)
+        // Amankan hitungan offset jika user tak sengaja menyentuh bilah progress-bar anak
+        clickX = (e.target === progressContainer) ? e.offsetX : e.offsetX + e.target.offsetLeft;
     }
-});
+    
+    const totalWidth = progressContainer.clientWidth;
+    const widthRatio = Math.max(0, Math.min(clickX / totalWidth, 1));
+    
+    audio.currentTime = widthRatio * audio.duration;
+}
+
+progressContainer.addEventListener('click', handleProgressSeek);
+progressContainer.addEventListener('touchstart', handleProgressSeek, { passive: true });
+progressContainer.addEventListener('touchmove', handleProgressSeek, { passive: true });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
 
@@ -314,10 +335,8 @@ function updateDynamicBackground(src) {
             ctxH.drawImage(img, 0, 0, 1, 1); 
             const [r, g, b] = ctxH.getImageData(0, 0, 1, 1).data; 
             document.body.style.setProperty('--dynamic-r', Math.max(12, Math.min(r, 45))); 
-            document.body.style.setProperty('--dynamic-r', Math.max(12, Math.min(r, 45))); 
             document.body.style.setProperty('--dynamic-g', Math.max(12, Math.min(g, 45))); 
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                          }
-                                                              
+                  }
