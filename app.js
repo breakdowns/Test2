@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (RADICAL LATENCY FIX)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (PERFECT ORDER FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -63,13 +63,13 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // FIX RADIKAL: Matikan transisi, paksa kembali ke atas, lalu hapus lirik lama seketika
+    // RESET LIRIK: Matikan transisi, kosongkan teks, dan kembalikan ke atas seketika
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translate3d(0, 0px, 0)';
     lyricsWrapper.innerHTML = ''; 
     
-    // Paksa browser membaca ulang layout (Reflow)
+    // Paksa browser me-refresh kalkulasi posisi layout (Reflow)
     void lyricsWrapper.offsetWidth; 
 
     const currentTrackSrc = track.src;
@@ -81,18 +81,23 @@ function loadTrack(index) {
                 
                 parsedLyrics = parseLRC(text); 
                 
-                // JEDA AMAN: Beri jeda 150ms agar browser sadar posisi sudah di 0px, baru nyalakan transisinya lagi
-                setTimeout(() => {
+                // Tampilkan wadah kontainer lirik terlebih dahulu
+                lyricsContainer.style.display = "block"; 
+                
+                // SINKRONISASI GERAKAN HALUS: Pasang transisi dulu, baru render teks liriknya
+                requestAnimationFrame(() => {
                     if (tracks[currentIndex].src !== currentTrackSrc) return;
                     
-                    // Kembalikan efek transisi smooth bawaan CSS secara paksa setelah jeda usai
+                    // 1. Pasang spesifikasi transisi smooth ke pembungkus lirik
                     lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                    lyricsWrapper.innerHTML = ''; 
                     
+                    // 2. Baru render liriknya agar posisi geser pertama langsung ditangkap transisi halus
+                    lyricsWrapper.innerHTML = ''; 
                     parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                    lyricsContainer.style.display = "block"; 
+                    
+                    // 3. Memunculkan lirik secara perlahan (fade in)
                     lyricsContainer.style.opacity = '1';
-                }, 150);
+                });
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -330,5 +335,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
-      
+                   }
+                                                                    
