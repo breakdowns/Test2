@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (PERFECT LYRICS)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (CATBOX LATENCY FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -63,7 +63,7 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // FIX GANTI LAGU: Matikan transisi dan kembalikan ke posisi atas seketika menggunakan 3D plane
+    // RESET LIRIK: Matikan transisi dan kembalikan ke posisi atas seketika
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.webkitTransition = 'none';
     lyricsWrapper.style.transition = 'none';
@@ -83,15 +83,17 @@ function loadTrack(index) {
                 
                 lyricsContainer.style.display = "block"; 
                 
-                // Nyalakan kembali transisi lirik secara berurutan agar mulus
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        if (tracks[currentIndex].src === currentTrackSrc) {
+                // FIX DELAY CATBOX: Tunggu sampai audio benar-benar siap diputar di browser, baru aktifkan transisi halusnya
+                const enableSmoothLyrics = () => {
+                    if (tracks[currentIndex].src === currentTrackSrc) {
+                        requestAnimationFrame(() => {
                             lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
                             lyricsContainer.style.opacity = '1';
-                        }
-                    });
-                });
+                        });
+                    }
+                    audio.removeEventListener('canplay', enableSmoothLyrics);
+                };
+                audio.addEventListener('canplay', enableSmoothLyrics);
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -270,7 +272,7 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-// FIX PERGESERAN LIRIK: Menggunakan 3D translation (translate3d) agar diproses hardware GPU
+// SINKRONISASI PERGESERAN LIRIK: Menggunakan akselerasi hardware translate3d
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
@@ -291,7 +293,6 @@ audio.addEventListener('timeupdate', () => {
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
             
             requestAnimationFrame(() => {
-                // Diubah ke translate3d untuk akselerasi perangkat keras 3D di HP
                 lyricsWrapper.style.transform = `translate3d(0, ${-scrollAmount}px, 0)`;
             });
         }
@@ -330,5 +331,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                  }
-                                  
+                              }
