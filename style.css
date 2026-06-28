@@ -178,7 +178,6 @@ body {
 }
 .btn-play-pause .material-icons { font-size: 2.2rem; color: #121212 !important; color-scheme: only light !important; }
 
-/* FIX PROTEKSI TOMBOL MELAR: Efek perbesaran hover hanya diizinkan aktif di PC Desktop */
 @media (hover: hover) {
     .btn-play-pause:hover { 
         background-color: #ffffff; 
@@ -213,7 +212,6 @@ body {
 #lyricsWrapper { 
     padding: 15px 0 40px 0; 
     text-align: center; 
-    /* EFISIENSI GERAKAN: Menjamin lirik meluncur naik-turun dengan super smooth */
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
     will-change: transform; 
 }
@@ -232,7 +230,7 @@ body {
 .lyric-line.active { color: var(--text-main); transform: scale(1.05); }
 
 /* ==========================================
-   PLAYLIST CONTAINER SISA
+   PLAYLIST CONTAINER
    ========================================== */
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 
@@ -247,8 +245,17 @@ body {
 .track-item:hover { background-color: rgba(255, 255, 255, 0.05); }
 .track-item.active { background-color: rgba(30, 215, 96, 0.15); }
 .track-item.active strong { color: var(--spotify-green); }
-.track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
+
+.track-item img { 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 4px; 
+    object-fit: cover; 
+    /* ⚡ FIX COVER PUTHIH: Melarang engine browser memaksa pembalikan warna gambar (Force Dark Mode) */
+    color-scheme: only light !important;
+}
 
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
+   
