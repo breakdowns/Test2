@@ -207,7 +207,6 @@ function loadTrack(index) {
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
-    updateMediaSession();
 
     setTimeout(() => {
         const marqueeContainer = document.querySelector('.marquee-container');
@@ -248,7 +247,6 @@ audio.addEventListener('canplay', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
-        updateMediaSessionState();
     }
 });
 
@@ -257,6 +255,7 @@ audio.addEventListener('playing', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
     }
+    updateMediaSession();
     updateMediaSessionState();
 });
 
@@ -269,7 +268,6 @@ audio.addEventListener('loadedmetadata', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText; 
     }
-    updateMediaSession(); 
 });
 
 searchBar.addEventListener('input', (e) => {
@@ -319,9 +317,12 @@ volumeSlider.addEventListener('input', (e) => {
 
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
-    currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
+    if (!document.hidden) {
+        currentTimeEl.textContent = formatTime(audio.currentTime); 
+    }
+
     if (isChangingTrack || parsedLyrics.length === 0) return;
     if (document.hidden) return;
 
@@ -347,4 +348,4 @@ progressContainer.addEventListener('click', (e) => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                           
+                               
