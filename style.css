@@ -20,7 +20,7 @@
 }
 
 /* ==========================================
-   IZINKAN PULL-TO-REFRESH & BASE BACKGROUND
+   BASE BACKGROUND
    ========================================== */
 html {
     background-color: #121212 !important; 
@@ -115,40 +115,13 @@ body {
 .btn-fav.active { color: var(--spotify-green); }
 
 /* ==========================================
-   PROGRESS BAR STYLING (ANTI FORCE DARK MODE)
+   PROGRESS BAR STYLING
    ========================================== */
-.progress-area { 
-    margin-bottom: 24px; 
-}
-
-.progress-bar-container { 
-    width: 100%; 
-    height: 4px; 
-    background-color: #4f4f4f !important; 
-    border-radius: 2px; 
-    cursor: pointer; 
-    margin-bottom: 8px; 
-    color-scheme: only light !important;
-}
-
-.progress-bar { 
-    height: 100%; 
-    width: 0%; 
-    background-color: #ffffff !important; 
-    border-radius: 2px; 
-    color-scheme: only light !important;
-}
-
-.progress-bar-container:hover .progress-bar { 
-    background-color: var(--spotify-green) !important; 
-}
-
-.time-info { 
-    display: flex; 
-    justify-content: space-between; 
-    font-size: 0.75rem; 
-    color: var(--text-muted); 
-}
+.progress-area { margin-bottom: 24px; }
+.progress-bar-container { width: 100%; height: 4px; background-color: #4f4f4f !important; border-radius: 2px; cursor: pointer; margin-bottom: 8px; color-scheme: only light !important; }
+.progress-bar { height: 100%; width: 0%; background-color: #ffffff !important; border-radius: 2px; color-scheme: only light !important; }
+.progress-bar-container:hover .progress-bar { background-color: var(--spotify-green) !important; }
+.time-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
 
 /* ==========================================
    CONTROLS AREA
@@ -185,11 +158,12 @@ body {
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); }
 
 /* ==========================================
-   LYRICS WIDGET (MOBILE PERFORMANCE OPTIMIZED)
+   LYRICS WIDGET (NATIVE SCROLL SYSTEM)
    ========================================== */
 .lyrics-container {
     max-height: 160px;
-    overflow-y: hidden;
+    /* Ubah ke scroll agar engine internal browser HP mengambil alih pergeseran lirik */
+    overflow-y: scroll; 
     margin-bottom: 20px;
     position: relative;
     padding: 0 12px;
@@ -197,18 +171,19 @@ body {
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     opacity: 1;
     transition: opacity 0.2s ease-in-out;
+    /* Sembunyikan scrollbar bawaan agar tetap estetik mirip Spotify */
+    scrollbar-width: none; 
+    -ms-overflow-style: none; 
+}
+.lyrics-container::-webkit-scrollbar {
+    display: none; 
 }
 
 #lyricsWrapper { 
-    padding: 15px 0 40px 0; 
+    padding: 60px 0 60px 0; /* Tambah padding atas-bawah agar lirik pertama & terakhir bisa pas di tengah */
     text-align: center; 
-    /* ⚡ TRANSISI GPU NATIVE: Ditugaskan menangkap satu kali perintah koordinat piksel dari JS agar meluncur smooth */
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    will-change: transform; 
-    transform: translate3d(0, 0, 0);
-    -webkit-transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+    transition: none !important; /* Matikan paksa manipulasi transform koordinat */
+    transform: none !important;
 }
 
 .lyric-line { 
@@ -252,4 +227,4 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
-   
+          
