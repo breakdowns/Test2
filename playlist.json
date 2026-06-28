@@ -36,6 +36,20 @@
       "lyricsSrc": "lyrics/Masochistic Healing - Tethra.lrc"
     },
     {
+      "title": "Dissociation",
+      "artist": "Down to the Heaven",
+      "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/Dissociation%20-%20Down%20to%20the%20Heaven.mp3",
+      "cover": "cover/Down to the Heaven - Dissociation.jpg",
+      "lyricsSrc": "lyrics/Dissociation - Down to the Heaven.lrc"
+    },
+    {
+      "title": "Comedown",
+      "artist": "Secrets",
+      "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/Comedown%20-%20Secrets.mp3",
+      "cover": "cover/Secrets - Comedown.jpg",
+      "lyricsSrc": "lyrics/Comedown - Secrets.lrc"
+    },
+    {
       "title": "You Belong Here",
       "artist": "PHRENIA",
       "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/You%20Belong%20Here%20-%20PHRENIA.mp3",
