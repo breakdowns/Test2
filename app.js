@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC (ISOLATED LOADER ENGINE FIX)
+// APP.JS - BREAKDOWNS MUSIC (SMART LOADING & NO-BLINK FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -26,7 +26,6 @@ const trackTitle = document.getElementById('trackTitle'),
       playlistContainer = document.getElementById('playlist'), 
       searchBar = document.getElementById('searchBar');
 
-// Deklarasi element loader baru
 const globalLoader = document.getElementById('globalLoader');
 
 let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyser, dataArray;
@@ -37,6 +36,9 @@ let isChangingTrack = false;
 let currentLyricIndex = -1; 
 let temporaryTextStorage = ""; 
 let isLyricsFetched = false; 
+
+// ⚡ FLAG PINTAR: Menandakan apakah ini proses load pertama kali saat web di-refresh
+let isFirstLoad = true; 
 
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
@@ -74,12 +76,21 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // 1. TAMPILKAN LOADER KAKU & SEMBUNYIKAN AREA SCROLL LIRIK TOTAL
     lyricsContainer.scrollTop = 0;
-    lyricsWrapper.innerHTML = ''; 
-    lyricsWrapper.style.display = 'none'; 
-    if (globalLoader) globalLoader.style.display = 'flex';
-    lyricsContainer.classList.add('loading-active');
+
+    // ⚡ KONDISIONAL SPINNER LOADING: Cuman muncul jika web baru di-refresh/buka pertama kali
+    if (isFirstLoad) {
+        lyricsWrapper.innerHTML = ''; 
+        lyricsWrapper.style.display = 'none'; 
+        if (globalLoader) globalLoader.style.display = 'flex';
+        lyricsContainer.classList.add('loading-active');
+    } else {
+        // Jika ganti lagu biasa, bersihkan lirik lama tapi biarkan area tetap aktif tanpa spinner kedip
+        lyricsWrapper.innerHTML = '';
+        lyricsWrapper.style.display = 'block';
+        if (globalLoader) globalLoader.style.display = 'none';
+        lyricsContainer.classList.remove('loading-active');
+    }
 
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -92,7 +103,8 @@ function loadTrack(index) {
                 temporaryTextStorage = text;
                 isLyricsFetched = true; 
                 
-                if (audio.readyState >= 3) {
+                // Jika ganti lagu biasa atau audio instan langsung siap, eksekusi tanpa nunggu pelatuk event
+                if (!isFirstLoad || audio.readyState >= 3) {
                     finalizeLyrics();
                 }
             })
@@ -103,6 +115,7 @@ function loadTrack(index) {
                     lyricsWrapper.style.display = 'block';
                     lyricsContainer.classList.remove('loading-active');
                     isChangingTrack = false;
+                    isFirstLoad = false;
                 }
             });
     } else { 
@@ -112,6 +125,7 @@ function loadTrack(index) {
         lyricsWrapper.style.display = 'block';
         lyricsContainer.classList.remove('loading-active');
         isChangingTrack = false;
+        isFirstLoad = false;
     }
     
     const isFav = favorites.includes(track.src);
@@ -155,7 +169,6 @@ function finalizeLyrics() {
     if (!isChangingTrack) return; 
     isChangingTrack = false; 
     
-    // 2. MATIKAN LOADER KAKU & MUNCULKAN AREA LIRIK ASLI
     if (globalLoader) globalLoader.style.display = 'none';
     lyricsContainer.classList.remove('loading-active');
     lyricsWrapper.innerHTML = ''; 
@@ -170,6 +183,9 @@ function finalizeLyrics() {
     } else if (temporaryTextStorage) {
         renderStaticLyrics(temporaryTextStorage);
     }
+
+    // Matikan flag load pertama karena inisialisasi awal web sudah sukses dilewati
+    isFirstLoad = false; 
 }
 
 function renderPlaylist(arr) {
@@ -364,3 +380,4 @@ function updateDynamicBackground(src) {
         } catch (e) {} 
     };
 }
+      
