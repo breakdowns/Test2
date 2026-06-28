@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (ULTIMATE MOBILE OPTIMIZED)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (NATIVE SCROLL FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -30,9 +30,8 @@ let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyse
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-// ⚡ VARIABEL KUNCI PERFORMA:
 let isChangingTrack = false; 
-let currentLyricIndex = -1; // Mengingat baris lirik agar CPU tidak menghitung ulang setiap detik
+let currentLyricIndex = -1; 
 
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
@@ -50,7 +49,7 @@ fetch('playlist.json')
 
 function loadTrack(index) {
     isChangingTrack = true; 
-    currentLyricIndex = -1; // Reset ingatan baris lirik saat ganti lagu
+    currentLyricIndex = -1; 
     parsedLyrics = []; 
 
     currentIndex = index; 
@@ -68,13 +67,12 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // RESET INSTAN KE POSISI ATAS
+    // RESET INSTAN MENGGUNAKAN SCROLL TOP NATIVE
     lyricsContainer.style.opacity = '0';
-    lyricsWrapper.style.transition = 'none';
-    lyricsWrapper.style.transform = 'translate3d(0, 0px, 0)';
+    lyricsContainer.scrollTop = 0; 
     lyricsWrapper.innerHTML = ''; 
     
-    void lyricsWrapper.offsetWidth; 
+    void lyricsContainer.offsetWidth; 
 
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -83,21 +81,16 @@ function loadTrack(index) {
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
                 
-                const incomingLyrics = parseLRC(text); 
+                parsedLyrics = parseLRC(text); 
+                lyricsContainer.style.display = "block"; 
+                lyricsWrapper.innerHTML = ''; 
+                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
                 
                 setTimeout(() => {
-                    if (tracks[currentIndex].src !== currentTrackSrc) return;
-                    
-                    // Kembalikan efek transisi native CSS yang enteng buat GPU HP
-                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                    lyricsWrapper.innerHTML = ''; 
-                    
-                    parsedLyrics = incomingLyrics;
-                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                    
-                    lyricsContainer.style.display = "block"; 
-                    lyricsContainer.style.opacity = '1';
-                }, 120); 
+                    if (tracks[currentIndex].src === currentTrackSrc) {
+                        lyricsContainer.style.opacity = '1';
+                    }
+                }, 50);
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -268,7 +261,7 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-// ⚡⚡⚡ LOGIKA ANIMASI SUPER RINGAN: Blokir perhitungan piksel kecuali pas baris lirik berganti
+// ⚡ TRICK NATIVE SMOOTH SCROLL: Memakai mesin scroll bawaan Google Chrome HP
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
@@ -278,21 +271,16 @@ audio.addEventListener('timeupdate', () => {
 
     const newIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
 
-    // BROWSER HANYA BOLEH MENGHITUNG SAAT LIRIK BERUBAH (Sangat enteng untuk HP)
     if (newIndex !== -1 && newIndex !== currentLyricIndex) {
         currentLyricIndex = newIndex; 
-        
-        const lines = lyricsWrapper.children; // Akses DOM langsung, tanpa querySelector (super ngebut)
+        const lines = lyricsWrapper.children; 
         
         if (lines[newIndex]) {
-            // Bersihkan class 'active' dari semua baris dengan cara paling enteng
             for (let i = 0; i < lines.length; i++) {
                 lines[i].className = 'lyric-line';
             }
-            // Aktifkan baris yang sekarang
             lines[newIndex].className = 'lyric-line active';
             
-            // Kalkulasi pergeseran CUMA SATU KALI
             const activeLine = lines[newIndex], 
                   containerHeight = lyricsContainer.clientHeight, 
                   offsetTop = activeLine.offsetTop, 
@@ -300,8 +288,11 @@ audio.addEventListener('timeupdate', () => {
                   
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
             
-            // Langsung lempar eksekusi ke GPU HP
-            lyricsWrapper.style.transform = `translate3d(0, ${-scrollAmount}px, 0)`;
+            // PANGGIL SIBER SCROLL ENGINE BAWAAN HP (Paling ringan, anti-stuttering)
+            lyricsContainer.scrollTo({
+                top: scrollAmount,
+                behavior: 'smooth'
+            });
         }
     }
 });
@@ -337,5 +328,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                                 }
-                   
+}
