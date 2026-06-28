@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (FULL SMOOTH LYRICS)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (PERFECT LYRICS)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -63,18 +63,12 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // FIX LIRIK SMOOTH: Reset posisi secara instan lalu aktifkan kembali transisinya
+    // FIX GANTI LAGU: Matikan transisi dan kembalikan ke posisi atas seketika
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.webkitTransition = 'none';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
-    
-    // Paksa browser membaca ulang posisi agar efek transisi 'none' langsung diterapkan
-    void lyricsWrapper.offsetWidth; 
-    
-    // Nyalakan kembali transisi smooth sebelum lirik baru di-render
-    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -88,12 +82,16 @@ function loadTrack(index) {
                 parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
                 
                 lyricsContainer.style.display = "block"; 
-                // Efek lirik memudar muncul secara halus
-                setTimeout(() => {
-                    if (tracks[currentIndex].src === currentTrackSrc) {
-                        lyricsContainer.style.opacity = '1';
-                    }
-                }, 50);
+                
+                // Nyalakan kembali transisi lirik secara berurutan agar mulus
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (tracks[currentIndex].src === currentTrackSrc) {
+                            lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                            lyricsContainer.style.opacity = '1';
+                        }
+                    });
+                });
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -272,6 +270,7 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
+// FIX PERGESERAN LIRIK: Hanya geser jika baris berganti & sinkronkan dengan refresh rate layar
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
@@ -280,11 +279,20 @@ audio.addEventListener('timeupdate', () => {
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
         const lines = document.querySelectorAll('.lyric-line');
-        lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
-        if (activeIndex !== -1 && lines[activeIndex]) {
-            const activeLine = lines[activeIndex], containerHeight = lyricsContainer.clientHeight, offsetTop = activeLine.offsetTop, lineHeight = activeLine.clientHeight;
+        
+        if (activeIndex !== -1 && lines[activeIndex] && !lines[activeIndex].classList.contains('active')) {
+            lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
+            
+            const activeLine = lines[activeIndex], 
+                  containerHeight = lyricsContainer.clientHeight, 
+                  offsetTop = activeLine.offsetTop, 
+                  lineHeight = activeLine.clientHeight;
+                  
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
-            lyricsWrapper.style.transform = `translateY(${-scrollAmount}px)`;
+            
+            requestAnimationFrame(() => {
+                lyricsWrapper.style.transform = `translateY(${-scrollAmount}px)`;
+            });
         }
     }
 });
@@ -305,6 +313,7 @@ function formatTime(s) {
     return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
 }
 
+// Perbaikan CORS Background Image
 function updateDynamicBackground(src) {
     const img = new Image(); 
     img.crossOrigin = "Anonymous"; 
@@ -320,4 +329,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-              }
+}
