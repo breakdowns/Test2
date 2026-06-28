@@ -66,9 +66,9 @@ body {
    ========================================== */
 @media (min-width: 768px) {
     .player-container {
-        /* Diubah ke 410px: Ramping di monitor PC (lirik aman), 
-           dan tetap besar padat di mode Situs Desktop Android */
-        width: 100%;
+        /* Paksa melar 85% lebar layar di HP situs desktop, 
+           tapi rem maksimal di 410px jika dibuka di monitor PC asli */
+        width: 85vw;
         max-width: 410px; 
         padding: 24px;
     }
@@ -247,4 +247,4 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
-               
+                                      
