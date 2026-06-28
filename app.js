@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (PURE INSTANT STABLE)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (STABLE & OPTIMIZED FPS)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -32,6 +32,9 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
+
+// ⚡ VARIABLE TAMBAHAN SOLUSI 1: Untuk mencatat waktu render terakhir visualizer
+let lastVisualizerRenderTime = 0;
 
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
@@ -238,9 +241,15 @@ function initVisualizer() {
     drawVisualizer(); 
 }
 
-function drawVisualizer() { 
+// ⚡ FIX SOLUSI 1: Modifikasi fungsi gambar visualizer dengan pembatas interval FPS (~30 FPS)
+function drawVisualizer(timestamp) { 
     requestAnimationFrame(drawVisualizer); 
     if (!analyser) return; 
+
+    // Jika selisih waktu render saat ini dengan render terakhir kurang dari 33 milidetik, lewati gambar ulang (skip frame)
+    if (timestamp - lastVisualizerRenderTime < 33) return;
+    lastVisualizerRenderTime = timestamp;
+
     if (canvas.width !== canvas.clientWidth) { 
         canvas.width = canvas.clientWidth; 
         canvas.height = canvas.clientHeight; 
@@ -341,5 +350,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-      }
-      
+          }
