@@ -344,3 +344,5 @@ function updateDynamicBackground(src) {
     };
           }
                                                              
+// Tambahkan ini di baris paling akhir file app.js kamu:
+audio.addEventListener('canplay', () => { document.documentElement.setAttribute('data-ready', 'true'); });
