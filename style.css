@@ -32,7 +32,7 @@ body {
 }
 
 /* ==========================================
-   MAIN CONTAINER (VERSI PAS SESUAI REVERT)
+   MAIN CONTAINER (RESPONSIVE BASE)
    ========================================== */
 .player-container {
     background-color: rgba(26, 26, 26, 0.75);
@@ -105,13 +105,40 @@ body {
 .btn-fav.active { color: var(--spotify-green); }
 
 /* ==========================================
-   PROGRESS BAR STYLING
+   PROGRESS BAR STYLING (ANTI FORCE DARK MODE)
    ========================================== */
-.progress-area { margin-bottom: 24px; }
-.progress-bar-container { width: 100%; height: 4px; background-color: #4f4f4f; border-radius: 2px; cursor: pointer; margin-bottom: 8px; }
-.progress-bar { height: 100%; width: 0%; background-color: var(--text-main); border-radius: 2px; }
-.progress-bar-container:hover .progress-bar { background-color: var(--spotify-green); }
-.time-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+.progress-area { 
+    margin-bottom: 24px; 
+}
+
+.progress-bar-container { 
+    width: 100%; 
+    height: 4px; 
+    background-color: #4f4f4f !important; 
+    border-radius: 2px; 
+    cursor: pointer; 
+    margin-bottom: 8px; 
+    color-scheme: only light !important; /* Kunci skema warna kontainer */
+}
+
+.progress-bar { 
+    height: 100%; 
+    width: 0%; 
+    background-color: #ffffff !important; /* Warna hex solid anti-invert */
+    border-radius: 2px; 
+    color-scheme: only light !important; /* Kunci skema warna bar utama */
+}
+
+.progress-bar-container:hover .progress-bar { 
+    background-color: var(--spotify-green) !important; 
+}
+
+.time-info { 
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 0.75rem; 
+    color: var(--text-muted); 
+}
 
 /* ==========================================
    CONTROLS AREA
@@ -175,4 +202,3 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
-   
