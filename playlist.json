@@ -35,6 +35,12 @@
       "cover": "cover/Tethra - Masochistic Healing.jpg",
       "lyricsSrc": "lyrics/Masochistic Healing - Tethra.lrc"
     },
-    
+    {
+      "title": "You Belong Here",
+      "artist": "PHRENIA",
+      "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/Far%20from%20Home%20-%20Chrome%20Is%20Burning.mp3",
+      "cover": "cover/PHRENIA - You Belong Here.jpg",
+      "lyricsSrc": ""
+    }
   ]
 }
