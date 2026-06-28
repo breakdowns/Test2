@@ -195,9 +195,19 @@ body {
     opacity: 1;
     transition: opacity 0.2s ease-in-out;
 }
-#lyricsWrapper { padding: 15px 0 40px 0; text-align: center; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
 
-/* FIX LIRIK SMOOTH: Hapus transisi transform individual agar tidak tabrakan dengan wrapper */
+/* FIX LIRIK SMOOTH: Dipaksa menggunakan akselerasi Hardware 3D GPU milik HP */
+#lyricsWrapper { 
+    padding: 15px 0 40px 0; 
+    text-align: center; 
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
+    will-change: transform; 
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
 .lyric-line { 
     font-size: 1.05rem; 
     font-weight: 700; 
@@ -210,7 +220,6 @@ body {
     overflow-wrap: break-word; 
 }
 
-/* FIX LIRIK SMOOTH: Menggunakan font-size sedikit lebih besar untuk highlight teks aktif */
 .lyric-line.active { 
     color: var(--text-main); 
     font-size: 1.12rem;
@@ -234,4 +243,3 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
-   
