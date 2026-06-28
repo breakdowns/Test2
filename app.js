@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (NATIVE SCROLL FIX)
+// APP.JS - BREAKDOWNS MUSIC (LYRICS LOADING SPINNER FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -32,6 +32,7 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 let isChangingTrack = false; 
 let currentLyricIndex = -1; 
+let temporaryTextStorage = ""; // Menyimpan teks lirik mentah sebelum siap di-render
 
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
@@ -51,6 +52,7 @@ function loadTrack(index) {
     isChangingTrack = true; 
     currentLyricIndex = -1; 
     parsedLyrics = []; 
+    temporaryTextStorage = "";
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -67,12 +69,15 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // RESET INSTAN MENGGUNAKAN SCROLL TOP NATIVE
-    lyricsContainer.style.opacity = '0';
-    lyricsContainer.scrollTop = 0; 
-    lyricsWrapper.innerHTML = ''; 
-    
-    void lyricsContainer.offsetWidth; 
+    // 1. LANGSUNG PASANG ICON LOADING DI DALAM KOTAK LIRIK
+    lyricsContainer.style.opacity = '1';
+    lyricsContainer.scrollTop = 0;
+    lyricsWrapper.innerHTML = `
+        <div class="lyrics-loader">
+            <div class="spinner"></div>
+            <p>Memuat musik...</p>
+        </div>
+    `;
 
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -81,16 +86,10 @@ function loadTrack(index) {
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
                 
+                // Ambil data liriknya, tapi SIMPAN DULU di memori, jangan di-render ke layar
                 parsedLyrics = parseLRC(text); 
-                lyricsContainer.style.display = "block"; 
-                lyricsWrapper.innerHTML = ''; 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                
-                setTimeout(() => {
-                    if (tracks[currentIndex].src === currentTrackSrc) {
-                        lyricsContainer.style.opacity = '1';
-                    }
-                }, 50);
+                temporaryTextStorage = text;
+                lyricsContainer.style.display = "block";
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -129,7 +128,21 @@ function loadTrack(index) {
     }, 50);
 }
 
-audio.addEventListener('playing', () => { isChangingTrack = false; });
+// 2. KUNCI UTAMA: Ketika audio selesai buffering dan mulai bunyi (playing), hancurkan spinner & munculkan lirik
+audio.addEventListener('playing', () => {
+    if (isChangingTrack) {
+        isChangingTrack = false;
+        lyricsWrapper.innerHTML = ''; // Hancurkan icon loading spinner
+        
+        // Baru render lirik aslinya ke layar saat lagu sudah siap berputar stabil
+        if (parsedLyrics.length > 0) {
+            renderLyrics();
+        } else if (temporaryTextStorage) {
+            renderStaticLyrics(temporaryTextStorage);
+        }
+    }
+});
+
 audio.addEventListener('loadedmetadata', () => { 
     durationEl.textContent = formatTime(audio.duration); 
     if (typeof updateMediaSession === 'function') updateMediaSession(); 
@@ -261,12 +274,12 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-// ⚡ TRICK NATIVE SMOOTH SCROLL: Memakai mesin scroll bawaan Google Chrome HP
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
+    // Jangan izinkan pergeseran scroll kalau lirik belum di-render (masih loading)
     if (isChangingTrack || parsedLyrics.length === 0) return;
 
     const newIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
@@ -288,7 +301,6 @@ audio.addEventListener('timeupdate', () => {
                   
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
             
-            // PANGGIL SIBER SCROLL ENGINE BAWAAN HP (Paling ringan, anti-stuttering)
             lyricsContainer.scrollTo({
                 top: scrollAmount,
                 behavior: 'smooth'
@@ -328,4 +340,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
+              }
+          
