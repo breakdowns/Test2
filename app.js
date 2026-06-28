@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC (INSTANT CACHE / ANTI-STUCK FIX)
+// APP.JS - BREAKDOWNS MUSIC (LYRICS INTERACTION LOCK FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -71,7 +71,8 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // Munculkan Spinner Loading
+    // 1. KUNCI TOTAL INTERAKSI: Tambahkan class 'loading-active' agar container tidak bisa di-scroll jari
+    lyricsContainer.classList.add('loading-active');
     lyricsContainer.style.opacity = '1';
     lyricsContainer.scrollTop = 0;
     lyricsWrapper.innerHTML = `
@@ -93,8 +94,6 @@ function loadTrack(index) {
                 isLyricsFetched = true; 
                 lyricsContainer.style.display = "block";
                 
-                // PENGECEKAN GANDA (ANTI-STUCK REFRESH): 
-                // Jika lagu ternyata SUDAH SIAP atau cached (readyState >= 3) pas lirik beres di-fetch, langsung buka!
                 if (audio.readyState >= 3) {
                     finalizeLyrics();
                 }
@@ -103,6 +102,7 @@ function loadTrack(index) {
                 if (tracks[currentIndex].src === currentTrackSrc) {
                     lyricsWrapper.innerHTML = '';
                     lyricsContainer.style.display = "none";
+                    lyricsContainer.classList.remove('loading-active'); // Buka kunci jika error
                     isChangingTrack = false;
                 }
             });
@@ -110,6 +110,7 @@ function loadTrack(index) {
         parsedLyrics = [];
         lyricsWrapper.innerHTML = '';
         lyricsContainer.style.display = "none";
+        lyricsContainer.classList.remove('loading-active'); // Buka kunci jika tidak ada lirik
         isChangingTrack = false;
     }
     
@@ -138,14 +139,12 @@ function loadTrack(index) {
     }, 50);
 }
 
-// Menangani kondisi saat lagu berproses muat secara normal dari server luar
 audio.addEventListener('canplay', () => {
     if (isChangingTrack && isLyricsFetched) {
         finalizeLyrics();
     }
 });
 
-// Menangani pelatuk cadangan jika browser menahan status audio hingga tombol play ditekan
 audio.addEventListener('playing', () => {
     if (isChangingTrack && isLyricsFetched) {
         finalizeLyrics();
@@ -156,12 +155,13 @@ function finalizeLyrics() {
     if (!isChangingTrack) return; 
     isChangingTrack = false; 
     
-    lyricsWrapper.innerHTML = ''; // Hancurkan icon loading spinner secara total
+    // 2. BUKA KUNCI INTERAKSI: Hapus class 'loading-active' agar lirik bisa di-scroll normal kembali
+    lyricsContainer.classList.remove('loading-active');
+    lyricsWrapper.innerHTML = ''; 
     
     if (parsedLyrics.length > 0) {
         renderLyrics();
         
-        // Pemanis: Warnai baris pertama jika lagu ada di detik ke-0
         const lines = lyricsWrapper.children;
         if(lines.length > 0 && audio.currentTime === 0) {
              lines[0].className = 'lyric-line active';
@@ -170,15 +170,6 @@ function finalizeLyrics() {
         renderStaticLyrics(temporaryTextStorage);
     }
 }
-
-// ========================================================
-// SISA LOGIKA MUSIC PLAYER DASAR
-// ========================================================
-
-audio.addEventListener('loadedmetadata', () => { 
-    durationEl.textContent = formatTime(audio.duration); 
-    if (typeof updateMediaSession === 'function') updateMediaSession(); 
-});
 
 function renderPlaylist(arr) {
     playlistContainer.innerHTML = ''; 
@@ -371,5 +362,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-      }
-                             
+                       }
