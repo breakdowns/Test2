@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC (SMART LOADING & NO-BLINK FIX)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (SMART LOADER INTEGRATED)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -32,19 +32,18 @@ let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyse
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-let isChangingTrack = false; 
-let currentLyricIndex = -1; 
-let temporaryTextStorage = ""; 
-let isLyricsFetched = false; 
+let isChangingTrack = false;
+let isLyricsFetched = false;
+let temporaryTextStorage = "";
+let isFirstLoad = true; // Flag untuk melacak refresh pertama kali
 
-// ⚡ FLAG PINTAR: Menandakan apakah ini proses load pertama kali saat web di-refresh
-let isFirstLoad = true; 
-
+// Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
+// Ambil Data Putar
 fetch('playlist.json')
     .then(res => res.json())
     .then(data => { 
@@ -55,11 +54,10 @@ fetch('playlist.json')
     });
 
 function loadTrack(index) {
-    isChangingTrack = true; 
-    currentLyricIndex = -1; 
-    parsedLyrics = []; 
+    isChangingTrack = true;
+    isLyricsFetched = false;
     temporaryTextStorage = "";
-    isLyricsFetched = false; 
+    parsedLyrics = [];
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -69,29 +67,28 @@ function loadTrack(index) {
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
     
-    audio.crossOrigin = "anonymous"; 
+    audio.crossOrigin = "anonymous";
     audio.src = track.src;
     
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    lyricsContainer.scrollTop = 0;
+    // Reset posisi element lirik ke atas secara instan
+    lyricsContainer.style.opacity = '0';
+    lyricsWrapper.style.transition = 'none';
+    lyricsWrapper.style.transform = 'translateY(0px)';
+    lyricsWrapper.innerHTML = ''; 
 
-    // ⚡ KONDISIONAL SPINNER LOADING: Cuman muncul jika web baru di-refresh/buka pertama kali
+    // Atur tampilan loader: HANYA aktif jika pertama kali web dimuat/di-refresh
     if (isFirstLoad) {
-        lyricsWrapper.innerHTML = ''; 
-        lyricsWrapper.style.display = 'none'; 
+        lyricsWrapper.style.display = 'none';
         if (globalLoader) globalLoader.style.display = 'flex';
-        lyricsContainer.classList.add('loading-active');
     } else {
-        // Jika ganti lagu biasa, bersihkan lirik lama tapi biarkan area tetap aktif tanpa spinner kedip
-        lyricsWrapper.innerHTML = '';
         lyricsWrapper.style.display = 'block';
         if (globalLoader) globalLoader.style.display = 'none';
-        lyricsContainer.classList.remove('loading-active');
     }
-
+    
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
@@ -101,9 +98,9 @@ function loadTrack(index) {
                 
                 parsedLyrics = parseLRC(text); 
                 temporaryTextStorage = text;
-                isLyricsFetched = true; 
-                
-                // Jika ganti lagu biasa atau audio instan langsung siap, eksekusi tanpa nunggu pelatuk event
+                isLyricsFetched = true;
+
+                // Jika ganti lagu biasa atau audio sudah cached, langsung pasang liriknya
                 if (!isFirstLoad || audio.readyState >= 3) {
                     finalizeLyrics();
                 }
@@ -113,17 +110,16 @@ function loadTrack(index) {
                     if (globalLoader) globalLoader.style.display = 'none';
                     lyricsWrapper.innerHTML = '';
                     lyricsWrapper.style.display = 'block';
-                    lyricsContainer.classList.remove('loading-active');
+                    lyricsContainer.style.display = "none";
                     isChangingTrack = false;
                     isFirstLoad = false;
                 }
             });
     } else { 
-        parsedLyrics = [];
         if (globalLoader) globalLoader.style.display = 'none';
         lyricsWrapper.innerHTML = '';
         lyricsWrapper.style.display = 'block';
-        lyricsContainer.classList.remove('loading-active');
+        lyricsContainer.style.display = "none";
         isChangingTrack = false;
         isFirstLoad = false;
     }
@@ -153,6 +149,7 @@ function loadTrack(index) {
     }, 50);
 }
 
+// Event trigger saat lagu siap diputar
 audio.addEventListener('canplay', () => {
     if (isChangingTrack && isLyricsFetched) {
         finalizeLyrics();
@@ -166,27 +163,34 @@ audio.addEventListener('playing', () => {
 });
 
 function finalizeLyrics() {
-    if (!isChangingTrack) return; 
-    isChangingTrack = false; 
-    
+    if (!isChangingTrack) return;
+    isChangingTrack = false;
+
     if (globalLoader) globalLoader.style.display = 'none';
-    lyricsContainer.classList.remove('loading-active');
-    lyricsWrapper.innerHTML = ''; 
-    lyricsWrapper.style.display = 'block'; 
+    lyricsWrapper.style.display = 'block';
     
+    lyricsWrapper.style.transition = 'none';
+    lyricsWrapper.style.transform = 'translateY(0px)';
+    lyricsWrapper.innerHTML = ''; 
+
     if (parsedLyrics.length > 0) {
         renderLyrics();
-        const lines = lyricsWrapper.children;
-        if(lines.length > 0 && audio.currentTime === 0) {
-             lines[0].className = 'lyric-line active';
-        }
     } else if (temporaryTextStorage) {
         renderStaticLyrics(temporaryTextStorage);
     }
 
-    // Matikan flag load pertama karena inisialisasi awal web sudah sukses dilewati
-    isFirstLoad = false; 
+    lyricsContainer.style.display = "block"; 
+    void lyricsWrapper.offsetWidth; 
+    lyricsContainer.style.opacity = '1';
+    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+
+    isFirstLoad = false; // Matikan mode muat pertama setelah inisiasi selesai
 }
+
+audio.addEventListener('loadedmetadata', () => { 
+    durationEl.textContent = formatTime(audio.duration); 
+    if (typeof updateMediaSession === 'function') updateMediaSession(); 
+});
 
 function renderPlaylist(arr) {
     playlistContainer.innerHTML = ''; 
@@ -212,7 +216,11 @@ searchBar.addEventListener('input', (e) => {
 
 favoriteBtn.addEventListener('click', () => { 
     const src = tracks[currentIndex].src; 
-    if (favorites.includes(src)) { favorites = favorites.filter(f => f !== src); } else { favorites.push(src); } 
+    if (favorites.includes(src)) { 
+        favorites = favorites.filter(f => f !== src); 
+    } else { 
+        favorites.push(src); 
+    } 
     const isFav = favorites.includes(src);
     favoriteBtn.classList.toggle('active', isFav); 
     favoriteBtn.querySelector('.material-icons').textContent = isFav ? 'favorite' : 'favorite_border'; 
@@ -236,6 +244,7 @@ function renderLyrics() {
     parsedLyrics.forEach((line, i) => { 
         const p = document.createElement('p'); 
         p.className = 'lyric-line'; 
+        p.id = `line-${i}`; 
         p.textContent = line.text; 
         p.onclick = () => { audio.currentTime = line.time; }; 
         lyricsWrapper.appendChild(p); 
@@ -268,7 +277,10 @@ function initVisualizer() {
 function drawVisualizer() { 
     requestAnimationFrame(drawVisualizer); 
     if (!analyser) return; 
-    if (canvas.width !== canvas.clientWidth) { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; } 
+    if (canvas.width !== canvas.clientWidth) { 
+        canvas.width = canvas.clientWidth; 
+        canvas.height = canvas.clientHeight; 
+    } 
     analyser.getByteFrequencyData(dataArray); 
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
     const w = (canvas.width / dataArray.length) * 1.4; 
@@ -291,7 +303,8 @@ playBtn.addEventListener('click', () => {
 
 function playNextTrack() {
     let n = currentIndex + 1; 
-    if (isShuffle) n = Math.floor(Math.random() * tracks.length); else if (n >= tracks.length) n = 0; 
+    if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
+    else if (n >= tracks.length) n = 0; 
     loadTrack(n); 
     audio.play().then(() => playIcon.textContent = 'pause'); 
 }
@@ -321,29 +334,14 @@ audio.addEventListener('timeupdate', () => {
     
     if (isChangingTrack || parsedLyrics.length === 0) return;
 
-    const newIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
-
-    if (newIndex !== -1 && newIndex !== currentLyricIndex) {
-        currentLyricIndex = newIndex; 
-        const lines = lyricsWrapper.children; 
-        
-        if (lines[newIndex]) {
-            for (let i = 0; i < lines.length; i++) {
-                lines[i].className = 'lyric-line';
-            }
-            lines[newIndex].className = 'lyric-line active';
-            
-            const activeLine = lines[newIndex], 
-                  containerHeight = lyricsContainer.clientHeight, 
-                  offsetTop = activeLine.offsetTop, 
-                  lineHeight = activeLine.clientHeight;
-                  
+    if (parsedLyrics.length > 0) {
+        const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
+        const lines = document.querySelectorAll('.lyric-line');
+        lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
+        if (activeIndex !== -1 && lines[activeIndex]) {
+            const activeLine = lines[activeIndex], containerHeight = lyricsContainer.clientHeight, offsetTop = activeLine.offsetTop, lineHeight = activeLine.clientHeight;
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
-            
-            lyricsContainer.scrollTo({
-                top: scrollAmount,
-                behavior: 'smooth'
-            });
+            lyricsWrapper.style.transform = `translateY(${-scrollAmount}px)`;
         }
     }
 });
@@ -380,4 +378,3 @@ function updateDynamicBackground(src) {
         } catch (e) {} 
     };
 }
-      
