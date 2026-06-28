@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC (LYRICS LOADING SPINNER FIX)
+// APP.JS - BREAKDOWNS MUSIC (RACE CONDITION & AUTO-LOAD FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -32,7 +32,8 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 let isChangingTrack = false; 
 let currentLyricIndex = -1; 
-let temporaryTextStorage = ""; // Menyimpan teks lirik mentah sebelum siap di-render
+let temporaryTextStorage = ""; 
+let isLyricsFetched = false; // FLAG BARU: Mengawasi apakah lirik sudah beres di-download
 
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
@@ -53,6 +54,7 @@ function loadTrack(index) {
     currentLyricIndex = -1; 
     parsedLyrics = []; 
     temporaryTextStorage = "";
+    isLyricsFetched = false; // Reset status lirik tiap ganti lagu
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -69,7 +71,7 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // 1. LANGSUNG PASANG ICON LOADING DI DALAM KOTAK LIRIK
+    // Munculkan Spinner Loading
     lyricsContainer.style.opacity = '1';
     lyricsContainer.scrollTop = 0;
     lyricsWrapper.innerHTML = `
@@ -86,21 +88,28 @@ function loadTrack(index) {
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
                 
-                // Ambil data liriknya, tapi SIMPAN DULU di memori, jangan di-render ke layar
                 parsedLyrics = parseLRC(text); 
                 temporaryTextStorage = text;
+                isLyricsFetched = true; // Tandai lirik sudah di tangan
                 lyricsContainer.style.display = "block";
+                
+                // ANTI-BALAPAN: Jika lagu ternyata sudah siap LEBIH DULU dari lirik, langsung eksekusi!
+                if (audio.readyState >= 3) {
+                    finalizeLyrics();
+                }
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
                     lyricsWrapper.innerHTML = '';
                     lyricsContainer.style.display = "none";
+                    isChangingTrack = false;
                 }
             });
     } else { 
         parsedLyrics = [];
         lyricsWrapper.innerHTML = '';
         lyricsContainer.style.display = "none";
+        isChangingTrack = false;
     }
     
     const isFav = favorites.includes(track.src);
@@ -128,20 +137,40 @@ function loadTrack(index) {
     }, 50);
 }
 
-// 2. KUNCI UTAMA: Ketika audio selesai buffering dan mulai bunyi (playing), hancurkan spinner & munculkan lirik
-audio.addEventListener('playing', () => {
-    if (isChangingTrack) {
-        isChangingTrack = false;
-        lyricsWrapper.innerHTML = ''; // Hancurkan icon loading spinner
-        
-        // Baru render lirik aslinya ke layar saat lagu sudah siap berputar stabil
-        if (parsedLyrics.length > 0) {
-            renderLyrics();
-        } else if (temporaryTextStorage) {
-            renderStaticLyrics(temporaryTextStorage);
-        }
+// ==========================================
+// FUNGSI EKSEKUTOR (MENGHANCURKAN SPINNER)
+// ==========================================
+
+// Gunakan 'canplay' bukan 'playing'. Ini akan me-render lirik walau lagu posisi pause (saat baru buka web)
+audio.addEventListener('canplay', () => {
+    // ANTI-BALAPAN: Pastikan lirik sudah selesai di-fetch sebelum spinner dihancurkan
+    if (isChangingTrack && isLyricsFetched) {
+        finalizeLyrics();
     }
 });
+
+function finalizeLyrics() {
+    if (!isChangingTrack) return; 
+    isChangingTrack = false; // Buka kunci pergeseran scroll lirik
+    
+    lyricsWrapper.innerHTML = ''; // Hancurkan icon loading spinner
+    
+    if (parsedLyrics.length > 0) {
+        renderLyrics();
+        
+        // Pemanis: Warnai baris pertama sesaat setelah dirender agar tidak pucat
+        const lines = document.querySelectorAll('.lyric-line');
+        if(lines.length > 0 && audio.currentTime === 0) {
+             lines[0].classList.add('active');
+        }
+    } else if (temporaryTextStorage) {
+        renderStaticLyrics(temporaryTextStorage);
+    }
+}
+
+// ==========================================
+// SISA LOGIKA MUSIC PLAYER
+// ==========================================
 
 audio.addEventListener('loadedmetadata', () => { 
     durationEl.textContent = formatTime(audio.duration); 
@@ -279,7 +308,6 @@ audio.addEventListener('timeupdate', () => {
     currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
-    // Jangan izinkan pergeseran scroll kalau lirik belum di-render (masih loading)
     if (isChangingTrack || parsedLyrics.length === 0) return;
 
     const newIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
@@ -340,5 +368,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-              }
-          
+      }
