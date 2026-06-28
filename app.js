@@ -18,8 +18,7 @@ const trackTitle = document.getElementById('trackTitle'),
       ctx = canvas.getContext('2d'), 
       lyricsWrapper = document.getElementById('lyricsWrapper'), 
       lyricsContainer = document.getElementById('lyricsContainer'), 
-      progressContainer = document.getElementById('progressContainer'), 
-      progressBar = document.getElementById('progressBar'), 
+      progressBar = document.getElementById('progressBar'), // Sekarang merujuk langsung ke input range
       currentTimeEl = document.getElementById('currentTime'), 
       durationEl = document.getElementById('duration'), 
       volumeSlider = document.getElementById('volumeSlider'), 
@@ -57,7 +56,8 @@ function loadTrack(index) {
     trackCover.src = track.cover; 
     audio.src = track.src;
     
-    progressBar.style.width = '0%'; 
+    progressBar.value = 0; 
+    progressBar.style.background = '#4f4f4f';
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
@@ -279,10 +279,16 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
+// BERUBAH: Update posisi slider murni mengikuti lagu
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
-    progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+    
+    const progressPercent = (audio.currentTime / audio.duration) * 100;
+    progressBar.value = progressPercent;
+    
+    // Memberikan warna background hijau dinamis yang mengikuti jalannya slider
+    progressBar.style.background = `linear-gradient(to right, var(--spotify-green) ${progressPercent}%, #4f4f4f ${progressPercent}%)`;
     
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
@@ -302,33 +308,13 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
-// =========================================================================
-// FIX ABADI PROGRESS BAR: KEBAL ZOOM MODE DESKTOP FIREFOX & CHROME MOBILE
-// =========================================================================
-function handleProgressSeek(e) {
-    if (!audio.duration) return;
-    
-    const rect = progressContainer.getBoundingClientRect();
-    let clientX = e.clientX;
-    
-    // Deteksi koordinat jika interaksi berupa Touch Event di layar HP
-    if (e.touches && e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-    } else if (e.changedTouches && e.changedTouches.length > 0) {
-        clientX = e.changedTouches[0].clientX;
+// FIX UTAMA: Event input range bawaan browser dijamin 100% kebal zoom desktop Firefox Android
+progressBar.addEventListener('input', (e) => {
+    if (audio.duration) {
+        const newTime = (e.target.value / 100) * audio.duration;
+        audio.currentTime = newTime;
     }
-    
-    // Hitung posisi horizontal murni berdasarkan piksel fisik kaca layar HP
-    const clickX = clientX - rect.left;
-    const widthRatio = Math.max(0, Math.min(clickX / rect.width, 1));
-    
-    audio.currentTime = widthRatio * audio.duration;
-}
-
-// Pasang Event Listener Gabungan Mouse Klik (PC) & Touch Sentuh (HP)
-progressContainer.addEventListener('click', handleProgressSeek);
-progressContainer.addEventListener('touchstart', handleProgressSeek, { passive: true });
-progressContainer.addEventListener('touchmove', handleProgressSeek, { passive: true });
+});
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
 
@@ -353,5 +339,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-          }
-              
+                          }
