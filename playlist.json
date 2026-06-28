@@ -27,6 +27,13 @@
       "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/Far%20from%20Home%20-%20Chrome%20Is%20Burning.mp3",
       "cover": "cover/Chrome Is Burning - Far from Home.jpg",
       "lyricsSrc": ""
-    }
+    },
+    {
+      "title": "Tethra",
+      "artist": "Masochistic Healing",
+      "src": "https://bglscbciahxncnwqpdhd.supabase.co/storage/v1/object/public/Breakdowns%20Music/Masochistic%20Healing%20-%20Tethra.mp3",
+      "cover": "cover/Tethra - Masochistic Healing.jpg",
+      "lyricsSrc": "lyrics/Masochistic Healing - Tethra.lrc"
+    },
   ]
 }
