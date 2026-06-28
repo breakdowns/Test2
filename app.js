@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (DURATION BUG FIX)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (SMART LOADER & INSTANT DURATION)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -72,7 +72,7 @@ function loadTrack(index) {
     
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
-    durationEl.textContent = '0:00';
+    // ⚡ FIX: durationEl.textContent = '0:00' sudah dihapus total agar durasi tidak berkedip nol
 
     // Reset posisi element lirik ke atas secara instan
     lyricsContainer.style.opacity = '0';
@@ -151,7 +151,6 @@ function loadTrack(index) {
 
 // Event trigger saat lagu siap diputar
 audio.addEventListener('canplay', () => {
-    // FIX UTAMA: Update teks durasi di sini agar selalu ter-render tepat saat musik siap diputar browser
     if (audio.duration) {
         durationEl.textContent = formatTime(audio.duration);
     }
@@ -386,4 +385,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                  }
+                         }
+      
