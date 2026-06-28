@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (HIGH PERFORMANCE)
+// APP.JS - BREAKDOWNS MUSIC (ULTRA LIGHT - NO VISUALIZER)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -14,8 +14,6 @@ const audio = document.getElementById('mainAudio'),
 const trackTitle = document.getElementById('trackTitle'), 
       trackArtist = document.getElementById('trackArtist'), 
       trackCover = document.getElementById('trackCover'), 
-      canvas = document.getElementById('visualizer'), 
-      ctx = canvas.getContext('2d'), 
       lyricsWrapper = document.getElementById('lyricsWrapper'), 
       lyricsContainer = document.getElementById('lyricsContainer'), 
       progressContainer = document.getElementById('progressContainer'), 
@@ -26,13 +24,12 @@ const trackTitle = document.getElementById('trackTitle'),
       playlistContainer = document.getElementById('playlist'), 
       searchBar = document.getElementById('searchBar');
 
-let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyser, dataArray;
+let tracks = [], currentTracksDisplay = [], parsedLyrics = [];
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
-let lastVisualizerRenderTime = 0;
 
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
@@ -69,7 +66,6 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
-    // Reset posisi element lirik ke atas secara instan
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
@@ -112,6 +108,7 @@ function loadTrack(index) {
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
+    updateMediaSession();
 
     setTimeout(() => {
         const marqueeContainer = document.querySelector('.marquee-container');
@@ -135,6 +132,7 @@ audio.addEventListener('canplay', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
+        updateMediaSessionState();
     }
 });
 
@@ -143,6 +141,11 @@ audio.addEventListener('playing', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
     }
+    updateMediaSessionState();
+});
+
+audio.addEventListener('pause', () => {
+    updateMediaSessionState();
 });
 
 audio.addEventListener('loadedmetadata', () => { 
@@ -150,7 +153,7 @@ audio.addEventListener('loadedmetadata', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText; 
     }
-    if (typeof updateMediaSession === 'function') updateMediaSession(); 
+    updateMediaSession(); 
 });
 
 function renderPlaylist(arr) {
@@ -161,7 +164,6 @@ function renderPlaylist(arr) {
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
-            initVisualizer(); 
             loadTrack(oIdx); 
             audio.play().then(() => playIcon.textContent = 'pause'); 
         }); 
@@ -228,53 +230,8 @@ audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
 });
 
-function initVisualizer() { 
-    // ⚡ DETEKSI PERANGKAT: Jika HP/Tablet, bypass visualizer agar super ringan di Firefox Android
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile || audioCtx) return; 
-
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
-    analyser = audioCtx.createAnalyser(); 
-    audioCtx.createMediaElementSource(audio).connect(analyser); 
-    analyser.connect(audioCtx.destination); 
-    analyser.fftSize = 32; 
-    dataArray = new Uint8Array(analyser.frequencyBinCount); 
-    drawVisualizer(); 
-}
-
-function drawVisualizer(timestamp) { 
-    requestAnimationFrame(drawVisualizer); 
-    if (!analyser) return; 
-
-    // Proteksi Latar Belakang
-    if (document.hidden) return;
-
-    // Batasi render frame di kisaran ~30 FPS (tiap 33ms)
-    if (timestamp - lastVisualizerRenderTime < 33) return;
-    lastVisualizerRenderTime = timestamp;
-
-    if (canvas.width !== canvas.clientWidth) { 
-        canvas.width = canvas.clientWidth; 
-        canvas.height = canvas.clientHeight; 
-    } 
-    analyser.getByteFrequencyData(dataArray); 
-    ctx.clearRect(0, 0, canvas.width, canvas.height); 
-    const w = (canvas.width / dataArray.length) * 1.4; 
-    dataArray.forEach((val, i) => { 
-        const h = val / 3.5, grad = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - h); 
-        grad.addColorStop(0, 'rgba(30, 215, 96, 0.9)'); 
-        grad.addColorStop(1, 'rgba(102, 255, 153, 0.4)'); 
-        ctx.fillStyle = grad; 
-        ctx.beginPath(); 
-        ctx.roundRect(i * (w + 3), canvas.height - h, w, h, [4, 4, 0, 0]); 
-        ctx.fill(); 
-    }); 
-}
-
 playBtn.addEventListener('click', () => { 
-    initVisualizer(); 
     audio.paused ? audio.play().then(() => playIcon.textContent = 'pause') : (audio.pause(), playIcon.textContent = 'play_arrow'); 
-    if (typeof updateMediaSession === 'function') updateMediaSession();
 });
 
 function playNextTrack() {
@@ -309,8 +266,6 @@ audio.addEventListener('timeupdate', () => {
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
     if (isChangingTrack || parsedLyrics.length === 0) return;
-
-    // Optimasi animasi lirik saat browser tidak dilihat
     if (document.hidden) return;
 
     if (parsedLyrics.length > 0) {
@@ -330,6 +285,7 @@ progressContainer.addEventListener('click', (e) => {
         const clickX = e.offsetX;
         const totalWidth = progressContainer.clientWidth;
         audio.currentTime = (clickX / totalWidth) * audio.duration;
+        updateMediaSessionState();
     }
 });
 
@@ -357,3 +313,46 @@ function updateDynamicBackground(src) {
         } catch (e) {} 
     };
 }
+
+// ⚡ FIX NOTIFIKASI FIREFOX: Inisialisasi data metadata Media Session
+function updateMediaSession() {
+    if ('mediaSession' in navigator) {
+        const track = tracks[currentIndex];
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.title,
+            artist: track.artist,
+            album: 'Breakdowns Music',
+            artwork: [
+                { src: track.cover, sizes: '512x512', type: 'image/jpeg' }
+            ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => {
+            audio.play().then(() => playIcon.textContent = 'pause');
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+            audio.pause();
+            playIcon.textContent = 'play_arrow';
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
+            loadTrack(p); audio.play().then(() => playIcon.textContent = 'pause');
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', playNextTrack);
+    }
+}
+
+// ⚡ FIX NOTIFIKASI FIREFOX: Memaksa pembaruan posisi detik agar tidak stuck 00:00
+function updateMediaSessionState() {
+    if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
+        navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: audio.duration,
+                playbackRate: audio.playbackRate,
+                position: audio.currentTime
+            });
+        } catch (e) {}
+    }
+          }
+      
