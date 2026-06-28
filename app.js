@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (PREVENT ZERO FLASH)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (CLEAN & INSTANT)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -26,19 +26,12 @@ const trackTitle = document.getElementById('trackTitle'),
       playlistContainer = document.getElementById('playlist'), 
       searchBar = document.getElementById('searchBar');
 
-const globalLoader = document.getElementById('globalLoader');
-
 let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyser, dataArray;
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 let isChangingTrack = false;
-let isLyricsFetched = false;
-let temporaryTextStorage = "";
-let isFirstLoad = true; 
-
-// ⚡ VARIABEL BARU: Menyimpan teks durasi terakhir agar tidak dipaksa ke 0:00 oleh browser
-let lastKnownDurationText = durationEl.textContent || '0:00';
+let lastKnownDurationText = '0:00';
 
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
@@ -58,8 +51,6 @@ fetch('playlist.json')
 
 function loadTrack(index) {
     isChangingTrack = true;
-    isLyricsFetched = false;
-    temporaryTextStorage = "";
     parsedLyrics = [];
 
     currentIndex = index; 
@@ -75,24 +66,13 @@ function loadTrack(index) {
     
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
-    
-    // ⚡ KUNCI DURASI LUAR: Tahan teks durasi lama di layar agar tidak berkedip ke 0:00
     durationEl.textContent = lastKnownDurationText;
 
-    // Reset posisi element lirik ke atas secara instan
+    // Reset posisi lirik instan tanpa nunggu lama
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
-
-    // Atur tampilan loader: HANYA aktif jika pertama kali web dimuat/di-refresh
-    if (isFirstLoad) {
-        lyricsWrapper.style.display = 'none';
-        if (globalLoader) globalLoader.style.display = 'flex';
-    } else {
-        lyricsWrapper.style.display = 'block';
-        if (globalLoader) globalLoader.style.display = 'none';
-    }
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -102,31 +82,27 @@ function loadTrack(index) {
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
                 
                 parsedLyrics = parseLRC(text); 
-                temporaryTextStorage = text;
-                isLyricsFetched = true;
-
-                // Jika ganti lagu biasa atau audio sudah cached, langsung pasang liriknya
-                if (!isFirstLoad || audio.readyState >= 3) {
-                    finalizeLyrics();
-                }
+                lyricsWrapper.innerHTML = ''; 
+                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                
+                lyricsContainer.style.display = "block"; 
+                void lyricsWrapper.offsetWidth; 
+                lyricsContainer.style.opacity = '1';
+                lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                isChangingTrack = false;
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
-                    if (globalLoader) globalLoader.style.display = 'none';
                     lyricsWrapper.innerHTML = '';
-                    lyricsWrapper.style.display = 'block';
                     lyricsContainer.style.display = "none";
                     isChangingTrack = false;
-                    isFirstLoad = false;
                 }
             });
     } else { 
-        if (globalLoader) globalLoader.style.display = 'none';
+        parsedLyrics = [];
         lyricsWrapper.innerHTML = '';
-        lyricsWrapper.style.display = 'block';
         lyricsContainer.style.display = "none";
         isChangingTrack = false;
-        isFirstLoad = false;
     }
     
     const isFav = favorites.includes(track.src);
@@ -154,14 +130,10 @@ function loadTrack(index) {
     }, 50);
 }
 
-// Event trigger saat lagu siap diputar
 audio.addEventListener('canplay', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
-    }
-    if (isChangingTrack && isLyricsFetched) {
-        finalizeLyrics();
     }
 });
 
@@ -170,35 +142,7 @@ audio.addEventListener('playing', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
     }
-    if (isChangingTrack && isLyricsFetched) {
-        finalizeLyrics();
-    }
 });
-
-function finalizeLyrics() {
-    if (!isChangingTrack) return;
-    isChangingTrack = false;
-
-    if (globalLoader) globalLoader.style.display = 'none';
-    lyricsWrapper.style.display = 'block';
-    
-    lyricsWrapper.style.transition = 'none';
-    lyricsWrapper.style.transform = 'translateY(0px)';
-    lyricsWrapper.innerHTML = ''; 
-
-    if (parsedLyrics.length > 0) {
-        renderLyrics();
-    } else if (temporaryTextStorage) {
-        renderStaticLyrics(temporaryTextStorage);
-    }
-
-    lyricsContainer.style.display = "block"; 
-    void lyricsWrapper.offsetWidth; 
-    lyricsContainer.style.opacity = '1';
-    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-
-    isFirstLoad = false; 
-}
 
 audio.addEventListener('loadedmetadata', () => { 
     if (audio.duration && !isNaN(audio.duration)) {
@@ -279,7 +223,6 @@ function renderStaticLyrics(text) {
     }); 
 }
 
-// Menjaga agar tulisan durasi tidak melompat ke 0:00 jika terjadi interupsi error di tengah jalan
 audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
 });
@@ -398,5 +341,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                              }
-                                  
+                         }
