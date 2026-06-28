@@ -42,19 +42,18 @@ body {
 }
 
 /* ==========================================
-   MAIN CONTAINER (RESPONSIVE BASE)
+   MAIN CONTAINER (OPTIMIZED FOR FIREFOX)
    ========================================== */
 .player-container {
-    background-color: rgba(26, 26, 26, 0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    /* ⚡ HIGH PERFORMANCE: Menghapus backdrop-filter blur karena engine Gecko Firefox sangat berat memprosesnya */
+    background-color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
     max-width: 420px;
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease;
 }
 
 @media (min-width: 768px) {
@@ -162,7 +161,6 @@ body {
 .btn-control.active { color: var(--spotify-green); }
 
 .btn-play-pause {
-    /* Kembali ke setelan awal asli bawaan player */
     background-color: #ffffff !important;
     color: #121212 !important;
     color-scheme: only light !important;
@@ -213,8 +211,8 @@ body {
 #lyricsWrapper { 
     padding: 15px 0 40px 0; 
     text-align: center; 
+    /* ⚡ HIGH PERFORMANCE: Dihapus 'will-change: transform' karena memicu GPU leak di Firefox Android */
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
-    will-change: transform; 
 }
 
 .lyric-line { 
@@ -247,7 +245,7 @@ body {
 .track-item.active { background-color: rgba(30, 215, 96, 0.15); }
 .track-item.active strong { color: var(--spotify-green); }
 
-/* ⚡ FIX ALBUM PUTIH TETAP DIKUNCI AMAN (Dari commit 1002507498.jpg kamu) */
+/* ⚡ KUNCI FIX ALBUM PUTIH (Berdasarkan baris 254 di file commit 1002507498.jpg kamu) */
 .track-item img {
     width: 40px;
     height: 40px;
@@ -259,4 +257,3 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
-                     
