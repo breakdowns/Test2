@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (CATBOX LATENCY FIX)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (RADICAL LATENCY FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -63,13 +63,15 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // RESET LIRIK: Matikan transisi dan kembalikan ke posisi atas seketika
+    // FIX RADIKAL: Matikan transisi, paksa kembali ke atas, lalu hapus lirik lama seketika
     lyricsContainer.style.opacity = '0';
-    lyricsWrapper.style.webkitTransition = 'none';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translate3d(0, 0px, 0)';
     lyricsWrapper.innerHTML = ''; 
     
+    // Paksa browser membaca ulang layout (Reflow)
+    void lyricsWrapper.offsetWidth; 
+
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
@@ -77,23 +79,20 @@ function loadTrack(index) {
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
                 
-                lyricsWrapper.innerHTML = ''; 
                 parsedLyrics = parseLRC(text); 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
                 
-                lyricsContainer.style.display = "block"; 
-                
-                // FIX DELAY CATBOX: Tunggu sampai audio benar-benar siap diputar di browser, baru aktifkan transisi halusnya
-                const enableSmoothLyrics = () => {
-                    if (tracks[currentIndex].src === currentTrackSrc) {
-                        requestAnimationFrame(() => {
-                            lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                            lyricsContainer.style.opacity = '1';
-                        });
-                    }
-                    audio.removeEventListener('canplay', enableSmoothLyrics);
-                };
-                audio.addEventListener('canplay', enableSmoothLyrics);
+                // JEDA AMAN: Beri jeda 150ms agar browser sadar posisi sudah di 0px, baru nyalakan transisinya lagi
+                setTimeout(() => {
+                    if (tracks[currentIndex].src !== currentTrackSrc) return;
+                    
+                    // Kembalikan efek transisi smooth bawaan CSS secara paksa setelah jeda usai
+                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                    lyricsWrapper.innerHTML = ''; 
+                    
+                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                    lyricsContainer.style.display = "block"; 
+                    lyricsContainer.style.opacity = '1';
+                }, 150);
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -331,4 +330,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                              }
+}
+      
