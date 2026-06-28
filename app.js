@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (INSTANT AUTO-PLAY FIX)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (NATIVE BUTTON LOADER FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -33,6 +33,9 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
 
+// ⚡ FLAG UNTUK LOADING AWAL REFRESH WEB
+let isFirstLoad = true; 
+
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
@@ -57,7 +60,6 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    // ⚡ KEMBALI INSTAN: Update semua konten teks & media detik itu juga tanpa delay setTimeout agar lolos blokir HP
     trackTitle.textContent = track.title; 
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
@@ -69,11 +71,17 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
-    // Reset posisi element lirik ke atas secara instan
+    // Efek memudar halus lirik
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
+
+    // ⚡ JIKA REFRESH AWAL: Paksa teks ikon jadi 'refresh' Google dan pasang kelas animasi berputar
+    if (isFirstLoad) {
+        playIcon.textContent = 'refresh';
+        playIcon.classList.add('btn-spinning-active');
+    }
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -131,10 +139,16 @@ function loadTrack(index) {
     }, 50);
 }
 
+// ⚡ KETIKA AUDIO SIAP: Cabut efek loading berputar dan balikkan ke logo segitiga play biasa
 audio.addEventListener('canplay', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
+    }
+    if (isFirstLoad) {
+        playIcon.classList.remove('btn-spinning-active');
+        playIcon.textContent = 'play_arrow';
+        isFirstLoad = false; 
     }
 });
 
@@ -142,6 +156,11 @@ audio.addEventListener('playing', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
+    }
+    if (isFirstLoad) {
+        playIcon.classList.remove('btn-spinning-active');
+        playIcon.textContent = 'play_arrow';
+        isFirstLoad = false;
     }
 });
 
@@ -226,6 +245,11 @@ function renderStaticLyrics(text) {
 
 audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
+    if (isFirstLoad) {
+        playIcon.classList.remove('btn-spinning-active');
+        playIcon.textContent = 'play_arrow';
+        isFirstLoad = false;
+    }
 });
 
 function initVisualizer() { 
@@ -342,7 +366,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-          }
-                                                             
-// Tambahkan ini di baris paling akhir file app.js kamu:
-audio.addEventListener('canplay', () => { document.documentElement.setAttribute('data-ready', 'true'); });
+}
+      
