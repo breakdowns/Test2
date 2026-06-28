@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (CLEAN & INSTANT)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (SMART & CALM TRANSITION)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -57,60 +57,72 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    trackTitle.textContent = track.title; 
-    trackArtist.textContent = track.artist; 
-    trackCover.src = track.cover; 
-    
-    audio.crossOrigin = "anonymous";
-    audio.src = track.src;
-    
-    progressBar.style.width = '0%'; 
-    currentTimeEl.textContent = '0:00'; 
-    durationEl.textContent = lastKnownDurationText;
-
-    // Reset posisi lirik instan tanpa nunggu lama
+    // ⚡ EFEK KALEM (FADE OUT): Sembunyikan elemen secara halus sebelum data diganti
+    const coverWrapper = document.querySelector('.cover-wrapper');
+    if (coverWrapper) coverWrapper.style.opacity = '0.3';
     lyricsContainer.style.opacity = '0';
-    lyricsWrapper.style.transition = 'none';
-    lyricsWrapper.style.transform = 'translateY(0px)';
-    lyricsWrapper.innerHTML = ''; 
-    
-    const currentTrackSrc = track.src;
-    if (track.lyricsSrc) {
-        fetch(track.lyricsSrc)
-            .then(res => res.text())
-            .then(text => { 
-                if (tracks[currentIndex].src !== currentTrackSrc) return;
-                
-                parsedLyrics = parseLRC(text); 
-                lyricsWrapper.innerHTML = ''; 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                
-                lyricsContainer.style.display = "block"; 
-                void lyricsWrapper.offsetWidth; 
-                lyricsContainer.style.opacity = '1';
-                lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                isChangingTrack = false;
-            })
-            .catch(() => {
-                if (tracks[currentIndex].src === currentTrackSrc) {
-                    lyricsWrapper.innerHTML = '';
-                    lyricsContainer.style.display = "none";
+
+    // Berikan jeda waktu 200ms agar efek memudar selesai, baru ganti datanya (Biar Kalem ala Spotify)
+    setTimeout(() => {
+        trackTitle.textContent = track.title; 
+        trackArtist.textContent = track.artist; 
+        trackCover.src = track.cover; 
+        
+        audio.crossOrigin = "anonymous";
+        audio.src = track.src;
+        
+        progressBar.style.width = '0%'; 
+        currentTimeEl.textContent = '0:00'; 
+        durationEl.textContent = lastKnownDurationText;
+
+        // Reset posisi lirik instan
+        lyricsWrapper.style.transition = 'none';
+        lyricsWrapper.style.transform = 'translateY(0px)';
+        lyricsWrapper.innerHTML = ''; 
+        
+        const currentTrackSrc = track.src;
+        if (track.lyricsSrc) {
+            fetch(track.lyricsSrc)
+                .then(res => res.text())
+                .then(text => { 
+                    if (tracks[currentIndex].src !== currentTrackSrc) return;
+                    
+                    parsedLyrics = parseLRC(text); 
+                    lyricsWrapper.innerHTML = ''; 
+                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                    
+                    lyricsContainer.style.display = "block"; 
+                    void lyricsWrapper.offsetWidth; 
+                    
+                    // ⚡ EFEK KALEM (FADE IN): Munculkan kembali lirik & cover dengan halus
+                    lyricsContainer.style.opacity = '1';
+                    if (coverWrapper) coverWrapper.style.opacity = '1';
+                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
                     isChangingTrack = false;
-                }
-            });
-    } else { 
-        parsedLyrics = [];
-        lyricsWrapper.innerHTML = '';
-        lyricsContainer.style.display = "none";
-        isChangingTrack = false;
-    }
-    
-    const isFav = favorites.includes(track.src);
-    favoriteBtn.classList.toggle('active', isFav); 
-    favoriteBtn.querySelector('.material-icons').textContent = isFav ? 'favorite' : 'favorite_border';
-    
-    renderPlaylist(currentTracksDisplay); 
-    updateDynamicBackground(track.cover);
+                })
+                .catch(() => {
+                    if (tracks[currentIndex].src === currentTrackSrc) {
+                        lyricsWrapper.innerHTML = '';
+                        lyricsContainer.style.display = "none";
+                        if (coverWrapper) coverWrapper.style.opacity = '1';
+                        isChangingTrack = false;
+                    }
+                });
+        } else { 
+            parsedLyrics = [];
+            lyricsWrapper.innerHTML = '';
+            lyricsContainer.style.display = "none";
+            if (coverWrapper) coverWrapper.style.opacity = '1';
+            isChangingTrack = false;
+        }
+        
+        const isFav = favorites.includes(track.src);
+        favoriteBtn.classList.toggle('active', isFav); 
+        favoriteBtn.querySelector('.material-icons').textContent = isFav ? 'favorite' : 'favorite_border';
+        
+        renderPlaylist(currentTracksDisplay); 
+        updateDynamicBackground(track.cover);
+    }, 200);
 
     setTimeout(() => {
         const marqueeContainer = document.querySelector('.marquee-container');
@@ -127,7 +139,7 @@ function loadTrack(index) {
                 trackTitleEl.style.paddingRight = '0px';
             }
         }
-    }, 50);
+    }, 250); // Sesuaikan delay marquee sedikit karena ada penundaan loadTrack
 }
 
 audio.addEventListener('canplay', () => {
@@ -341,4 +353,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                         }
+                      }
+      
