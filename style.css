@@ -20,7 +20,7 @@
 }
 
 /* ==========================================
-   BASE BACKGROUND
+   IZINKAN PULL-TO-REFRESH, KUNCI WARNA ALAS CHROME
    ========================================== */
 html {
     background-color: #121212 !important; 
@@ -117,11 +117,38 @@ body {
 /* ==========================================
    PROGRESS BAR STYLING
    ========================================== */
-.progress-area { margin-bottom: 24px; }
-.progress-bar-container { width: 100%; height: 4px; background-color: #4f4f4f !important; border-radius: 2px; cursor: pointer; margin-bottom: 8px; color-scheme: only light !important; }
-.progress-bar { height: 100%; width: 0%; background-color: #ffffff !important; border-radius: 2px; color-scheme: only light !important; }
-.progress-bar-container:hover .progress-bar { background-color: var(--spotify-green) !important; }
-.time-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+.progress-area { 
+    margin-bottom: 24px; 
+}
+
+.progress-bar-container { 
+    width: 100%; 
+    height: 4px; 
+    background-color: #4f4f4f !important; 
+    border-radius: 2px; 
+    cursor: pointer; 
+    margin-bottom: 8px; 
+    color-scheme: only light !important;
+}
+
+.progress-bar { 
+    height: 100%; 
+    width: 0%; 
+    background-color: #ffffff !important; 
+    border-radius: 2px; 
+    color-scheme: only light !important;
+}
+
+.progress-bar-container:hover .progress-bar { 
+    background-color: var(--spotify-green) !important; 
+}
+
+.time-info { 
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 0.75rem; 
+    color: var(--text-muted); 
+}
 
 /* ==========================================
    CONTROLS AREA
@@ -151,45 +178,30 @@ body {
 .btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
 /* ==========================================
-   VOLUME AREA
+   VOLUME & LYRICS & PLAYLIST
    ========================================== */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); }
 
-/* ==========================================
-   LYRICS WIDGET (ISOLATED LOADER ENGINE)
-   ========================================== */
 .lyrics-container {
     position: relative;
     max-height: 160px;
     min-height: 160px;
-    overflow-y: scroll; 
+    overflow-y: hidden;
     margin-bottom: 20px;
     padding: 0 12px;
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     opacity: 1;
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
-}
-.lyrics-container::-webkit-scrollbar {
-    display: none; 
-}
-
-/* ⚡ SISTEM ISOLASI MUTLAK: Saat memuat, paksa kontainer menyembunyikan scrollbar dan mematikan fungsi sentuh */
-.lyrics-container.loading-active {
-    overflow: hidden !important;
-    overflow-y: hidden !important;
-    touch-action: none !important;
-    pointer-events: none !important;
+    transition: opacity 0.2s ease-in-out;
 }
 
 #lyricsWrapper { 
-    padding: 60px 0 60px 0; 
+    padding: 15px 0 40px 0; 
     text-align: center; 
-    transition: none !important; 
-    transform: none !important;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
+    will-change: transform; 
 }
 
 .lyric-line { 
@@ -198,18 +210,14 @@ body {
     color: rgba(255, 255, 255, 0.25); 
     padding: 8px 0; 
     cursor: pointer; 
-    transition: color 0.3s ease, font-size 0.3s ease; 
+    transition: color 0.3s, transform 0.3s; 
     white-space: normal; 
     word-wrap: break-word; 
     overflow-wrap: break-word; 
 }
+.lyric-line.active { color: var(--text-main); transform: scale(1.05); }
 
-.lyric-line.active { 
-    color: var(--text-main); 
-    font-size: 1.12rem;
-}
-
-/* ⚡ LAYER LOADER ABSOLUT: Berada di atas area teks, kaku, dan tidak memiliki ruang kosong untuk digeser */
+/* ⚡ LAYER LOADER ABSOLUT (ANTI-GESER / KAKU) */
 .lyrics-loader {
     position: absolute;
     top: 0;
@@ -246,7 +254,7 @@ body {
 }
 
 /* ==========================================
-   SEARCH BAR & PLAYLIST
+   PLAYLIST CONTAINER SISA
    ========================================== */
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 
@@ -263,9 +271,6 @@ body {
 .track-item.active strong { color: var(--spotify-green); }
 .track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
 
-/* ==========================================
-   WATERMARK
-   ========================================== */
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
