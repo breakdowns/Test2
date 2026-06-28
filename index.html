@@ -7,7 +7,7 @@
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Hubungkan ke stylesheet utama dengan query anti-cache -->
-    <link rel="stylesheet" href="style.css?v=100">
+    <link rel="stylesheet" href="style.css?v=101">
 </head>
 <body>
 
@@ -32,16 +32,18 @@
             </button>
         </div>
 
-        <!-- BAGIAN 3: PROGRESS BAR (MENGGUNAKAN SLIDER ASLI HTML5) -->
+        <!-- BAGIAN 3: PROGRESS BAR (CUSTOM DIV STYLING) -->
         <div class="progress-area">
-            <input type="range" id="progressBar" min="0" max="100" value="0" step="0.1">
+            <div class="progress-bar-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
             <div class="time-info">
                 <span id="currentTime">0:00</span>
                 <span id="duration">0:00</span>
             </div>
         </div>
 
-        <!-- BAGIAN 4: TOMBOL NAVIGASI UTAMA (PLAY, NEXT, PREV, SHUFFLE, REPEAT) -->
+        <!-- BAGIAN 4: TOMBOL NAVIGASI UTAMA -->
         <div class="controls-area">
             <button id="shuffleBtn" class="btn-control">
                 <span class="material-icons">shuffle</span>
@@ -89,5 +91,5 @@
     <!-- LOGIKA JAVASCRIPT GLOBAL -->
     <script src="app.js"></script>
 </body>
-    </html>
-    
+            </html>
+            
