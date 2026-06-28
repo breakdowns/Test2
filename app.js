@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (UPDATED)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (FULL SMOOTH LYRICS)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -55,19 +55,26 @@ function loadTrack(index) {
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
     
-    // PERBAIKAN: Beri izin CORS agar file eksternal (Catbox) bisa dibaca oleh Audio Visualizer
+    // Perbaikan CORS Catbox agar visualizer bekerja lancar
     audio.crossOrigin = "anonymous"; 
-    
     audio.src = track.src;
     
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
+    // FIX LIRIK SMOOTH: Reset posisi secara instan lalu aktifkan kembali transisinya
     lyricsContainer.style.opacity = '0';
+    lyricsWrapper.style.webkitTransition = 'none';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
+    
+    // Paksa browser membaca ulang posisi agar efek transisi 'none' langsung diterapkan
+    void lyricsWrapper.offsetWidth; 
+    
+    // Nyalakan kembali transisi smooth sebelum lirik baru di-render
+    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -75,18 +82,18 @@ function loadTrack(index) {
             .then(res => res.text())
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
+                
+                lyricsWrapper.innerHTML = ''; 
+                parsedLyrics = parseLRC(text); 
+                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                
+                lyricsContainer.style.display = "block"; 
+                // Efek lirik memudar muncul secara halus
                 setTimeout(() => {
-                    if (tracks[currentIndex].src !== currentTrackSrc) return;
-                    lyricsWrapper.style.transition = 'none';
-                    lyricsWrapper.style.transform = 'translateY(0px)';
-                    lyricsWrapper.innerHTML = ''; 
-                    parsedLyrics = parseLRC(text); 
-                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                    lyricsContainer.style.display = "block"; 
-                    void lyricsWrapper.offsetWidth; 
-                    lyricsContainer.style.opacity = '1';
-                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                }, 200);
+                    if (tracks[currentIndex].src === currentTrackSrc) {
+                        lyricsContainer.style.opacity = '1';
+                    }
+                }, 50);
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -95,13 +102,9 @@ function loadTrack(index) {
                 }
             });
     } else { 
-        setTimeout(() => {
-            if (tracks[currentIndex].src === currentTrackSrc) {
-                parsedLyrics = [];
-                lyricsWrapper.innerHTML = '';
-                lyricsContainer.style.display = "none";
-            }
-        }, 200);
+        parsedLyrics = [];
+        lyricsWrapper.innerHTML = '';
+        lyricsContainer.style.display = "none";
     }
     
     const isFav = favorites.includes(track.src);
@@ -317,5 +320,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                              }
-          
+              }
