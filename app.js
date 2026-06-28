@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (SMOOTH JAVASCRIPT ANIMATION)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (ULTIMATE MOBILE OPTIMIZED)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -30,18 +30,15 @@ let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyse
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-// Variabel untuk sistem animasi halus JS
-let currentScrollY = 0;
-let targetScrollY = 0;
-let animationFrameId = null;
+// ⚡ VARIABEL KUNCI PERFORMA:
+let isChangingTrack = false; 
+let currentLyricIndex = -1; // Mengingat baris lirik agar CPU tidak menghitung ulang setiap detik
 
-// Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
-// Ambil Data Putar
 fetch('playlist.json')
     .then(res => res.json())
     .then(data => { 
@@ -52,6 +49,10 @@ fetch('playlist.json')
     });
 
 function loadTrack(index) {
+    isChangingTrack = true; 
+    currentLyricIndex = -1; // Reset ingatan baris lirik saat ganti lagu
+    parsedLyrics = []; 
+
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
@@ -67,17 +68,13 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // RESET TOTAL POSISI ANIMASI
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    currentScrollY = 0;
-    targetScrollY = 0;
-    
+    // RESET INSTAN KE POSISI ATAS
     lyricsContainer.style.opacity = '0';
-    lyricsWrapper.style.transition = 'none'; // Matikan transisi CSS selamanya
+    lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translate3d(0, 0px, 0)';
     lyricsWrapper.innerHTML = ''; 
     
-    void lyricsWrapper.offsetWidth; // Force Reflow
+    void lyricsWrapper.offsetWidth; 
 
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -86,14 +83,21 @@ function loadTrack(index) {
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
                 
-                parsedLyrics = parseLRC(text); 
-                lyricsContainer.style.display = "block"; 
-                lyricsWrapper.innerHTML = ''; 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                lyricsContainer.style.opacity = '1';
+                const incomingLyrics = parseLRC(text); 
                 
-                // Jalankan loop animasi halus JS
-                smoothScrollLoop();
+                setTimeout(() => {
+                    if (tracks[currentIndex].src !== currentTrackSrc) return;
+                    
+                    // Kembalikan efek transisi native CSS yang enteng buat GPU HP
+                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                    lyricsWrapper.innerHTML = ''; 
+                    
+                    parsedLyrics = incomingLyrics;
+                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                    
+                    lyricsContainer.style.display = "block"; 
+                    lyricsContainer.style.opacity = '1';
+                }, 120); 
             })
             .catch(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
@@ -132,16 +136,7 @@ function loadTrack(index) {
     }, 50);
 }
 
-// LOOPING UTAMA: Menghitung perpindahan posisi lirik per pixel agar super halus (Interpolasi Linear)
-function smoothScrollLoop() {
-    // Angka 0.1 di bawah ini mengontrol kelembutan pergeseran (semakin kecil makin smooth)
-    currentScrollY += (targetScrollY - currentScrollY) * 0.1;
-    
-    lyricsWrapper.style.transform = `translate3d(0, ${-currentScrollY}px, 0)`;
-    
-    animationFrameId = requestAnimationFrame(smoothScrollLoop);
-}
-
+audio.addEventListener('playing', () => { isChangingTrack = false; });
 audio.addEventListener('loadedmetadata', () => { 
     durationEl.textContent = formatTime(audio.duration); 
     if (typeof updateMediaSession === 'function') updateMediaSession(); 
@@ -171,11 +166,7 @@ searchBar.addEventListener('input', (e) => {
 
 favoriteBtn.addEventListener('click', () => { 
     const src = tracks[currentIndex].src; 
-    if (favorites.includes(src)) { 
-        favorites = favorites.filter(f => f !== src); 
-    } else { 
-        favorites.push(src); 
-    } 
+    if (favorites.includes(src)) { favorites = favorites.filter(f => f !== src); } else { favorites.push(src); } 
     const isFav = favorites.includes(src);
     favoriteBtn.classList.toggle('active', isFav); 
     favoriteBtn.querySelector('.material-icons').textContent = isFav ? 'favorite' : 'favorite_border'; 
@@ -199,7 +190,6 @@ function renderLyrics() {
     parsedLyrics.forEach((line, i) => { 
         const p = document.createElement('p'); 
         p.className = 'lyric-line'; 
-        p.id = `line-${i}`; 
         p.textContent = line.text; 
         p.onclick = () => { audio.currentTime = line.time; }; 
         lyricsWrapper.appendChild(p); 
@@ -232,10 +222,7 @@ function initVisualizer() {
 function drawVisualizer() { 
     requestAnimationFrame(drawVisualizer); 
     if (!analyser) return; 
-    if (canvas.width !== canvas.clientWidth) { 
-        canvas.width = canvas.clientWidth; 
-        canvas.height = canvas.clientHeight; 
-    } 
+    if (canvas.width !== canvas.clientWidth) { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; } 
     analyser.getByteFrequencyData(dataArray); 
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
     const w = (canvas.width / dataArray.length) * 1.4; 
@@ -258,8 +245,7 @@ playBtn.addEventListener('click', () => {
 
 function playNextTrack() {
     let n = currentIndex + 1; 
-    if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
-    else if (n >= tracks.length) n = 0; 
+    if (isShuffle) n = Math.floor(Math.random() * tracks.length); else if (n >= tracks.length) n = 0; 
     loadTrack(n); 
     audio.play().then(() => playIcon.textContent = 'pause'); 
 }
@@ -282,28 +268,40 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-// LOGIKA BARU UPDATE WAKTU: Hanya mengupdate target posisi, eksekusi geser halusnya dilakukan oleh smoothScrollLoop
+// ⚡⚡⚡ LOGIKA ANIMASI SUPER RINGAN: Blokir perhitungan piksel kecuali pas baris lirik berganti
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
-    if (parsedLyrics.length > 0) {
-        const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
-        const lines = document.querySelectorAll('.lyric-line');
+    if (isChangingTrack || parsedLyrics.length === 0) return;
+
+    const newIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
+
+    // BROWSER HANYA BOLEH MENGHITUNG SAAT LIRIK BERUBAH (Sangat enteng untuk HP)
+    if (newIndex !== -1 && newIndex !== currentLyricIndex) {
+        currentLyricIndex = newIndex; 
         
-        if (activeIndex !== -1 && lines[activeIndex]) {
-            if (!lines[activeIndex].classList.contains('active')) {
-                lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
+        const lines = lyricsWrapper.children; // Akses DOM langsung, tanpa querySelector (super ngebut)
+        
+        if (lines[newIndex]) {
+            // Bersihkan class 'active' dari semua baris dengan cara paling enteng
+            for (let i = 0; i < lines.length; i++) {
+                lines[i].className = 'lyric-line';
             }
+            // Aktifkan baris yang sekarang
+            lines[newIndex].className = 'lyric-line active';
             
-            const activeLine = lines[activeIndex], 
+            // Kalkulasi pergeseran CUMA SATU KALI
+            const activeLine = lines[newIndex], 
                   containerHeight = lyricsContainer.clientHeight, 
                   offsetTop = activeLine.offsetTop, 
                   lineHeight = activeLine.clientHeight;
                   
-            // Set target koordinat baru, biarkan fungsi smoothScrollLoop yang menggesernya secara pixel-by-pixel
-            targetScrollY = offsetTop - (containerHeight / 2) + (lineHeight / 2);
+            const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
+            
+            // Langsung lempar eksekusi ke GPU HP
+            lyricsWrapper.style.transform = `translate3d(0, ${-scrollAmount}px, 0)`;
         }
     }
 });
@@ -339,5 +337,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                      }
-      
+                                 }
+                   
