@@ -29,6 +29,9 @@ body {
     min-height: 100vh;
     padding: 20px;
     transition: background 0.8s ease;
+    
+    /* FIX: Matikan efek glow/pantulan putih bawaan browser saat scroll mentok */
+    overscroll-behavior: none;
 }
 
 /* ==========================================
@@ -45,6 +48,9 @@ body {
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
+    
+    /* FIX: Mengunci kontainer dari efek pantulan elastis browser */
+    overscroll-behavior: none;
 }
 
 @media (min-width: 768px) {
@@ -124,7 +130,7 @@ body {
 .progress-bar { 
     height: 100%; 
     width: 0%; 
-    background-color: #ffffff !important; /* Warna hex solid anti-invert */
+    background-color: #ffffff !important; /* Warna hex murni agar kebal force dark mode */
     border-radius: 2px; 
     color-scheme: only light !important; /* Kunci skema warna bar utama */
 }
@@ -202,3 +208,4 @@ body {
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
+   
