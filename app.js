@@ -1,13 +1,3 @@
-if (/Android/i.test(navigator.userAgent) && /Firefox/i.test(navigator.userAgent)) {
-    try {
-        Object.defineProperty(navigator, 'mediaSession', {
-            value: null,
-            writable: false,
-            configurable: false
-        });
-    } catch (e) {}
-}
-
 const audio = document.getElementById('mainAudio'), 
       playBtn = document.getElementById('playBtn'), 
       playIcon = document.getElementById('playIcon'), 
@@ -49,7 +39,7 @@ function formatTime(s) {
 }
 
 function updateMediaSession() {
-    if (navigator.mediaSession) {
+    if ('mediaSession' in navigator) {
         const track = tracks[currentIndex];
         navigator.mediaSession.metadata = new MediaMetadata({
             title: track.title,
@@ -76,15 +66,8 @@ function updateMediaSession() {
 }
 
 function updateMediaSessionState() {
-    if (navigator.mediaSession && audio.duration && !isNaN(audio.duration)) {
+    if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
-        try {
-            navigator.mediaSession.setPositionState({
-                duration: audio.duration,
-                playbackRate: audio.playbackRate,
-                position: audio.currentTime
-            });
-        } catch (e) {}
     }
 }
 
@@ -353,11 +336,10 @@ progressContainer.addEventListener('click', (e) => {
         const clickX = e.offsetX;
         const totalWidth = progressContainer.clientWidth;
         audio.currentTime = (clickX / totalWidth) * audio.duration;
-        updateMediaSessionState();
     }
 });
 
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                  
+            
