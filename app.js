@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (PERFECT ORDER FIX)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (STRICT LOCK FIX)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -30,6 +30,9 @@ let tracks = [], currentTracksDisplay = [], parsedLyrics = [], audioCtx, analyse
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
+// KUNCI UTAMA: Blokir pergerakan lirik liar saat proses muat lagu Catbox
+let isChangingTrack = false; 
+
 // Setup Volume
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
@@ -47,6 +50,9 @@ fetch('playlist.json')
     });
 
 function loadTrack(index) {
+    // Aktifkan pengunci agar lirik tidak lompat akibat lompatan detik awal audio
+    isChangingTrack = true; 
+
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
@@ -63,13 +69,13 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // RESET LIRIK: Matikan transisi, kosongkan teks, dan kembalikan ke atas seketika
+    // RESET TOTAL: Matikan transisi, kembalikan posisi kontainer ke 0px teratas
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translate3d(0, 0px, 0)';
     lyricsWrapper.innerHTML = ''; 
     
-    // Paksa browser me-refresh kalkulasi posisi layout (Reflow)
+    // Paksa browser membaca ulang perubahan layout (Reflow)
     void lyricsWrapper.offsetWidth; 
 
     const currentTrackSrc = track.src;
@@ -80,23 +86,18 @@ function loadTrack(index) {
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
                 
                 parsedLyrics = parseLRC(text); 
-                
-                // Tampilkan wadah kontainer lirik terlebih dahulu
                 lyricsContainer.style.display = "block"; 
                 
-                // SINKRONISASI GERAKAN HALUS: Pasang transisi dulu, baru render teks liriknya
+                // Pasang transisi halurnya terlebih dahulu sebelum lirik dimunculkan
+                lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                lyricsWrapper.innerHTML = ''; 
+                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                
+                // Munculkan kontainer lirik secara halus (fade in)
                 requestAnimationFrame(() => {
-                    if (tracks[currentIndex].src !== currentTrackSrc) return;
-                    
-                    // 1. Pasang spesifikasi transisi smooth ke pembungkus lirik
-                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                    
-                    // 2. Baru render liriknya agar posisi geser pertama langsung ditangkap transisi halus
-                    lyricsWrapper.innerHTML = ''; 
-                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                    
-                    // 3. Memunculkan lirik secara perlahan (fade in)
-                    lyricsContainer.style.opacity = '1';
+                    if (tracks[currentIndex].src === currentTrackSrc) {
+                        lyricsContainer.style.opacity = '1';
+                    }
                 });
             })
             .catch(() => {
@@ -135,6 +136,11 @@ function loadTrack(index) {
         }
     }, 50);
 }
+
+// Buka kunci lirik HANYA setelah lagu benar-benar siap berputar stabil dari awal
+audio.addEventListener('playing', () => {
+    isChangingTrack = false;
+});
 
 audio.addEventListener('loadedmetadata', () => { 
     durationEl.textContent = formatTime(audio.duration); 
@@ -276,12 +282,14 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-// SINKRONISASI PERGESERAN LIRIK: Menggunakan akselerasi hardware translate3d
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
+    // PENJAGA KUNCI: Jangan geser lirik sama sekali jika flag ganti lagu masih aktif
+    if (isChangingTrack) return;
+
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
         const lines = document.querySelectorAll('.lyric-line');
@@ -297,7 +305,10 @@ audio.addEventListener('timeupdate', () => {
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
             
             requestAnimationFrame(() => {
-                lyricsWrapper.style.transform = `translate3d(0, ${-scrollAmount}px, 0)`;
+                // Hanya geser secara transisi jika posisi stabil bukan saat muat data awal
+                if (!isChangingTrack) {
+                    lyricsWrapper.style.transform = `translate3d(0, ${-scrollAmount}px, 0)`;
+                }
             });
         }
     }
@@ -319,7 +330,6 @@ function formatTime(s) {
     return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
 }
 
-// Perbaikan CORS Background Image
 function updateDynamicBackground(src) {
     const img = new Image(); 
     img.crossOrigin = "Anonymous"; 
@@ -335,5 +345,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-                   }
-                                                                    
+}
