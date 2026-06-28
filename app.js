@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (STABLE & OPTIMIZED FPS)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (SUPER OPTIMIZED FPS & FFT)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -33,7 +33,7 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
 
-// ⚡ VARIABLE TAMBAHAN SOLUSI 1: Untuk mencatat waktu render terakhir visualizer
+// ⚡ SOLUSI 1: Variabel pencatat waktu render terakhir visualizer
 let lastVisualizerRenderTime = 0;
 
 // Setup Volume
@@ -236,17 +236,18 @@ function initVisualizer() {
     analyser = audioCtx.createAnalyser(); 
     audioCtx.createMediaElementSource(audio).connect(analyser); 
     analyser.connect(audioCtx.destination); 
-    analyser.fftSize = 64; 
+    
+    // ⚡ FIX SOLUSI 2: Turunkan fftSize dari 64 ke 32 agar beban komputasi ekstraksi audio berkurang setengahnya
+    analyser.fftSize = 32; 
     dataArray = new Uint8Array(analyser.frequencyBinCount); 
     drawVisualizer(); 
 }
 
-// ⚡ FIX SOLUSI 1: Modifikasi fungsi gambar visualizer dengan pembatas interval FPS (~30 FPS)
 function drawVisualizer(timestamp) { 
     requestAnimationFrame(drawVisualizer); 
     if (!analyser) return; 
 
-    // Jika selisih waktu render saat ini dengan render terakhir kurang dari 33 milidetik, lewati gambar ulang (skip frame)
+    // ⚡ FIX SOLUSI 1: Batasi render frame hanya berjalan di kisaran ~30 FPS (tiap 33ms)
     if (timestamp - lastVisualizerRenderTime < 33) return;
     lastVisualizerRenderTime = timestamp;
 
@@ -350,4 +351,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-          }
+              }
+                                  
