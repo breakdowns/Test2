@@ -19,6 +19,12 @@
     font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 }
 
+/* FIX UTAMA: Kunci overscroll di root HTML agar efek karet putih hilang di Android */
+html, body {
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
+}
+
 body {
     background: linear-gradient(to bottom, rgb(var(--dynamic-r), var(--dynamic-g), var(--dynamic-b)) 0%, var(--background-base) 40%);
     background-attachment: fixed;
@@ -29,9 +35,6 @@ body {
     min-height: 100vh;
     padding: 20px;
     transition: background 0.8s ease;
-    
-    /* FIX: Matikan efek glow/pantulan putih bawaan browser saat scroll mentok */
-    overscroll-behavior: none;
 }
 
 /* ==========================================
@@ -48,9 +51,6 @@ body {
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
-    
-    /* FIX: Mengunci kontainer dari efek pantulan elastis browser */
-    overscroll-behavior: none;
 }
 
 @media (min-width: 768px) {
@@ -124,15 +124,15 @@ body {
     border-radius: 2px; 
     cursor: pointer; 
     margin-bottom: 8px; 
-    color-scheme: only light !important; /* Kunci skema warna kontainer */
+    color-scheme: only light !important;
 }
 
 .progress-bar { 
     height: 100%; 
     width: 0%; 
-    background-color: #ffffff !important; /* Warna hex murni agar kebal force dark mode */
+    background-color: #ffffff !important; 
     border-radius: 2px; 
-    color-scheme: only light !important; /* Kunci skema warna bar utama */
+    color-scheme: only light !important;
 }
 
 .progress-bar-container:hover .progress-bar { 
