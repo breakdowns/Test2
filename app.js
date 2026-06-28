@@ -1,5 +1,5 @@
 // ========================================================
-// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (SUPER OPTIMIZED FPS & FFT)
+// APP.JS - BREAKDOWNS MUSIC GLOBAL LOGIC (ANTI-BACKGROUND STUTTER)
 // ========================================================
 
 const audio = document.getElementById('mainAudio'), 
@@ -32,8 +32,6 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
-
-// ⚡ SOLUSI 1: Variabel pencatat waktu render terakhir visualizer
 let lastVisualizerRenderTime = 0;
 
 // Setup Volume
@@ -71,7 +69,6 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
-    // Reset posisi element lirik ke atas secara instan
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.transition = 'none';
     lyricsWrapper.style.transform = 'translateY(0px)';
@@ -236,8 +233,6 @@ function initVisualizer() {
     analyser = audioCtx.createAnalyser(); 
     audioCtx.createMediaElementSource(audio).connect(analyser); 
     analyser.connect(audioCtx.destination); 
-    
-    // ⚡ FIX SOLUSI 2: Turunkan fftSize dari 64 ke 32 agar beban komputasi ekstraksi audio berkurang setengahnya
     analyser.fftSize = 32; 
     dataArray = new Uint8Array(analyser.frequencyBinCount); 
     drawVisualizer(); 
@@ -247,7 +242,9 @@ function drawVisualizer(timestamp) {
     requestAnimationFrame(drawVisualizer); 
     if (!analyser) return; 
 
-    // ⚡ FIX SOLUSI 1: Batasi render frame hanya berjalan di kisaran ~30 FPS (tiap 33ms)
+    // ⚡ PROTEKSI LATAR BELAKANG: Jika browser sedang ditinggal (hidden), matikan total fungsi gambar agar tidak membebani CPU
+    if (document.hidden) return;
+
     if (timestamp - lastVisualizerRenderTime < 33) return;
     lastVisualizerRenderTime = timestamp;
 
@@ -306,7 +303,11 @@ audio.addEventListener('timeupdate', () => {
     currentTimeEl.textContent = formatTime(audio.currentTime); 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
+    // Jelas terisolasi: Jika sedang ganti lagu atau tidak ada lirik, lewatkan pergeseran elemen
     if (isChangingTrack || parsedLyrics.length === 0) return;
+
+    // ⚡ OPTIMASI LATAR BELAKANG ANIMASI LIRIK: Jika ditinggal keluar browser, hentikan perhitungan matematika CSS-nya
+    if (document.hidden) return;
 
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
@@ -351,5 +352,4 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-              }
-                                  
+                                      }
