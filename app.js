@@ -63,11 +63,11 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = '0:00';
 
-    // FIX GANTI LAGU: Matikan transisi dan kembalikan ke posisi atas seketika
+    // FIX GANTI LAGU: Matikan transisi dan kembalikan ke posisi atas seketika menggunakan 3D plane
     lyricsContainer.style.opacity = '0';
     lyricsWrapper.style.webkitTransition = 'none';
     lyricsWrapper.style.transition = 'none';
-    lyricsWrapper.style.transform = 'translateY(0px)';
+    lyricsWrapper.style.transform = 'translate3d(0, 0px, 0)';
     lyricsWrapper.innerHTML = ''; 
     
     const currentTrackSrc = track.src;
@@ -270,7 +270,7 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-// FIX PERGESERAN LIRIK: Hanya geser jika baris berganti & sinkronkan dengan refresh rate layar
+// FIX PERGESERAN LIRIK: Menggunakan 3D translation (translate3d) agar diproses hardware GPU
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
@@ -291,7 +291,8 @@ audio.addEventListener('timeupdate', () => {
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
             
             requestAnimationFrame(() => {
-                lyricsWrapper.style.transform = `translateY(${-scrollAmount}px)`;
+                // Diubah ke translate3d untuk akselerasi perangkat keras 3D di HP
+                lyricsWrapper.style.transform = `translate3d(0, ${-scrollAmount}px, 0)`;
             });
         }
     }
@@ -329,4 +330,5 @@ function updateDynamicBackground(src) {
             document.body.style.setProperty('--dynamic-b', Math.max(12, Math.min(b, 45))); 
         } catch (e) {} 
     };
-}
+                  }
+                                  
