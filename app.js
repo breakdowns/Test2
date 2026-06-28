@@ -323,6 +323,10 @@ audio.addEventListener('timeupdate', () => {
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
 
+    if (audio.currentTime % 2 < 0.3) {
+        updateMediaSessionState();
+    }
+
     if (isChangingTrack || parsedLyrics.length === 0) return;
     if (document.hidden) return;
 
@@ -348,4 +352,3 @@ progressContainer.addEventListener('click', (e) => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                               
