@@ -40,14 +40,13 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    max-width: 420px; /* Lebar pas genggaman saat portrait HP biasa */
+    max-width: 420px;
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
 }
 
-/* Kunci pelebaran maksimal di mode desktop agar padat dan gagah mengisi ruang virtual */
 @media (min-width: 768px) {
     .player-container {
         width: 90%;
@@ -55,15 +54,12 @@ body {
         padding: 40px;
         border-radius: 24px;
     }
-    
     .track-info h2 { font-size: 1.85rem !important; }
     .track-info p { font-size: 1.15rem !important; }
     .lyric-line { font-size: 1.35rem !important; }
-    
     .btn-control .material-icons { font-size: 2.4rem !important; }
     .btn-play-pause { width: 72px !important; height: 72px !important; }
     .btn-play-pause .material-icons { font-size: 3rem !important; }
-    
     .playlist-container { max-height: 260px !important; }
     .track-item { padding: 12px !important; }
     .track-item img { width: 52px !important; height: 52px !important; }
@@ -101,41 +97,11 @@ body {
 /* ==========================================
    TRACK INFO & MARQUEE SPOTIFY
    ========================================== */
-.track-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.track-info {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-    margin-right: 16px;
-}
-
-.marquee-container {
-    display: flex;
-    width: max-content;
-}
-
-.track-info h2 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--text-main);
-    white-space: nowrap;
-    display: inline-block;
-}
-
-.track-info p {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-    margin-top: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+.track-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.track-info { flex: 1; overflow: hidden; position: relative; margin-right: 16px; }
+.marquee-container { display: flex; width: max-content; }
+.track-info h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-main); white-space: nowrap; display: inline-block; }
+.track-info p { font-size: 0.95rem; color: var(--text-muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 @keyframes marqueeSpotify {
     0% { transform: translate3d(0, 0, 0); }
@@ -145,55 +111,78 @@ body {
     90% { transform: translate3d(0, 0, 0); }
     100% { transform: translate3d(0, 0, 0); }
 }
-
-.btn-fav {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-}
+.btn-fav { background: none; border: none; color: var(--text-muted); cursor: pointer; }
 .btn-fav.active { color: var(--spotify-green); }
 
 /* ==========================================
-   PROGRESS BAR STYLING (CLEAN DIV)
+   PROGRESS AREA (ULTRA CLEAN INPUT FOR FIREFOX)
    ========================================== */
 .progress-area { 
     margin-bottom: 24px; 
 }
 
-.progress-bar-container { 
-    width: 100%; 
-    height: 4px; 
-    background-color: #4f4f4f; 
-    border-radius: 2px; 
-    cursor: pointer; 
-    margin-bottom: 8px; 
+.progress-input-wrapper {
     position: relative;
-    padding: 4px 0; /* Memberikan padding area agar lebih mudah ditekan jari */
-    margin-top: -4px;
+    width: 100%;
+    height: 14px; /* Area sentuh jari */
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
 }
 
-.progress-bar { 
-    height: 4px; 
-    width: 0%; 
-    background-color: var(--text-main); 
-    border-radius: 2px; 
+/* Garis visual kosmetik buatan kita (Tetap Rapi Hijau-Putih) */
+.progress-bar-visual {
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 100%;
+    height: 4px;
+    background: #4f4f4f;
+    border-radius: 2px;
+    pointer-events: none; /* Biar sentuhan tembus ke input asli di bawahnya */
+    overflow: hidden;
+}
+
+.progress-bar-visual::before {
+    content: '';
+    display: block;
+    height: 100%;
+    width: var(--progress-width, 0%);
+    background-color: var(--text-main);
+    border-radius: 2px;
     transition: width 0.1s linear;
 }
 
-.progress-bar-container:hover .progress-bar { 
-    background-color: var(--spotify-green); 
+.progress-input-wrapper:hover .progress-bar-visual::before {
+    background-color: var(--spotify-green);
 }
 
-.time-info { 
-    display: flex; 
-    justify-content: space-between; 
-    font-size: 0.75rem; 
-    color: var(--text-muted); 
+/* Hancurkan Total Visual Asli Bawaan Firefox Android */
+#musicSlider {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0; /* Bikin slider asli transparan total */
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    z-index: 5;
 }
+
+/* Proteksi Ganda Untuk Menghilangkan Tombol Biru Firefox Android */
+#musicSlider::-moz-range-track { background: transparent; border: none; }
+#musicSlider::-moz-range-thumb { width: 14px; height: 14px; background: transparent; border: none; opacity: 0; }
+#musicSlider::-webkit-slider-runnable-track { background: transparent; }
+#musicSlider::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 14px; height: 14px; background: transparent; }
+
+.time-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
 
 /* ==========================================
-   CONTROLS AREA
+   CONTROLS AREA & LYRICS & PLAYLIST
    ========================================== */
 .controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .btn-control { background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s, transform 0.1s; }
@@ -216,16 +205,9 @@ body {
     cursor: pointer;
     transition: transform 0.1s;
 }
-.btn-play-pause .material-icons {
-    font-size: 2.2rem;
-    color: #121212 !important;
-    color-scheme: only light !important;
-}
+.btn-play-pause .material-icons { font-size: 2.2rem; color: #121212 !important; color-scheme: only light !important; }
 .btn-play-pause:hover { background-color: #ffffff; transform: scale(1.05); }
 
-/* ==========================================
-   VOLUME & LYRICS CONTEXTS
-   ========================================== */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); }
@@ -241,58 +223,21 @@ body {
     opacity: 1;
     transition: opacity 0.2s ease-in-out;
 }
+#lyricsWrapper { padding: 15px 0 40px 0; text-align: center; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
+.lyric-line { font-size: 1.05rem; font-weight: 700; color: rgba(255, 255, 255, 0.25); padding: 8px 0; cursor: pointer; transition: color 0.3s, transform 0.3s; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; }
+.lyric-line.active { color: var(--text-main); transform: scale(1.05); }
 
-#lyricsWrapper {
-    padding: 15px 0 40px 0; 
-    text-align: center;
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    will-change: transform;
-}
-
-.lyric-line {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.25);
-    padding: 8px 0;
-    cursor: pointer;
-    transition: color 0.3s, transform 0.3s;
-    white-space: normal; 
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-.lyric-line.active {
-    color: var(--text-main);
-    transform: scale(1.05);
-}
-
-/* ==========================================
-   PLAYLIST & SEARCH & WATERMARK
-   ========================================== */
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 .playlist-container { max-height: 180px; overflow-y: auto; }
 .playlist-container::-webkit-scrollbar { width: 4px; }
 .playlist-container::-webkit-scrollbar-thumb { background: #4f4f4f; border-radius: 2px; }
-
 .track-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
 .track-item:hover { background-color: rgba(255, 255, 255, 0.05); }
 .track-item.active { background-color: rgba(30, 215, 96, 0.15); }
 .track-item.active strong { color: var(--spotify-green); }
 .track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
 
-.watermark { 
-    text-align: center; 
-    font-size: 0.75rem; 
-    color: var(--text-muted); 
-    margin-top: 20px; 
-    letter-spacing: 0.5px; 
-}
-.watermark a { 
-    color: var(--spotify-green) !important;
-    text-decoration: none; 
-    font-weight: bold; 
-    transition: filter 0.2s; 
-}
-.watermark a:hover { 
-    filter: brightness(1.2);
-    text-decoration: underline !important; 
-   }
+.watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
+.watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
+.watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
+   
