@@ -457,13 +457,10 @@ audio.addEventListener('timeupdate', () => {
             const lineHeight = activeLine.clientHeight;
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
             
-            lyricsContainer.scrollTo({
-                top: scrollAmount,
-                behavior: 'smooth'
-            });
+            lyricsContainer.scrollTop = scrollAmount;
         }
     }
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                                         
+      
