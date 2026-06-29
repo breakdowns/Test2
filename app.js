@@ -43,6 +43,9 @@ function initAudioContext() {
         gainNode.connect(audioCtx.destination);
         gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
     }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
 }
 
 function formatTime(s) { 
@@ -64,6 +67,7 @@ function updateMediaSession() {
         });
 
         navigator.mediaSession.setActionHandler('play', () => {
+            initAudioContext();
             audio.play().then(() => playIcon.textContent = 'pause');
         });
         navigator.mediaSession.setActionHandler('pause', () => {
@@ -71,10 +75,15 @@ function updateMediaSession() {
             playIcon.textContent = 'play_arrow';
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
+            initAudioContext();
             let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
-            loadTrack(p); audio.play().then(() => playIcon.textContent = 'pause');
+            loadTrack(p); 
+            audio.play().then(() => playIcon.textContent = 'pause');
         });
-        navigator.mediaSession.setActionHandler('nexttrack', playNextTrack);
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            initAudioContext();
+            playNextTrack();
+        });
     }
 }
 
@@ -152,6 +161,7 @@ function renderPlaylist(arr) {
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
+            initAudioContext();
             loadTrack(oIdx); 
             audio.play().then(() => playIcon.textContent = 'pause'); 
         }); 
@@ -277,9 +287,6 @@ audio.addEventListener('canplay', () => {
 
 audio.addEventListener('playing', () => {
     initAudioContext();
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
@@ -329,8 +336,13 @@ playBtn.addEventListener('click', () => {
     audio.paused ? audio.play().then(() => playIcon.textContent = 'pause') : (audio.pause(), playIcon.textContent = 'play_arrow'); 
 });
 
-nextBtn.addEventListener('click', playNextTrack);
+nextBtn.addEventListener('click', () => {
+    initAudioContext();
+    playNextTrack();
+});
+
 prevBtn.addEventListener('click', () => { 
+    initAudioContext();
     let p = currentIndex - 1; 
     if (p < 0) p = tracks.length - 1; 
     loadTrack(p); 
@@ -382,4 +394,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-      
+              
