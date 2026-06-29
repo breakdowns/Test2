@@ -49,19 +49,19 @@ body {
 }
 
 /* ==========================================================================
-   TRICK PAMUNGKAS: MEMAKSA UKURAN JUMBO & MELEBAR MAKSIMAL DI DESKTOP EMULASI HP
+   TRICK FIX: MENYEIMBANGKAN POSISI TENGAH DAN MEMPERLEBAR KANAN-KIRI DI HP DESKTOP
    ========================================================================== */
 @media (min-width: 768px) and (max-width: 1024px) {
     body {
-        align-items: flex-start !important; /* Dorong ke atas agar sisa ruang vertikal habis */
-        padding: 8px 12px 16px 12px !important; /* Tipiskan padding luar luar biasa */
+        align-items: center !important; /* Balikin ke tengah vertikal biar gak kerasa kepotong */
+        padding: 24px 12px !important; 
     }
 
     .player-container {
-        max-width: 720px !important; /* Naik ke 720px agar memenuhi lebar proporsional target */
+        max-width: 600px !important; /* Ukuran pas biar mekar ke samping mirip 1002508958.jpg */
         width: 96% !important;
         padding: 28px !important;
-        margin-top: 8px !important;
+        margin-top: 0 !important;
     }
     
     .cover-wrapper {
@@ -69,11 +69,11 @@ body {
         margin-bottom: 24px !important;
     }
     
-    .track-info h2 { font-size: 1.6rem !important; text-align: left !important; }
+    .track-info h2 { font-size: 1.55rem !important; text-align: left !important; }
     .track-info p { font-size: 1.05rem !important; text-align: left !important; }
-    .lyric-line { font-size: 1.15rem !important; }
-    .lyrics-container { max-height: 200px !important; min-height: 160px !important; }
-    .playlist-container { max-height: 220px !important; }
+    .lyric-line { font-size: 1.1rem !important; }
+    .lyrics-container { max-height: 180px !important; min-height: 150px !important; }
+    .playlist-container { max-height: 200px !important; }
 }
 
 /* ==========================================================================
@@ -466,4 +466,3 @@ body {
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
     }
-                
