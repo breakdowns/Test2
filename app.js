@@ -27,10 +27,23 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
 
+let audioCtx = null, gainNode = null, sourceNode = null;
+
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
+
+function initAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain();
+        sourceNode = audioCtx.createMediaElementSource(audio);
+        sourceNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+    }
+}
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
@@ -150,10 +163,13 @@ function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
     
+    if (audioCtx) {
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    }
+    
     audio.pause();
     audio.src = "";
     audio.load();
-    audio.muted = true;
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -254,16 +270,21 @@ audio.addEventListener('canplay', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
     }
-    audio.muted = false;
 });
 
 audio.addEventListener('playing', () => {
+    initAudioContext();
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
     }
     updateMediaSessionState();
-    audio.muted = false;
+    
+    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
 });
 
 audio.addEventListener('pause', () => {
@@ -298,10 +319,10 @@ favoriteBtn.addEventListener('click', () => {
 
 audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
-    audio.muted = false;
 });
 
 playBtn.addEventListener('click', () => { 
+    initAudioContext();
     audio.paused ? audio.play().then(() => playIcon.textContent = 'pause') : (audio.pause(), playIcon.textContent = 'play_arrow'); 
 });
 
@@ -358,4 +379,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-              
+                                                
