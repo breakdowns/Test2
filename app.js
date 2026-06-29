@@ -444,9 +444,10 @@ audio.addEventListener('timeupdate', () => {
         }
     }
 
-    if (document.hidden) return;
-
     if (isChangingTrack || parsedLyrics.length === 0) return;
+
+    // TAMENG PELINDUNG LATAR BELAKANG TERPASANG DISINI:
+    if (document.hidden) return;
 
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
@@ -479,4 +480,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-      
+                         
