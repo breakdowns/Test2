@@ -49,13 +49,19 @@ body {
 }
 
 /* ==========================================================================
-   TRICK PAMUNGKAS: Memaksa ukuran melar saat di-emulasi jadi desktop di HP portrait
+   TRICK PAMUNGKAS: MEMAKSA UKURAN JUMBO & MELEBAR MAKSIMAL DI DESKTOP EMULASI HP
    ========================================================================== */
 @media (min-width: 768px) and (max-width: 1024px) {
+    body {
+        align-items: flex-start !important; /* Dorong ke atas agar sisa ruang vertikal habis */
+        padding: 8px 12px 16px 12px !important; /* Tipiskan padding luar luar biasa */
+    }
+
     .player-container {
-        max-width: 650px !important; 
-        width: 95% !important;
+        max-width: 720px !important; /* Naik ke 720px agar memenuhi lebar proporsional target */
+        width: 96% !important;
         padding: 28px !important;
+        margin-top: 8px !important;
     }
     
     .cover-wrapper {
@@ -63,11 +69,11 @@ body {
         margin-bottom: 24px !important;
     }
     
-    .track-info h2 { font-size: 1.55rem !important; text-align: left !important; }
+    .track-info h2 { font-size: 1.6rem !important; text-align: left !important; }
     .track-info p { font-size: 1.05rem !important; text-align: left !important; }
-    .lyric-line { font-size: 1.1rem !important; }
-    .lyrics-container { max-height: 180px !important; min-height: 150px !important; }
-    .playlist-container { max-height: 200px !important; }
+    .lyric-line { font-size: 1.15rem !important; }
+    .lyrics-container { max-height: 200px !important; min-height: 160px !important; }
+    .playlist-container { max-height: 220px !important; }
 }
 
 /* ==========================================================================
@@ -460,3 +466,4 @@ body {
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
     }
+                
