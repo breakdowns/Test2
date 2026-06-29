@@ -36,12 +36,12 @@ body {
     touch-action: auto !important;
 }
 
-/* BASE CONTAINER: Otomatis melar fleksibel di HP (Maksimal 550px agar pas persis target) */
+/* CONTAINER UTAMA BAWAAN MOBILE */
 .player-container {
     background-color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    width: 94%;
-    max-width: 550px; /* Dikunci di 550px biar pas Situs Desktop di HP diaktifkan, dia langsung melebar mantap */
+    width: 100%;
+    max-width: 420px;
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
@@ -49,10 +49,31 @@ body {
 }
 
 /* ==========================================================================
-   TAMPILAN HORIZONTAL DUA KOLOM KHUSUS DESKTOP PC / LAPTOP / BOT TELEGRAM
+   TRICK PAMUNGKAS: Memaksa ukuran melar saat di-emulasi jadi desktop di HP portrait
    ========================================================================== */
-@media (min-width: 992px) {
-    /* Hanya terpicu di layar monitor komputer yang super lebar */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .player-container {
+        max-width: 650px !important; 
+        width: 95% !important;
+        padding: 28px !important;
+    }
+    
+    .cover-wrapper {
+        max-width: 100% !important;
+        margin-bottom: 24px !important;
+    }
+    
+    .track-info h2 { font-size: 1.55rem !important; text-align: left !important; }
+    .track-info p { font-size: 1.05rem !important; text-align: left !important; }
+    .lyric-line { font-size: 1.1rem !important; }
+    .lyrics-container { max-height: 180px !important; min-height: 150px !important; }
+    .playlist-container { max-height: 200px !important; }
+}
+
+/* ==========================================================================
+   TAMPILAN HORIZONTAL DUA KOLOM KHUSUS DESKTOP PC / LAPTOP ASLI (MONITOR LEBAR)
+   ========================================================================== */
+@media (min-width: 1025px) {
     .player-container {
         width: 90%;
         max-width: 850px; 
@@ -404,17 +425,17 @@ body {
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 
 /* ==========================================================================
-   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE)
+   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE BAWAAN FISIK)
    ========================================================================== */
 @media (max-height: 500px) and (orientation: landscape) {
     body { align-items: flex-start; padding: 12px; }
     .player-container {
-        max-width: 100%;
-        width: 100%;
-        display: grid;
+        max-width: 100% !important;
+        width: 100% !important;
+        display: grid !important;
         grid-template-columns: 1.2fr 1fr; 
         gap: 24px;
-        padding: 20px;
+        padding: 20px !important;
         height: auto;
     }
     .player-left-side {
@@ -424,18 +445,18 @@ body {
         gap: 12px;
     }
     .track-header { grid-area: header; display: flex; align-items: center; gap: 16px; margin-bottom: 0; width: 100%; }
-    .cover-wrapper { grid-area: header; max-width: 80px; margin: 0; }
+    .cover-wrapper { grid-area: header; max-width: 80px !important; margin: 0; }
     .track-info { padding-left: 96px; width: 100%; }
-    .track-info h2 { font-size: 1.2rem; text-align: left; }
-    .track-info p { font-size: 0.9rem; text-align: left; }
+    .track-info h2 { font-size: 1.2rem !important; text-align: left !important; }
+    .track-info p { font-size: 0.9rem !important; text-align: left !important; }
     .progress-area { grid-area: progress; margin-bottom: 0; }
     .controls-area { grid-area: controls; margin-bottom: 0; }
     .btn-play-pause { width: 44px; height: 44px; }
     .btn-play-pause .material-icons { font-size: 1.8rem; }
     .volume-area { grid-area: volume; margin-bottom: 0; }
     .player-right-side { display: flex; flex-direction: column; }
-    .lyrics-container { max-height: 110px; min-height: 110px; margin-bottom: 10px; }
+    .lyrics-container { max-height: 110px !important; min-height: 110px !important; margin-bottom: 10px; }
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
-    .playlist-container { max-height: 160px; min-height: 160px; overflow-y: auto; }
+    .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-}
+    }
