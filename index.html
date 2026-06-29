@@ -4,92 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breakdowns Music</title>
-    <!-- Favicon Baru dari GitHub -->
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
-    <!-- Google Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
-    <div class="player-container">
-        
-        <!-- BAGIAN 1: COVER LAGU & KANVAS VISUALIZER -->
-        <div class="cover-wrapper">
-            <img id="trackCover" src="" alt="Cover Lagu">
-        </div>
+    <audio id="mainAudio"></audio>
 
-        <!-- BAGIAN 2: INFORMASI JUDUL & TOMBOL FAVORIT -->
-        <div class="track-header">
+    <div class="player-container">
+        <!-- Bagian Atas: Info Lagu & Cover -->
+        <div class="track-card">
+            <div class="cover-wrapper">
+                <img id="trackCover" src="" alt="Cover Album">
+            </div>
             <div class="track-info">
                 <div class="marquee-container">
-                    <h2 id="trackTitle">-</h2>
+                    <h2 id="trackTitle">Memuat Judul...</h2>
                 </div>
-                <p id="trackArtist">-</p>
+                <p id="trackArtist">Memuat Artis...</p>
             </div>
-            <button id="favoriteBtn" class="btn-fav">
-                <span class="material-icons">favorite_border</span>
-            </button>
+            <div class="track-actions">
+                <button id="favoriteBtn" class="action-btn">
+                    <span class="material-icons">favorite_border</span>
+                </button>
+            </div>
         </div>
 
-        <!-- BAGIAN 3: PROGRESS BAR -->
-        <div class="progress-area">
-            <div class="progress-bar-container" id="progressContainer">
-                <div class="progress-bar" id="progressBar"></div>
+        <!-- Bagian Tengah: Lirik Lagu -->
+        <div id="lyricsContainer" class="lyrics-container">
+            <div id="lyricsWrapper" class="lyrics-wrapper"></div>
+        </div>
+
+        <!-- Bagian Kendali: Progress Bar & Tombol -->
+        <div class="controls-container">
+            <div id="progressContainer" class="progress-container">
+                <div id="progressBar" class="progress-bar"></div>
             </div>
             <div class="time-info">
                 <span id="currentTime">0:00</span>
                 <span id="duration">0:00</span>
             </div>
+
+            <div class="playback-buttons">
+                <button id="shuffleBtn" class="control-btn">
+                    <span class="material-icons">shuffle</span>
+                </button>
+                <button id="prevBtn" class="control-btn">
+                    <span class="material-icons">skip_previous</span>
+                </button>
+                <button id="playBtn" class="control-btn play-main">
+                    <span id="playIcon" class="material-icons">play_arrow</span>
+                </button>
+                <button id="nextBtn" class="control-btn">
+                    <span class="material-icons">skip_next</span>
+                </button>
+                <button id="repeatBtn" class="control-btn">
+                    <span class="material-icons">repeat</span>
+                </button>
+            </div>
+
+            <!-- Slider Volume -->
+            <div class="volume-container">
+                <span class="material-icons">volume_down</span>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+                <span class="material-icons">volume_up</span>
+            </div>
         </div>
 
-        <!-- BAGIAN 4: TOMBOL NAVIGASI UTAMA -->
-        <div class="controls-area">
-            <button id="shuffleBtn" class="btn-control">
-                <span class="material-icons">shuffle</span>
-            </button>
-            <button id="prevBtn" class="btn-control">
-                <span class="material-icons">skip_previous</span>
-            </button>
-            <button id="playBtn" class="btn-play-pause">
-                <span id="playIcon" class="material-icons">play_arrow</span>
-            </button>
-            <button id="nextBtn" class="btn-control">
-                <span class="material-icons">skip_next</span>
-            </button>
-            <button id="repeatBtn" class="btn-control">
-                <span class="material-icons">repeat</span>
-            </button>
+        <!-- Bagian Bawah: Playlist & Pencarian -->
+        <div class="playlist-section">
+            <div class="playlist-header">
+                <h3>Daftar Lagu</h3>
+                <button id="favoriteTabBtn" class="tab-btn">
+                    <span class="material-icons">favorite</span> Favorit
+                </button>
+            </div>
+            
+            <div class="search-container">
+                <span class="material-icons search-icon">search</span>
+                <input type="text" id="searchBar" placeholder="Cari judul lagu atau artis...">
+            </div>
+
+            <div id="playlist" class="playlist-container-list"></div>
         </div>
-
-        <!-- BAGIAN 5: KONTROL VOLUME -->
-        <div class="volume-area">
-            <span class="material-icons" style="font-size: 1.2rem;">volume_down</span>
-            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" class="volume-slider">
-            <span class="material-icons" style="font-size: 1.2rem;">volume_up</span>
-        </div>
-
-        <!-- BAGIAN 6: WADAH LIRIK DINAMIS -->
-        <div id="lyricsContainer" class="lyrics-container">
-            <div id="lyricsWrapper"></div>
-        </div>
-
-        <!-- BAGIAN 7: SEARCH BAR & DAFTAR PLAYLIST -->
-        <input type="text" id="searchBar" class="search-box" placeholder="Cari lagu atau artis...">
-        <div id="playlist" class="playlist-container"></div>
-
-        <!-- BAGIAN 8: WATERMARK HAFITZ -->
-        <div class="watermark">
-            Made with <span style="color: #e91e63;">❤️</span> by <a href="#" target="_blank">Hafitz</a>
-        </div>
-
     </div>
 
-    <!-- ELEMEN AUDIO TERSEMBUNYI -->
-    <audio id="mainAudio" crossorigin="anonymous"></audio>
-
-    <!-- HUBUNGKAN KEMBALI MEDIA SESSION API DAN APP.JS -->
-    <script src="media.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
