@@ -23,60 +23,70 @@
 
     <div class="player-container">
         
-        <div class="cover-wrapper">
-            <img id="trackCover" src="" alt="Cover Lagu">
-        </div>
+        <!-- ================================================================== -->
+        <!-- KELOMPOK KIRI: PEMUTAR UTAMA (UNTUK MODE HP MENYAMPING)            -->
+        <!-- ================================================================== -->
+        <div class="player-left-side">
+            <div class="cover-wrapper">
+                <img id="trackCover" src="" alt="Cover Lagu">
+            </div>
 
-        <div class="track-header">
-            <div class="track-info">
-                <div class="marquee-container">
-                    <h2 id="trackTitle">-</h2>
+            <div class="track-header">
+                <div class="track-info">
+                    <div class="marquee-container">
+                        <h2 id="trackTitle">-</h2>
+                    </div>
+                    <p id="trackArtist">-</p>
                 </div>
-                <p id="trackArtist">-</p>
+            </div>
+
+            <div class="progress-area">
+                <input type="range" id="progressBar" min="0" max="100" value="0" class="progress-slider">
+                <div class="time-info">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="controls-area">
+                <button id="shuffleBtn" class="btn-control">
+                    <span class="material-icons">shuffle</span>
+                </button>
+                <button id="prevBtn" class="btn-control">
+                    <span class="material-icons">skip_previous</span>
+                </button>
+                <button id="playBtn" class="btn-play-pause">
+                    <span id="playIcon" class="material-icons">play_arrow</span>
+                </button>
+                <button id="nextBtn" class="btn-control">
+                    <span class="material-icons">skip_next</span>
+                </button>
+                <button id="repeatBtn" class="btn-control">
+                    <span class="material-icons">repeat</span>
+                </button>
+            </div>
+
+            <div class="volume-area">
+                <span class="material-icons" style="font-size: 1.2rem;">volume_down</span>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" class="volume-slider">
+                <span class="material-icons" style="font-size: 1.2rem;">volume_up</span>
             </div>
         </div>
 
-        <div class="progress-area">
-            <input type="range" id="progressBar" min="0" max="100" value="0" class="progress-slider">
-            <div class="time-info">
-                <span id="currentTime">0:00</span>
-                <span id="duration">0:00</span>
+        <!-- ================================================================== -->
+        <!-- KELOMPOK KANAN: LIRIK & PLAYLIST (UNTUK MODE HP MENYAMPING)        -->
+        <!-- ================================================================== -->
+        <div class="player-right-side">
+            <div id="lyricsContainer" class="lyrics-container">
+                <div id="lyricsWrapper"></div>
             </div>
-        </div>
 
-        <div class="controls-area">
-            <button id="shuffleBtn" class="btn-control">
-                <span class="material-icons">shuffle</span>
-            </button>
-            <button id="prevBtn" class="btn-control">
-                <span class="material-icons">skip_previous</span>
-            </button>
-            <button id="playBtn" class="btn-play-pause">
-                <span id="playIcon" class="material-icons">play_arrow</span>
-            </button>
-            <button id="nextBtn" class="btn-control">
-                <span class="material-icons">skip_next</span>
-            </button>
-            <button id="repeatBtn" class="btn-control">
-                <span class="material-icons">repeat</span>
-            </button>
-        </div>
+            <input type="text" id="searchBar" class="search-box" placeholder="Cari lagu atau artis...">
+            <div id="playlist" class="playlist-container"></div>
 
-        <div class="volume-area">
-            <span class="material-icons" style="font-size: 1.2rem;">volume_down</span>
-            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" class="volume-slider">
-            <span class="material-icons" style="font-size: 1.2rem;">volume_up</span>
-        </div>
-
-        <div id="lyricsContainer" class="lyrics-container">
-            <div id="lyricsWrapper"></div>
-        </div>
-
-        <input type="text" id="searchBar" class="search-box" placeholder="Cari lagu atau artis...">
-        <div id="playlist" class="playlist-container"></div>
-
-        <div class="watermark">
-            Made with <span style="color: #e91e63;">❤️</span> by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
+            <div class="watermark">
+                Made with <span style="color: #e91e63;">❤️</span> by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
+            </div>
         </div>
 
     </div>
