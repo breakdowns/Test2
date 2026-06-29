@@ -463,4 +463,4 @@ audio.addEventListener('timeupdate', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-      
+          
