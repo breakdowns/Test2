@@ -4,9 +4,7 @@ const audio = document.getElementById('mainAudio'),
       prevBtn = document.getElementById('prevBtn'), 
       nextBtn = document.getElementById('nextBtn'), 
       shuffleBtn = document.getElementById('shuffleBtn'), 
-      repeatBtn = document.getElementById('repeatBtn'), 
-      favoriteBtn = document.getElementById('favoriteBtn'),
-      favoriteTabBtn = document.getElementById('favoriteTabBtn');
+      repeatBtn = document.getElementById('repeatBtn');
 
 const trackTitle = document.getElementById('trackTitle'), 
       trackArtist = document.getElementById('trackArtist'), 
@@ -17,13 +15,12 @@ const trackTitle = document.getElementById('trackTitle'),
       progressBar = document.getElementById('progressBar'), 
       currentTimeEl = document.getElementById('currentTime'), 
       durationEl = document.getElementById('duration'), 
-      volumeSlider = document.getElementById('volumeSlider'), 
-      playlistContainer = document.getElementById('playlist'), 
-      searchBar = document.getElementById('searchBar');
+      volumeSlider = document.getElementById('volumeSlider'),
+      searchBar = document.getElementById('searchBar'),
+      searchDropdown = document.getElementById('searchDropdown');
 
-let tracks = [], currentTracksDisplay = [], parsedLyrics = [];
-let currentIndex = 0, isShuffle = false, isRepeat = false, showOnlyFavorites = false;
-let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+let tracks = [], parsedLyrics = [];
+let currentIndex = 0, isShuffle = false, isRepeat = false;
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
@@ -189,30 +186,26 @@ function renderStaticLyrics(text) {
     }); 
 }
 
-function renderPlaylist(arr) {
-    playlistContainer.innerHTML = ''; 
-    arr.forEach((track) => {
-        const oIdx = tracks.findIndex(t => t.src === track.src), 
+function renderDropdownResults(filteredArr) {
+    searchDropdown.innerHTML = '';
+    if (filteredArr.length === 0) {
+        searchDropdown.innerHTML = '<div style="padding:10px;color:var(--text-muted);font-size:0.85rem;text-align:center;">Lagu tidak ditemukan</div>';
+        return;
+    }
+    filteredArr.forEach((track) => {
+        const oIdx = tracks.findIndex(t => t.src === track.src),
               item = document.createElement('div');
-        item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
+        item.className = `search-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
             initAudioContext();
             loadTrack(oIdx); 
             playAudioWithFade();
+            searchBar.value = '';
+            searchDropdown.classList.add('hidden');
         }); 
-        playlistContainer.appendChild(item);
+        searchDropdown.appendChild(item);
     });
-}
-
-function filterPlaylist() {
-    let filtered = tracks;
-    if (showOnlyFavorites) {
-        filtered = tracks.filter(t => favorites.includes(t.src));
-    }
-    const q = searchBar.value.toLowerCase();
-    currentTracksDisplay = filtered.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)); 
-    renderPlaylist(currentTracksDisplay);
 }
 
 function loadTrack(index) {
@@ -290,11 +283,6 @@ function loadTrack(index) {
         isChangingTrack = false;
     }
     
-    const isFav = favorites.includes(track.src);
-    favoriteBtn.classList.toggle('active', isFav); 
-    favoriteBtn.querySelector('.material-icons').textContent = isFav ? 'favorite' : 'favorite_border';
-    
-    renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
     updateMediaSession();
 
@@ -328,7 +316,6 @@ fetch('playlist.json')
     .then(res => res.json())
     .then(data => { 
         tracks = data.playlist; 
-        currentTracksDisplay = tracks; 
         const savedIndex = parseInt(localStorage.getItem('currentIndex')) || 0; 
         if (tracks.length > 0) loadTrack(savedIndex >= 0 && savedIndex < tracks.length ? savedIndex : 0); 
     });
@@ -363,28 +350,21 @@ audio.addEventListener('loadedmetadata', () => {
     }
 });
 
-searchBar.addEventListener('input', filterPlaylist);
+searchBar.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    if (q === '') {
+        searchDropdown.classList.add('hidden');
+        return;
+    }
+    const filtered = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+    renderDropdownResults(filtered);
+    searchDropdown.classList.remove('hidden');
+});
 
-if (favoriteTabBtn) {
-    favoriteTabBtn.addEventListener('click', () => {
-        showOnlyFavorites = !showOnlyFavorites;
-        favoriteTabBtn.classList.toggle('active', showOnlyFavorites);
-        filterPlaylist();
-    });
-}
-
-favoriteBtn.addEventListener('click', () => { 
-    const src = tracks[currentIndex].src; 
-    if (favorites.includes(src)) { 
-        favorites = favorites.filter(f => f !== src); 
-    } else { 
-        favorites.push(src); 
-    } 
-    const isFav = favorites.includes(src);
-    favoriteBtn.classList.toggle('active', isFav); 
-    favoriteBtn.querySelector('.material-icons').textContent = isFav ? 'favorite' : 'favorite_border'; 
-    localStorage.setItem('favorites', JSON.stringify(favorites)); 
-    if (showOnlyFavorites) filterPlaylist();
+document.addEventListener('click', (e) => {
+    if (!searchBar.contains(e.target) && !searchDropdown.contains(e.target)) {
+        searchDropdown.classList.add('hidden');
+    }
 });
 
 audio.addEventListener('error', () => {
@@ -461,4 +441,3 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                  
