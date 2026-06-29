@@ -181,7 +181,7 @@ function renderPlaylist(arr) {
     });
 }
 
-// FIX: Pemuatan Lagu Langsung Instan tanpa Timeout Penunda Audio
+// FIX FINAL: Mengembalikan pemuatan audio natural bawaan browser (Gak pakai .load() hantu)
 function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
@@ -211,10 +211,8 @@ function loadTrack(index) {
     lyricsContainer.scrollTop = 0;
     lyricsWrapper.innerHTML = ''; 
     
-    // LANGSUNG DI-LOAD DETIK INI JUGA (ANTI-DELAY AWAL LAGU)
-    audio.crossOrigin = "anonymous";
+    // Aliran data natural, langsung play instan tanpa paksaan .load()
     audio.src = track.src;
-    audio.load();
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -443,4 +441,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
+      
