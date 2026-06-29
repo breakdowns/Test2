@@ -56,11 +56,11 @@ function updateMediaSession() {
     if ('mediaSession' in navigator) {
         const track = tracks[currentIndex];
         navigator.mediaSession.metadata = new MediaMetadata({
-            title: track.title,
-            artist: track.artist,
+            title: track.title || "Unknown Title",
+            artist: track.artist || "Unknown Artist",
             album: 'Breakdowns Music',
             artwork: [
-                { src: track.cover, sizes: '512x512', type: 'image/jpeg' }
+                { src: track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png", sizes: '512x512', type: 'image/jpeg' }
             ]
         });
 
@@ -191,7 +191,13 @@ function renderPlaylist(arr) {
         const oIdx = tracks.findIndex(t => t.src === track.src), 
               item = document.createElement('div');
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
-        item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
+        
+        // Proteksi playlist untuk fallback nama/gambar kosong
+        const displayTitle = track.title || "Unknown Title";
+        const displayArtist = track.artist || "Unknown Artist";
+        const displayCover = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
+        
+        item.innerHTML = `<img src="${displayCover}" onerror="this.src='https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png'"><div><strong>${displayTitle}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${displayArtist}</small></div>`;
         item.addEventListener('click', () => { 
             initAudioContext();
             loadTrack(oIdx); 
@@ -221,9 +227,10 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    trackTitle.textContent = track.title; 
-    trackArtist.textContent = track.artist; 
-    trackCover.src = track.cover; 
+    // FEATURE 1: Fallback jika title atau artist kosong di playlist.json
+    trackTitle.textContent = track.title || "Unknown Title"; 
+    trackArtist.textContent = track.artist || "Unknown Artist"; 
+    trackCover.src = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png"; 
     
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
@@ -269,7 +276,7 @@ function loadTrack(index) {
     }
     
     renderPlaylist(currentTracksDisplay); 
-    updateDynamicBackground(track.cover);
+    updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
     updateMediaSession();
 
     setTimeout(() => {
@@ -341,7 +348,7 @@ audio.addEventListener('loadedmetadata', () => {
 
 searchBar.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase(); 
-    currentTracksDisplay = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)); 
+    currentTracksDisplay = tracks.filter(t => (t.title && t.title.toLowerCase().includes(q)) || (t.artist && t.artist.toLowerCase().includes(q))); 
     renderPlaylist(currentTracksDisplay); 
 });
 
@@ -350,6 +357,11 @@ audio.addEventListener('error', () => {
     trackTitle.classList.remove('shimmer-loading');
     trackArtist.classList.remove('shimmer-loading');
     trackCover.classList.remove('shimmer-loading');
+});
+
+// FEATURE 2: Penanganan Broken Cover menggunakan link breakdowns.png
+trackCover.addEventListener('error', () => {
+    trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
 });
 
 playBtn.addEventListener('click', () => { 
@@ -415,4 +427,3 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-          
