@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breakdowns Music</title>
+    
     <meta name="theme-color" content="#121212">
+    <!-- Hubungkan ke Manifest PWA -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- OPEN GRAPH (OG) METADATA FOR SOCIAL MEDIA SHARING -->
     <meta property="og:title" content="Hafitz | Playlist">
     <meta property="og:site_name" content="Breakdowns Music">
     <meta property="og:description" content="The ultimate Metalcore playlist featuring the heaviest, hardest-hitting breakdowns. Press play and get ready to open up the pit!">
     <meta property="og:type" content="music.playlist">
     <meta property="music:genre" content="Metalcore" />
     <meta property="og:image" content="https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png">
+
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -19,10 +25,12 @@
 
     <div class="player-container">
         
+        <!-- BAGIAN 1: COVER LAGU -->
         <div class="cover-wrapper">
             <img id="trackCover" src="" alt="Cover Lagu">
         </div>
 
+        <!-- BAGIAN 2: INFORMASI JUDUL -->
         <div class="track-header">
             <div class="track-info">
                 <div class="marquee-container">
@@ -32,6 +40,7 @@
             </div>
         </div>
 
+        <!-- BAGIAN 3: PROGRESS BAR -->
         <div class="progress-area">
             <div class="progress-bar-container" id="progressContainer">
                 <div class="progress-bar" id="progressBar"></div>
@@ -42,6 +51,7 @@
             </div>
         </div>
 
+        <!-- BAGIAN 4: TOMBOL NAVIGASI UTAMA -->
         <div class="controls-area">
             <button id="shuffleBtn" class="btn-control">
                 <span class="material-icons">shuffle</span>
@@ -60,6 +70,7 @@
             </button>
         </div>
 
+        <!-- BAGIAN 5: KONTROL VOLUME -->
         <div class="volume-area">
             <span class="material-icons" style="font-size: 1.2rem;">volume_down</span>
             <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" class="volume-slider">
@@ -73,6 +84,7 @@
         <input type="text" id="searchBar" class="search-box" placeholder="Cari lagu atau artis...">
         <div id="playlist" class="playlist-container"></div>
 
+        <!-- BAGIAN 8: WATERMARK HAFITZ -->
         <div class="watermark">
             Made with <span style="color: #e91e63;">❤️</span> by <a href="https://hafitz.eu.org" target="_blank">Hafitz</a>
         </div>
@@ -83,5 +95,12 @@
 
     <script src="media.js"></script>
     <script src="app.js"></script>
+
+    <!-- Registrasi Service Worker PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Error:', err));
+        }
+    </script>
 </body>
 </html>
