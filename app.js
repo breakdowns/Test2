@@ -25,26 +25,10 @@ let currentIndex = 0, isShuffle = false, isRepeat = false;
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
 
-let audioCtx = null, gainNode = null, sourceNode = null;
-
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
-
-function initAudioContext() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        gainNode = audioCtx.createGain();
-        sourceNode = audioCtx.createMediaElementSource(audio);
-        sourceNode.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-}
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
@@ -65,20 +49,17 @@ function updateMediaSession() {
         });
 
         navigator.mediaSession.setActionHandler('play', () => {
-            initAudioContext();
             playAudioWithFade();
         });
         navigator.mediaSession.setActionHandler('pause', () => {
             pauseAudioWithFade();
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            initAudioContext();
             let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
             loadTrack(p); 
             playAudioWithFade();
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            initAudioContext();
             playNextTrack();
         });
 
@@ -108,28 +89,16 @@ function updateMediaSessionState() {
     }
 }
 
+// Menggunakan jalur hardware native direct stream agar loss anti-macet di latar belakang
 function playAudioWithFade() {
-    initAudioContext();
     audio.play().then(() => {
         playIcon.textContent = 'pause';
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
     });
 }
 
 function pauseAudioWithFade() {
-    if (audioCtx) {
-        gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
-        setTimeout(() => {
-            if (audio.paused) return;
-            audio.pause();
-            playIcon.textContent = 'play_arrow';
-        }, 200);
-    } else {
-        audio.pause();
-        playIcon.textContent = 'play_arrow';
-    }
+    audio.pause();
+    playIcon.textContent = 'play_arrow';
 }
 
 function updateDynamicBackground(src) {
@@ -193,7 +162,6 @@ function renderPlaylist(arr) {
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
-            initAudioContext();
             loadTrack(oIdx); 
             playAudioWithFade();
         }); 
@@ -208,10 +176,6 @@ function loadTrack(index) {
     trackTitle.classList.add('shimmer-loading');
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
-    
-    if (audioCtx) {
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    }
     
     audio.pause();
     audio.src = "";
@@ -272,6 +236,7 @@ function loadTrack(index) {
     updateDynamicBackground(track.cover);
     updateMediaSession();
 
+    // Kalkulasi presisi agar jalan marquee pas dan tidak kejauhan
     setTimeout(() => {
         const trackTitleEl = document.getElementById('trackTitle');
         const trackInfoEl = document.querySelector('.track-info');
@@ -320,7 +285,6 @@ audio.addEventListener('canplay', () => {
 });
 
 audio.addEventListener('playing', () => {
-    initAudioContext();
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
@@ -353,17 +317,14 @@ audio.addEventListener('error', () => {
 });
 
 playBtn.addEventListener('click', () => { 
-    initAudioContext();
     audio.paused ? playAudioWithFade() : pauseAudioWithFade();
 });
 
 nextBtn.addEventListener('click', () => {
-    initAudioContext();
     playNextTrack();
 });
 
 prevBtn.addEventListener('click', () => { 
-    initAudioContext();
     let p = currentIndex - 1; 
     if (p < 0) p = tracks.length - 1; 
     loadTrack(p); 
@@ -415,4 +376,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                  
+      
