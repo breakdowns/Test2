@@ -28,7 +28,7 @@ body {
     color: var(--text-main);
     display: flex;
     justify-content: center;
-    align-items: center; /* Tetap mengunci di tengah vertikal yang seimbang */
+    align-items: center; 
     min-height: 100vh;
     padding: 24px 12px;
     transition: background 0.8s ease;
@@ -37,13 +37,21 @@ body {
 }
 
 /* ==========================================================================
-   LAYOUT UTAMA (DEFAULT): UNTUK HP PORTRAIT BIASA & MODE SITUS DESKTOP DI HP
+   LAYOUT UTAMA (DEFAULT): UNTUK HP PORTRAIT & MODE SITUS DESKTOP DI HP
    ========================================================================== */
+/* Memaksa elemen pembungkus luar apa pun ikut melar agar container di dalamnya tidak tercekik */
+main, body > div:not(.player-container) {
+    width: 100%;
+    max-width: 580px !important;
+    display: flex;
+    justify-content: center;
+}
+
 .player-container {
     background-color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    width: 94%;
-    max-width: 580px; /* SETELAN KUNCI: Membuat kontainer di HP otomatis melar jumbo sampai 580px */
+    width: 94% !important;
+    max-width: 580px !important; /* UKURAN EMAS: Pas padat di mode Situs Desktop HP */
     border-radius: 16px;
     padding: 28px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
@@ -134,12 +142,15 @@ body {
    LAYOUT DUA KOLOM HORIZONTAL (KHUSUS PC / LAPTOP / BOT SCREENSHOT TELEGRAM)
    ========================================================================== */
 @media (orientation: landscape) {
-    /* Hanya aktif jika aspek rasio layar melebar ke samping (PC asli / Bot) */
+    main, body > div:not(.player-container) {
+        max-width: 850px !important;
+    }
+
     .player-container {
-        width: 90%;
-        max-width: 850px; 
+        width: 90% !important;
+        max-width: 850px !important; 
         padding: 30px;
-        display: grid;
+        display: grid !important;
         grid-template-columns: 1.2fr 1fr; 
         gap: 32px;
     }
@@ -166,7 +177,7 @@ body {
     
     .cover-wrapper { 
         grid-area: header; 
-        max-width: 100px; 
+        max-width: 100px !important; 
         margin: 0; 
     }
     
@@ -207,7 +218,7 @@ body {
 }
 
 /* ==========================================================================
-   COMMON STYLES & AUDIO AUDIO CONTROL
+   COMMON STYLES & AUDIO CONTROL
    ========================================================================== */
 @keyframes marqueeDinamis {
     0% { transform: translate3d(0, 0, 0); }
@@ -405,4 +416,42 @@ body {
 }
 
 @keyframes shimmer { 100% { transform: translateX(100%); } }
-    
+
+/* ==========================================================================
+   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE FISIK ASLI)
+   ========================================================================== */
+@media (max-height: 500px) and (orientation: landscape) {
+    body { align-items: flex-start; padding: 12px; }
+    main, body > div:not(.player-container) { max-width: 100% !important; }
+    .player-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1.2fr 1fr; 
+        gap: 24px;
+        padding: 20px !important;
+        height: auto;
+    }
+    .player-left-side {
+        display: grid;
+        grid-template-areas: "header" "progress" "controls" "volume";
+        justify-content: stretch;
+        gap: 12px;
+    }
+    .track-header { grid-area: header; display: flex; align-items: center; gap: 16px; margin-bottom: 0; width: 100%; }
+    .cover-wrapper { grid-area: header; max-width: 80px !important; margin: 0; }
+    .track-info { padding-left: 96px; width: 100%; }
+    .track-info h2 { font-size: 1.2rem !important; text-align: left !important; }
+    .track-info p { font-size: 0.9rem !important; text-align: left !important; }
+    .progress-area { grid-area: progress; margin-bottom: 0; }
+    .controls-area { grid-area: controls; margin-bottom: 0; }
+    .btn-play-pause { width: 44px; height: 44px; }
+    .btn-play-pause .material-icons { font-size: 1.8rem; }
+    .volume-area { grid-area: volume; margin-bottom: 0; }
+    .player-right-side { display: flex; flex-direction: column; }
+    .lyrics-container { max-height: 110px !important; min-height: 110px !important; margin-bottom: 10px; }
+    .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
+    .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
+    .watermark { margin-top: 12px; }
+    }
+        
