@@ -16,13 +16,11 @@
     font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 }
 
-/* FIX STATUS BAR: Mengunci warna dasar html agar dibaca hitam pekat oleh browser */
 html {
     background-color: #121212 !important; 
     min-height: 100%;
 }
 
-/* FIX STATUS BAR: Menambahkan background-color dasar sebelum gradasi dimuat */
 body {
     background-color: #121212 !important; 
     background: linear-gradient(to bottom, rgb(var(--dynamic-r), var(--dynamic-g), var(--dynamic-b)) 0%, var(--background-base) 40%);
@@ -155,7 +153,6 @@ body {
 
 .controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 
-/* FIX ANTI-DARKMODE UNTUK TOMBOL NAVIGASI KECIL */
 .btn-control { 
     background: none !important; 
     border: none !important; 
@@ -173,7 +170,6 @@ body {
 .btn-control:active { transform: scale(0.95); }
 .btn-control.active { color: var(--spotify-green); }
 
-/* BENTENG PROTEKSI UTAMA: Tombol Play Putih Semu (Stabil di Chrome & Brave) */
 .btn-play-pause {
     background-color: #fefffe !important; 
     filter: invert(0) !important;
@@ -213,26 +209,15 @@ body {
 
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; }
+.volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
 
-/* BENTENG PROTEKSI UTAMA: Bulatan Slider Putih Semu (Stabil di Chrome & Brave) */
-.volume-slider::-webkit-slider-thumb { 
-    -webkit-appearance: none; 
-    appearance: none;
-    width: 12px; 
-    height: 12px; 
-    border-radius: 50%; 
-    background: #fefffe !important; 
-    color-scheme: only light !important; 
-    forced-color-adjust: none !important;
-    filter: invert(0) !important;
-    -webkit-filter: invert(0) !important;
-}
-
+/* FIX SCROLL LIRIK MANUAL & SEMBUNYIKAN SCROLLBAR BAWAAN */
 .lyrics-container {
     position: relative;
     max-height: 160px;
     min-height: 160px;
-    overflow-y: hidden;
+    overflow-y: auto; /* Diubah jadi auto agar user bisa mengscroll manual bait lirik */
+    -webkit-overflow-scrolling: touch;
     margin-bottom: 20px;
     padding: 0 12px;
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
@@ -240,6 +225,15 @@ body {
     opacity: 1;
     transition: opacity 0.3s ease-in-out; 
     will-change: opacity;
+}
+
+/* Sembunyikan batang scrollbar jelek agar lirik terlihat melayang rapi */
+.lyrics-container::-webkit-scrollbar {
+    display: none;
+}
+.lyrics-container {
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
 }
 
 #lyricsWrapper { 
@@ -304,9 +298,6 @@ body {
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
 
-/* ==========================================
-   SHIMMER LOAD EFFECT (FIXED ANTI-GAIB)
-   ========================================== */
 .shimmer-loading {
     position: relative;
     overflow: hidden;
@@ -335,4 +326,4 @@ body {
 
 @keyframes shimmer {
     100% { transform: translateX(100%); }
-        }
+    }
