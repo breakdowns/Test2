@@ -32,6 +32,11 @@ audio.volume = savedVolume;
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
+function isFirefoxAndroid() {
+    const ua = navigator.userAgent;
+    return /Android/i.test(ua) && /Firefox/i.test(ua);
+}
+
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
     const m = Math.floor(s / 60), sec = Math.floor(s % 60); 
@@ -39,7 +44,7 @@ function formatTime(s) {
 }
 
 function updateMediaSession() {
-    if ('mediaSession' in navigator) {
+    if ('mediaSession' in navigator && !isFirefoxAndroid()) {
         const track = tracks[currentIndex];
         navigator.mediaSession.metadata = new MediaMetadata({
             title: track.title,
@@ -66,7 +71,7 @@ function updateMediaSession() {
 }
 
 function updateMediaSessionState() {
-    if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
+    if ('mediaSession' in navigator && !isFirefoxAndroid() && audio.duration && !isNaN(audio.duration)) {
         navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
         try {
             navigator.mediaSession.setPositionState({
@@ -149,6 +154,8 @@ function renderPlaylist(arr) {
 function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
+    
+    audio.muted = true;
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -249,6 +256,7 @@ audio.addEventListener('canplay', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
     }
+    audio.muted = false;
 });
 
 audio.addEventListener('playing', () => {
@@ -257,6 +265,7 @@ audio.addEventListener('playing', () => {
         durationEl.textContent = lastKnownDurationText;
     }
     updateMediaSessionState();
+    audio.muted = false;
 });
 
 audio.addEventListener('pause', () => {
@@ -291,6 +300,7 @@ favoriteBtn.addEventListener('click', () => {
 
 audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
+    audio.muted = false;
 });
 
 playBtn.addEventListener('click', () => { 
@@ -350,4 +360,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-      
+                  
