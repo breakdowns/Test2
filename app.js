@@ -148,6 +148,7 @@ function renderLyrics() {
     }); 
 }
 
+// Fungsi render lirik statis jika file lrc berupa teks biasa
 function renderStaticLyrics(text) { 
     text.split('\n').forEach(l => { 
         const c = l.replace(/\[.*?\]/g, '').trim(); 
@@ -192,7 +193,12 @@ function loadTrack(index) {
     
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
+    
+    // UPDATE METADATA DAN KUNCI STATUS BIAR NOTIFIKASI TIDAK BERKEDIP/HILANG
     updateMediaSession();
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+    }
 
     audio.pause();
 
@@ -439,4 +445,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
+                                               
