@@ -1,3 +1,8 @@
+// DETEKSI LAYAR FISIK: Mencegah fitur "Situs Desktop" Chrome Android merusak layout HP
+if (window.screen.width < 768) {
+    document.body.classList.add('is-mobile');
+}
+
 const audio = document.getElementById('mainAudio'), 
       playBtn = document.getElementById('playBtn'), 
       playIcon = document.getElementById('playIcon'), 
@@ -181,7 +186,6 @@ function renderPlaylist(arr) {
     });
 }
 
-// FIX FINAL: Reset total element audio bawaan HP agar hilangkan delay streaming MP3 berat
 function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
@@ -192,10 +196,9 @@ function loadTrack(index) {
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
-    // Matikan pemutaran aktif saat ini
     audio.pause();
     
-    // SENJATA PAMUNGKAS: Kosongkan jalur dan bersihkan atribut src lama agar Android membuang cache sisa trek
+    // Reset total jalur audio bawaan HP agar memori cache tidak tersendat (Fix Delay)
     audio.src = "";
     audio.removeAttribute('src');
 
@@ -216,7 +219,6 @@ function loadTrack(index) {
     lyricsContainer.scrollTop = 0;
     lyricsWrapper.innerHTML = ''; 
     
-    // Masukkan trek baru ke dalam instans elemen audio yang sudah steril
     audio.crossOrigin = "anonymous";
     audio.src = track.src;
     
@@ -446,3 +448,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
+              
