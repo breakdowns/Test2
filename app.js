@@ -26,8 +26,13 @@ let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
 let fadeTimeout = null; 
 
-// Kita tetap deklarasikan untuk fitur fade out saat pause agar tidak memicu bug letupan browser
 let audioCtx = null, gainNode = null, sourceNode = null;
+
+// FIX VOLUME ABU-ABU: Ambil volume lama, lalu paksa warnai pakai HEX warna langsung agar langsung ijo pas refresh
+const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 1; 
+audio.volume = savedVolume; 
+volumeSlider.value = savedVolume; 
+volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
 function initAudioContext() {
     if (!audioCtx) {
@@ -107,11 +112,9 @@ function updateMediaSessionState() {
     }
 }
 
-// OPTIMASI UTAMA: Mainkan langsung lewat HTML5 Audio Engine bawaan browser agar super ringan di background
 function playAudioDirectly() {
     if (fadeTimeout) clearTimeout(fadeTimeout);
     
-    // Jika AudioContext sudah aktif, kembalikan volume gain ke tingkat normal penuh (1) secara instan
     if (gainNode && audioCtx) {
         gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
     }
@@ -120,14 +123,12 @@ function playAudioDirectly() {
         playIcon.textContent = 'pause';
         updateMediaSessionState();
     }).catch(e => {
-        // Fallback jika browser meminta interaksi user terlebih dahulu
         initAudioContext();
         audio.play().then(() => { playIcon.textContent = 'pause'; });
     });
 }
 
 function pauseAudioWithFade() {
-    // Jalankan inisialisasi context hanya saat pause untuk melakukan transisi peredaman suara
     initAudioContext();
     
     if (audioCtx && gainNode) {
@@ -149,7 +150,7 @@ function pauseAudioWithFade() {
 }
 
 function updateDynamicBackground(src) {
-    if (document.hidden) return; // Jangan memproses olah gambar canvas jika browser sedang di-minimize
+    if (document.hidden) return; 
     const img = new Image(); 
     img.crossOrigin = "Anonymous"; 
     img.src = src;
@@ -398,14 +399,13 @@ volumeSlider.addEventListener('input', (e) => {
     const v = e.target.value; 
     audio.volume = v; 
     localStorage.setItem('volume', v); 
-    volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${v * 100}%, #4f4f4f ${v * 100}%)`; 
+    volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
-    // OPTIMASI BACKGROUND: Stop render teks waktu dan pergeseran transformasi lirik jika sedang di-minimize
     if (document.hidden) return;
 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
