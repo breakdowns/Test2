@@ -245,18 +245,24 @@ body {
     text-align: center; 
 }
 
+/* FITUR 1: Visual Lirik Premium dengan Transisi Halus & Blur Efek */
 .lyric-line { 
     font-size: 1.05rem; 
     font-weight: 700; 
     color: rgba(255, 255, 255, 0.25); 
     padding: 10px 0; 
     cursor: pointer; 
-    transition: color 0.3s, transform 0.3s; 
+    transition: color 0.3s ease, transform 0.3s ease, filter 0.3s ease; 
     white-space: normal; 
     word-wrap: break-word; 
     overflow-wrap: break-word; 
+    filter: blur(0.5px);
 }
-.lyric-line.active { color: var(--text-main); transform: scale(1.05); }
+.lyric-line.active { 
+    color: var(--text-main); 
+    transform: scale(1.05); 
+    filter: blur(0px);
+}
 
 .search-box { 
     width: 100%; 
