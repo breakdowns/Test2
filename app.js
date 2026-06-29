@@ -181,7 +181,7 @@ function renderPlaylist(arr) {
     });
 }
 
-// FIX FINAL: Mengembalikan pemuatan audio natural bawaan browser (Gak pakai .load() hantu)
+// FIX FINAL: Reset total element audio bawaan HP agar hilangkan delay streaming MP3 berat
 function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
@@ -192,7 +192,12 @@ function loadTrack(index) {
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
+    // Matikan pemutaran aktif saat ini
     audio.pause();
+    
+    // SENJATA PAMUNGKAS: Kosongkan jalur dan bersihkan atribut src lama agar Android membuang cache sisa trek
+    audio.src = "";
+    audio.removeAttribute('src');
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -211,7 +216,8 @@ function loadTrack(index) {
     lyricsContainer.scrollTop = 0;
     lyricsWrapper.innerHTML = ''; 
     
-    // Aliran data natural, langsung play instan tanpa paksaan .load()
+    // Masukkan trek baru ke dalam instans elemen audio yang sudah steril
+    audio.crossOrigin = "anonymous";
     audio.src = track.src;
     
     const currentTrackSrc = track.src;
@@ -310,7 +316,6 @@ audio.addEventListener('loadedmetadata', () => {
     }
 });
 
-// OPTIMASI SEACHBAR: Ditambahkan .trim() Agar Toleran terhadap Spasi Kosong Tidak Sengaja
 searchBar.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase().trim(); 
     currentTracksDisplay = tracks.filter(t => (t.title && t.title.toLowerCase().includes(q)) || (t.artist && t.artist.toLowerCase().includes(q))); 
@@ -441,4 +446,3 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-      
