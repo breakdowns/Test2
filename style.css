@@ -72,9 +72,6 @@ body {
     object-fit: cover;
 }
 
-/* ==========================================
-   TRACK INFO & MARQUEE SPOTIFY (UPDATED)
-   ========================================== */
 .track-header { 
     display: flex; 
     justify-content: space-between; 
@@ -154,15 +151,33 @@ body {
 }
 
 .controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.btn-control { background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s, transform 0.1s; }
+
+/* FIX MUTLAK ANTI DARK-MODE FORCE PADA TOMBOL NAVIGASI */
+.btn-control { 
+    background: none !important; 
+    border: none !important; 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: color 0.2s, transform 0.1s; 
+    forced-color-adjust: none !important; 
+    filter: invert(0) !important; 
+    -webkit-filter: invert(0) !important;
+}
 .btn-control:hover { color: var(--text-main); }
 .btn-control:active { transform: scale(0.95); }
 .btn-control.active { color: var(--spotify-green); }
 
+/* FIX MUTLAK ANTI DARK-MODE FORCE PADA PLAY BUTTON */
 .btn-play-pause {
-    background-color: #ffffff !important;
+    background-color: #fefffe !important; /* Putih semu agar terhindar dari pembalikan otomatis */
+    filter: invert(0) !important;
+    -webkit-filter: invert(0) !important;
     color: #121212 !important;
     color-scheme: only light !important;
+    forced-color-adjust: none !important;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -174,11 +189,18 @@ body {
     cursor: pointer;
     transition: background-color 0.2s ease; 
 }
-.btn-play-pause .material-icons { font-size: 2.2rem; color: #121212 !important; color-scheme: only light !important; }
+.btn-play-pause .material-icons { 
+    font-size: 2.2rem; 
+    color: #121212 !important; 
+    filter: invert(0) !important;
+    -webkit-filter: invert(0) !important;
+    color-scheme: only light !important; 
+    forced-color-adjust: none !important;
+}
 
 @media (hover: hover) {
     .btn-play-pause:hover { 
-        background-color: #ffffff; 
+        background-color: #fefffe; 
         transform: scale(1.05); 
     }
 }
@@ -187,8 +209,8 @@ body {
 }
 
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
-.volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; }
-.volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); }
+.volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; }
+.volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
 
 .lyrics-container {
     position: relative;
@@ -249,9 +271,6 @@ body {
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; transition: filter 0.2s; }
 .watermark a:hover { filter: brightness(1.2); text-decoration: underline !important; }
 
-/* ==========================================
-   SHIMMER LOAD EFFECT
-   ========================================== */
 .shimmer-loading {
     position: relative;
     overflow: hidden;
@@ -275,4 +294,4 @@ body {
 }
 @keyframes shimmer {
     100% { transform: translateX(100%); }
-    }
+}
