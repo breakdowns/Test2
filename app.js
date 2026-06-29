@@ -24,6 +24,7 @@ let currentIndex = 0, isShuffle = false, isRepeat = false;
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
+let fadeTimeout = null; // Penjaga antrian klik spam agar tombol tidak macet gantung
 
 let audioCtx = null, gainNode = null, sourceNode = null;
 
@@ -110,6 +111,9 @@ function updateMediaSessionState() {
 
 function playAudioWithFade() {
     initAudioContext();
+    // Batalkan sisa antrian perintah pause dari klik spam sebelumnya jika ada
+    if (fadeTimeout) clearTimeout(fadeTimeout);
+    
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
@@ -119,12 +123,17 @@ function playAudioWithFade() {
 
 function pauseAudioWithFade() {
     if (audioCtx) {
+        // Batalkan sisa antrian lama sebelum membuat antrian penundaan baru
+        if (fadeTimeout) clearTimeout(fadeTimeout);
+        
         gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
         gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
-        setTimeout(() => {
+        
+        fadeTimeout = setTimeout(() => {
             if (audio.paused) return;
             audio.pause();
             playIcon.textContent = 'play_arrow';
+            fadeTimeout = null; // Reset status antrian setelah sukses dieksekusi
         }, 200);
     } else {
         audio.pause();
@@ -192,7 +201,7 @@ function renderPlaylist(arr) {
               item = document.createElement('div');
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         
-        // Proteksi playlist untuk fallback nama/gambar kosong
+        // Proteksi playlist untuk fallback data kosong
         const displayTitle = track.title || "Unknown Title";
         const displayArtist = track.artist || "Unknown Artist";
         const displayCover = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
@@ -227,7 +236,7 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    // FEATURE 1: Fallback jika title atau artist kosong di playlist.json
+    // Fallback jika judul atau nama artis kosong di berkas json
     trackTitle.textContent = track.title || "Unknown Title"; 
     trackArtist.textContent = track.artist || "Unknown Artist"; 
     trackCover.src = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png"; 
@@ -359,7 +368,7 @@ audio.addEventListener('error', () => {
     trackCover.classList.remove('shimmer-loading');
 });
 
-// FEATURE 2: Penanganan Broken Cover menggunakan link breakdowns.png
+// Penanganan Broken Cover menggunakan berkas breakdowns.png pilihanmu
 trackCover.addEventListener('error', () => {
     trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
 });
@@ -427,3 +436,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
+                                                
