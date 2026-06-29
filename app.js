@@ -89,16 +89,42 @@ function updateMediaSessionState() {
     }
 }
 
-// Menggunakan jalur hardware native direct stream agar loss anti-macet di latar belakang
+// Trik peredam suara 'tet' instan tanpa Web Audio API
 function playAudioWithFade() {
+    const targetVol = parseFloat(localStorage.getItem('volume') || 1);
+    audio.volume = 0;
     audio.play().then(() => {
         playIcon.textContent = 'pause';
+        // Fade in sangat cepat menggunakan interval bawaan (aman & enteng)
+        let v = 0;
+        const fIn = setInterval(() => {
+            v += 0.2;
+            if (v >= targetVol) {
+                audio.volume = targetVol;
+                clearInterval(fIn);
+            } else {
+                audio.volume = v;
+            }
+        }, 10);
     });
 }
 
 function pauseAudioWithFade() {
-    audio.pause();
-    playIcon.textContent = 'play_arrow';
+    const startVol = audio.volume;
+    let v = startVol;
+    // Turunkan volume ke 0 dengan cepat dalam waktu ~40ms sebelum klik pause dieksekusi
+    const fOut = setInterval(() => {
+        v -= 0.2;
+        if (v <= 0) {
+            audio.volume = 0;
+            clearInterval(fOut);
+            audio.pause();
+            playIcon.textContent = 'play_arrow';
+            audio.volume = startVol; // Kembalikan nilai aslinya setelah pause
+        } else {
+            audio.volume = v;
+        }
+    }, 10);
 }
 
 function updateDynamicBackground(src) {
@@ -236,7 +262,6 @@ function loadTrack(index) {
     updateDynamicBackground(track.cover);
     updateMediaSession();
 
-    // Kalkulasi presisi agar jalan marquee pas dan tidak kejauhan
     setTimeout(() => {
         const trackTitleEl = document.getElementById('trackTitle');
         const trackInfoEl = document.querySelector('.track-info');
@@ -376,4 +401,3 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-      
