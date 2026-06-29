@@ -24,23 +24,23 @@ let currentIndex = 0, isShuffle = false, isRepeat = false;
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
-let fadeTimeout = null; // Penjaga antrian klik spam agar tombol tidak macet gantung
+let fadeTimeout = null; 
 
+// Kita tetap deklarasikan untuk fitur fade out saat pause agar tidak memicu bug letupan browser
 let audioCtx = null, gainNode = null, sourceNode = null;
-
-const savedVolume = localStorage.getItem('volume') || 1; 
-audio.volume = savedVolume; 
-volumeSlider.value = savedVolume; 
-volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
 function initAudioContext() {
     if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        gainNode = audioCtx.createGain();
-        sourceNode = audioCtx.createMediaElementSource(audio);
-        sourceNode.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            gainNode = audioCtx.createGain();
+            sourceNode = audioCtx.createMediaElementSource(audio);
+            sourceNode.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+        } catch (e) {
+            console.log("AudioContext tidak didukung atau diblokir");
+        }
     }
     if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
@@ -66,15 +66,12 @@ function updateMediaSession() {
         });
 
         navigator.mediaSession.setActionHandler('play', () => {
-            initAudioContext();
-            playAudioWithFade();
+            playAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('pause', () => {
             pauseAudioWithFade();
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            initAudioContext();
-            // OPTIMASI: Tombol Prev di notifikasi mendengarkan status Shuffle
             if (isShuffle) {
                 let n = Math.floor(Math.random() * tracks.length);
                 loadTrack(n);
@@ -82,21 +79,15 @@ function updateMediaSession() {
                 let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
                 loadTrack(p); 
             }
-            playAudioWithFade();
+            playAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            initAudioContext();
-            // OPTIMASI: Tombol Next di notifikasi mendengarkan status Shuffle via playNextTrack
             playNextTrack();
         });
 
         try {
             navigator.mediaSession.setActionHandler('seekto', (details) => {
-                if (details.fastSeek && 'fastSeek' in audio) {
-                    audio.fastSeek(details.seekTime);
-                } else {
-                    audio.currentTime = details.seekTime;
-                }
+                audio.currentTime = details.seekTime;
                 updateMediaSessionState();
             });
         } catch (e) {}
@@ -116,30 +107,41 @@ function updateMediaSessionState() {
     }
 }
 
-function playAudioWithFade() {
-    initAudioContext();
+// OPTIMASI UTAMA: Mainkan langsung lewat HTML5 Audio Engine bawaan browser agar super ringan di background
+function playAudioDirectly() {
     if (fadeTimeout) clearTimeout(fadeTimeout);
+    
+    // Jika AudioContext sudah aktif, kembalikan volume gain ke tingkat normal penuh (1) secara instan
+    if (gainNode && audioCtx) {
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+    }
     
     audio.play().then(() => {
         playIcon.textContent = 'pause';
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
+        updateMediaSessionState();
+    }).catch(e => {
+        // Fallback jika browser meminta interaksi user terlebih dahulu
+        initAudioContext();
+        audio.play().then(() => { playIcon.textContent = 'pause'; });
     });
 }
 
 function pauseAudioWithFade() {
-    if (audioCtx) {
+    // Jalankan inisialisasi context hanya saat pause untuk melakukan transisi peredaman suara
+    initAudioContext();
+    
+    if (audioCtx && gainNode) {
         if (fadeTimeout) clearTimeout(fadeTimeout);
         
         gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
         
         fadeTimeout = setTimeout(() => {
             if (audio.paused) return;
             audio.pause();
             playIcon.textContent = 'play_arrow';
             fadeTimeout = null;
-        }, 200);
+        }, 150);
     } else {
         audio.pause();
         playIcon.textContent = 'play_arrow';
@@ -147,6 +149,7 @@ function pauseAudioWithFade() {
 }
 
 function updateDynamicBackground(src) {
+    if (document.hidden) return; // Jangan memproses olah gambar canvas jika browser sedang di-minimize
     const img = new Image(); 
     img.crossOrigin = "Anonymous"; 
     img.src = src;
@@ -212,9 +215,8 @@ function renderPlaylist(arr) {
         
         item.innerHTML = `<img src="${displayCover}" onerror="this.src='https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png'"><div><strong>${displayTitle}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${displayArtist}</small></div>`;
         item.addEventListener('click', () => { 
-            initAudioContext();
             loadTrack(oIdx); 
-            playAudioWithFade();
+            playAudioDirectly();
         }); 
         playlistContainer.appendChild(item);
     });
@@ -227,10 +229,6 @@ function loadTrack(index) {
     trackTitle.classList.add('shimmer-loading');
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
-    
-    if (audioCtx) {
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    }
     
     audio.pause();
     audio.src = "";
@@ -316,7 +314,7 @@ function playNextTrack() {
     if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
     else if (n >= tracks.length) n = 0; 
     loadTrack(n); 
-    playAudioWithFade();
+    playAudioDirectly();
 }
 
 fetch('playlist.json')
@@ -339,7 +337,6 @@ audio.addEventListener('canplay', () => {
 });
 
 audio.addEventListener('playing', () => {
-    initAudioContext();
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
@@ -376,21 +373,22 @@ trackCover.addEventListener('error', () => {
 });
 
 playBtn.addEventListener('click', () => { 
-    initAudioContext();
-    audio.paused ? playAudioWithFade() : pauseAudioWithFade();
+    audio.paused ? playAudioDirectly() : pauseAudioWithFade();
 });
 
 nextBtn.addEventListener('click', () => {
-    initAudioContext();
     playNextTrack();
 });
 
 prevBtn.addEventListener('click', () => { 
-    initAudioContext();
-    let p = currentIndex - 1; 
-    if (p < 0) p = tracks.length - 1; 
-    loadTrack(p); 
-    playAudioWithFade();
+    if (isShuffle) {
+        let n = Math.floor(Math.random() * tracks.length);
+        loadTrack(n);
+    } else {
+        let p = currentIndex - 1; if (p < 0) p = tracks.length - 1; 
+        loadTrack(p); 
+    }
+    playAudioDirectly();
 });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
@@ -407,12 +405,12 @@ audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
-    if (!document.hidden) {
-        currentTimeEl.textContent = formatTime(audio.currentTime); 
-    }
+    // OPTIMASI BACKGROUND: Stop render teks waktu dan pergeseran transformasi lirik jika sedang di-minimize
+    if (document.hidden) return;
+
+    currentTimeEl.textContent = formatTime(audio.currentTime); 
 
     if (isChangingTrack || parsedLyrics.length === 0) return;
-    if (document.hidden) return;
 
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
@@ -438,4 +436,3 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                  
