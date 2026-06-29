@@ -32,7 +32,6 @@ audio.volume = savedVolume;
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 
-// FIX ENGINE CHROMIUM: Jalur persisten dibuat sekali saja agar hardware audio tidak kaget
 function initAudioContext() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -113,23 +112,20 @@ function playAudioWithFade() {
     initAudioContext();
     audio.play().then(() => {
         playIcon.textContent = 'pause';
-        // Micro-ramping instan untuk meredam klik tegangan driver audio Android
         gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.08);
+        gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
     });
 }
 
 function pauseAudioWithFade() {
     if (audioCtx) {
         gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
         setTimeout(() => {
             if (audio.paused) return;
             audio.pause();
             playIcon.textContent = 'play_arrow';
-            // Kembalikan ke angka 1 setelah benar-benar berhenti agar siap menyala kembali
-            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-        }, 150);
+        }, 200);
     } else {
         audio.pause();
         playIcon.textContent = 'play_arrow';
@@ -213,7 +209,10 @@ function loadTrack(index) {
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
-    // Jangan di-set gain ke 0 di sini agar gelombang tidak kepotong kaget di tengah load
+    if (audioCtx) {
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    }
+    
     audio.pause();
     audio.src = "";
     audio.load();
@@ -416,3 +415,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
+                  
