@@ -30,7 +30,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 16px 12px 32px 12px; /* Dipersempit biar kontainer di HP punya ruang gerak lebih luas */
+    padding: 16px 12px 32px 12px;
     transition: background 0.8s ease;
     overscroll-behavior-y: auto !important; 
     touch-action: auto !important;
@@ -48,31 +48,39 @@ body {
 }
 
 /* ==========================================================================
-   TAMPILAN KHUSUS MODE DESKTOP DI HP / TABLET (DI-BOOST MAKSIMAL BIAR JUMBO)
+   TAMPILAN MODE DESKTOP ANDROID - UPGRADE MAKSIMAL BIAR JUMBO SANGAT PADAT
    ========================================================================== */
 @media (min-width: 768px) and (pointer: coarse) {
-    /* Meregangkan container secara maksimal sesuai contoh gambar 1002507180.jpg */
     .player-container {
-        max-width: 680px; /* Di-boost dari 580px ke 680px biar super padat */
-        width: 96%;        /* Memaksimalkan sisa margin kanan kiri */
-        padding: 36px;     /* Menyeimbangkan proporsi dalam kontainer yang membesar */
+        max-width: none !important; /* DIPASTIKAN HAPUS BATASAN PIXEL */
+        width: 98%;                 /* REGEG KANAN-KIRI SANGAT MEPET */
+        padding: 40px 32px;         
+    }
+
+    .cover-wrapper {
+        max-width: 100%;
+        margin-bottom: 28px;
     }
 
     .track-info h2 {
-        font-size: 1.6rem;
+        font-size: 1.8rem; 
     }
     
     .track-info p {
-        font-size: 1.05rem;
+        font-size: 1.15rem;
+    }
+
+    .lyric-line {
+        font-size: 1.2rem; 
     }
 
     .lyrics-container {
-        max-height: 240px;
-        min-height: 180px;
+        max-height: 260px;
+        min-height: 200px;
     }
 
     .playlist-container {
-        max-height: 260px;
+        max-height: 280px;
     }
 }
 
@@ -570,4 +578,4 @@ body {
     .watermark {
         margin-top: 12px;
     }
-    }
+}
