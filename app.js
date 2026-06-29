@@ -273,21 +273,23 @@ function loadTrack(index) {
     updateMediaSession();
 
     setTimeout(() => {
-        const marqueeContainer = document.querySelector('.marquee-container');
         const trackTitleEl = document.getElementById('trackTitle');
         const trackInfoEl = document.querySelector('.track-info');
-        if (marqueeContainer && trackTitleEl && trackInfoEl) {
+        if (trackTitleEl && trackInfoEl) {
             const parentWidth = trackInfoEl.clientWidth;
             const textWidth = trackTitleEl.scrollWidth;
+            
             if (textWidth > parentWidth) {
-                trackTitleEl.style.animation = 'marqueeSpotify 12s linear infinite';
-                trackTitleEl.style.paddingRight = '50px';
+                const jarakGeser = parentWidth - textWidth - 25; 
+                trackTitleEl.style.setProperty('--marquee-jarak', `${jarakGeser}px`);
+                trackTitleEl.style.animation = 'marqueeDinamis 8s linear infinite alternate';
+                trackTitleEl.style.paddingRight = '25px';
             } else {
                 trackTitleEl.style.animation = 'none';
                 trackTitleEl.style.paddingRight = '0px';
             }
         }
-    }, 50);
+    }, 100);
 }
 
 function playNextTrack() {
@@ -413,3 +415,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
+                  
