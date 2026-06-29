@@ -465,14 +465,5 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
-progressContainer.addEventListener('click', (e) => {
-    if (audio.duration) {
-        const clickX = e.offsetX;
-        const totalWidth = progressContainer.clientWidth;
-        audio.currentTime = (clickX / totalWidth) * audio.duration;
-        updateMediaSessionState();
-    }
-});
-
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
+                                         
