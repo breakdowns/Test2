@@ -20,16 +20,16 @@
     <link rel="stylesheet" href="style.css">
 
     <!-- ==========================================================================
-       BYPASS CACHE SAKTI: Memaksa Ukuran Jumbo Pas di HP / Mode Situs Desktop Android
+       BYPASS VIEWPORT VIRTUAL: Memaksa Lebar Jumbo Mengikuti Skala Layar Emulasi HP
        ========================================================================== */ -->
     <style type="text/css">
         .player-container {
-            width: 94% !important;
-            max-width: 580px !important; /* Angka emas agar lebar padat & pas di tengah */
+            width: 95vw !important;
+            max-width: 620px !important; /* Batas atas proporsional agar cover membesar padat mengisi kanan-kiri */
             margin: 0 auto !important;
         }
 
-        /* Memastikan di HP Portrait / Emulasi Desktop tetap mempertahankan layout satu kolom */
+        /* Memastikan di HP Portrait / Emulasi Desktop tetap mempertahankan layout satu kolom padat */
         @media (orientation: portrait) {
             .player-container {
                 display: block !important;
@@ -124,4 +124,5 @@
         }
     </script>
 </body>
-</html>
+                </html>
+                
