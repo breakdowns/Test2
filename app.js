@@ -148,7 +148,6 @@ function renderLyrics() {
     }); 
 }
 
-// Fungsi render lirik statis jika file lrc berupa teks biasa
 function renderStaticLyrics(text) { 
     text.split('\n').forEach(l => { 
         const c = l.replace(/\[.*?\]/g, '').trim(); 
@@ -194,13 +193,11 @@ function loadTrack(index) {
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
     
-    // UPDATE METADATA DAN KUNCI STATUS BIAR NOTIFIKASI TIDAK BERKEDIP/HILANG
+    // Perbarui penunjuk data Android sebelum menyentuh elemen audio murni
     updateMediaSession();
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
-
-    audio.pause();
 
     const track = tracks[index];
     
@@ -217,8 +214,10 @@ function loadTrack(index) {
     lyricsContainer.scrollTop = 0;
     lyricsWrapper.innerHTML = ''; 
     
+    // Trik inti: Langsung timpa src audio secara paksa tanpa memicu siklus jeda hantu (.pause())
     audio.crossOrigin = "anonymous";
     audio.src = track.src;
+    audio.load(); 
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -445,4 +444,3 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                                               
