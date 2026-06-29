@@ -24,7 +24,6 @@ let currentIndex = 0, isShuffle = false, isRepeat = false;
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
-let isInitialLoad = true;
 
 let audioCtx = null, gainNode = null, sourceNode = null;
 
@@ -82,7 +81,7 @@ function updateMediaSession() {
             initAudioContext();
             playNextTrack();
         });
-        
+
         try {
             navigator.mediaSession.setActionHandler('seekto', (details) => {
                 if (details.fastSeek && 'fastSeek' in audio) {
@@ -96,7 +95,6 @@ function updateMediaSession() {
     }
 }
 
-/* state tracking */
 function updateMediaSessionState() {
     if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
         navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
@@ -239,14 +237,6 @@ function loadTrack(index) {
     audio.crossOrigin = "anonymous";
     audio.src = track.src;
     
-    if (isInitialLoad) {
-        const savedTime = localStorage.getItem('lastPlaybackTime');
-        if (savedTime) {
-            audio.currentTime = parseFloat(savedTime);
-        }
-        isInitialLoad = false;
-    }
-    
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
@@ -312,7 +302,7 @@ fetch('playlist.json')
     .then(res => res.json())
     .then(data => { 
         tracks = data.playlist; 
-        currentTracksDisplay = tracks;
+        currentTracksDisplay = tracks; 
         const savedIndex = parseInt(localStorage.getItem('currentIndex')) || 0; 
         if (tracks.length > 0) loadTrack(savedIndex >= 0 && savedIndex < tracks.length ? savedIndex : 0); 
     });
@@ -396,10 +386,6 @@ audio.addEventListener('timeupdate', () => {
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
 
-    if (audio.currentTime > 0 && !isChangingTrack) {
-        localStorage.setItem('lastPlaybackTime', audio.currentTime);
-    }
-
     if (isChangingTrack || parsedLyrics.length === 0) return;
     if (document.hidden) return;
 
@@ -427,4 +413,3 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                           
