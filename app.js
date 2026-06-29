@@ -392,7 +392,7 @@ const triggerUserScroll = () => {
     if (lyricScrollTimeout) clearTimeout(lyricScrollTimeout);
     lyricScrollTimeout = setTimeout(() => {
         isUserScrollingLyrics = false;
-    }, 4000);
+    }, 150);
 };
 
 lyricsContainer.addEventListener('touchstart', triggerUserScroll, {passive: true});
@@ -475,4 +475,4 @@ progressContainer.addEventListener('click', (e) => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                             
+      
