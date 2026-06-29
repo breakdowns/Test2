@@ -23,37 +23,17 @@ let currentIndex = 0, isShuffle = false, isRepeat = false;
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
-let fadeTimeout = null; 
 let isPreloaded = false;
 let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-let audioCtx = null, gainNode = null, sourceNode = null;
-
+// Web Audio API dibuang total agar browser seluler memprioritaskan audio di latar belakang
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
-
-function initAudioContext() {
-    if (!audioCtx) {
-        try {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            gainNode = audioCtx.createGain();
-            sourceNode = audioCtx.createMediaElementSource(audio);
-            sourceNode.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-        } catch (e) {
-            console.log("AudioContext tidak didukung atau diblokir");
-        }
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-}
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
@@ -74,7 +54,7 @@ function updateMediaSession() {
         });
 
         navigator.mediaSession.setActionHandler('play', () => { playAudioDirectly(); });
-        navigator.mediaSession.setActionHandler('pause', () => { pauseAudioWithFade(); });
+        navigator.mediaSession.setActionHandler('pause', () => { pauseAudioDirectly(); });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
             if (isShuffle) {
                 let n = Math.floor(Math.random() * tracks.length);
@@ -110,13 +90,6 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
-    if (fadeTimeout) clearTimeout(fadeTimeout);
-    initAudioContext();
-    if (gainNode && audioCtx) {
-        gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-    }
-    
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         updateMediaSessionState();
@@ -125,23 +98,10 @@ function playAudioDirectly() {
     });
 }
 
-function pauseAudioWithFade() {
-    initAudioContext();
-    if (audioCtx && gainNode) {
-        if (fadeTimeout) clearTimeout(fadeTimeout);
-        gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
-        
-        fadeTimeout = setTimeout(() => {
-            if (audio.paused) return;
-            audio.pause();
-            playIcon.textContent = 'play_arrow';
-            fadeTimeout = null;
-        }, 150);
-    } else {
-        audio.pause();
-        playIcon.textContent = 'play_arrow';
-    }
+function pauseAudioDirectly() {
+    audio.pause();
+    playIcon.textContent = 'play_arrow';
+    updateMediaSessionState();
 }
 
 function updateDynamicBackground(src) {
@@ -366,7 +326,7 @@ trackCover.addEventListener('error', () => {
     trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
 });
 
-playBtn.addEventListener('click', () => { audio.paused ? playAudioDirectly() : pauseAudioWithFade(); });
+playBtn.addEventListener('click', () => { audio.paused ? playAudioDirectly() : pauseAudioDirectly(); });
 nextBtn.addEventListener('click', () => { playNextTrack(); });
 
 prevBtn.addEventListener('click', () => { 
@@ -444,10 +404,9 @@ audio.addEventListener('timeupdate', () => {
         }
     }
 
-    if (isChangingTrack || parsedLyrics.length === 0) return;
-
-    // TAMENG PELINDUNG LATAR BELAKANG TERPASANG DISINI:
     if (document.hidden) return;
+
+    if (isChangingTrack || parsedLyrics.length === 0) return;
 
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
@@ -480,4 +439,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                         
+                                                                    
