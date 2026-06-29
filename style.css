@@ -48,10 +48,10 @@ body {
 }
 
 /* ==========================================================================
-   TAMPILAN BARU UNTUK DESKTOP PC / LAPTOP (PROKSI ANTI-SITUS DESKTOP HP)
+   TAMPILAN BARU DESKTOP - FIX COMPATIBILITY UNTUK BOT TELEGRAM (PUPPETEER)
    ========================================================================== */
-@media (min-width: 768px) and (hover: hover) {
-    /* Hanya aktif di perangkat yang punya mouse/pointer sejati (PC/Laptop asli) */
+@media (min-width: 768px) and (not (pointer: coarse)) {
+    /* Aktif di PC/Laptop asli DAN bot screenshot server (Puppeteer) */
     .player-container {
         width: 90%;
         max-width: 850px; 
@@ -148,7 +148,9 @@ body {
     }
 }
 
-/* Base Mobile & Common Elements Styling */
+/* ==========================================================================
+   BASE STYLING & MOBILE VIEW COMPONENTS
+   ========================================================================== */
 .cover-wrapper {
     width: 100%;
     aspect-ratio: 1/1;
@@ -541,4 +543,4 @@ body {
         margin-top: 12px;
     }
     }
-            
+                                
