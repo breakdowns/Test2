@@ -55,18 +55,18 @@ function updateMediaSession() {
             pauseAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            audio.volume = 0;
+            audio.pause();
             setTimeout(() => {
                 let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
                 loadTrack(p); 
                 playAudioDirectly();
-            }, 15);
+            }, 30);
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            audio.volume = 0;
+            audio.pause();
             setTimeout(() => {
                 playNextTrack();
-            }, 15);
+            }, 30);
         });
 
         try {
@@ -96,21 +96,14 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
-    const targetVol = parseFloat(localStorage.getItem('volume') || 1);
-    audio.volume = targetVol; 
     audio.play().then(() => {
         playIcon.textContent = 'pause';
     }).catch(() => {});
 }
 
 function pauseAudioDirectly() {
-    const targetVol = parseFloat(localStorage.getItem('volume') || 1);
-    audio.volume = 0; 
-    setTimeout(() => {
-        audio.pause();
-        playIcon.textContent = 'play_arrow';
-        audio.volume = targetVol;
-    }, 15);
+    audio.pause();
+    playIcon.textContent = 'play_arrow';
 }
 
 function updateDynamicBackground(src) {
@@ -174,11 +167,11 @@ function renderPlaylist(arr) {
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
-            audio.volume = 0;
+            audio.pause();
             setTimeout(() => {
                 loadTrack(oIdx); 
                 playAudioDirectly();
-            }, 15);
+            }, 30);
         }); 
         playlistContainer.appendChild(item);
     });
@@ -192,7 +185,7 @@ function loadTrack(index) {
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
-    audio.pause();
+    // Pembersihan buffer audio secara aman
     audio.src = "";
     audio.load();
 
@@ -271,16 +264,15 @@ function loadTrack(index) {
     }, 100);
 }
 
-// FIX UTAMA: Redam volume ke 0 sebelum memindahkan track demi hapus letupan 'tet'
 function playNextTrack() {
-    audio.volume = 0;
+    audio.pause();
     setTimeout(() => {
         let n = currentIndex + 1; 
         if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
         else if (n >= tracks.length) n = 0; 
         loadTrack(n); 
         playAudioDirectly();
-    }, 15);
+    }, 30);
 }
 
 fetch('playlist.json')
@@ -343,13 +335,13 @@ nextBtn.addEventListener('click', () => {
 });
 
 prevBtn.addEventListener('click', () => { 
-    audio.volume = 0;
+    audio.pause();
     setTimeout(() => {
         let p = currentIndex - 1; 
         if (p < 0) p = tracks.length - 1; 
         loadTrack(p); 
         playAudioDirectly();
-    }, 15);
+    }, 30);
 });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
@@ -397,4 +389,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-          
+      
