@@ -18,6 +18,28 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
+    <!-- ==========================================================================
+       BYPASS CACHE SAKTI: Memaksa Ukuran Jumbo Pas di HP / Mode Situs Desktop Android
+       ========================================================================== */ -->
+    <style type="text/css">
+        .player-container {
+            width: 94% !important;
+            max-width: 580px !important; /* Angka emas agar lebar padat & pas di tengah */
+            margin: 0 auto !important;
+        }
+
+        /* Memastikan di HP Portrait / Emulasi Desktop tetap mempertahankan layout satu kolom */
+        @media (orientation: portrait) {
+            .player-container {
+                display: block !important;
+            }
+            .player-left-side, .player-right-side {
+                display: block !important;
+                width: 100% !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
