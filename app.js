@@ -179,9 +179,6 @@ function loadTrack(index) {
     trackArtist.textContent = track.artist; 
     trackCover.src = track.cover; 
     
-    audio.crossOrigin = "anonymous";
-    audio.src = track.src;
-    
     progressBar.style.width = '0%'; 
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
@@ -192,35 +189,41 @@ function loadTrack(index) {
     lyricsWrapper.innerHTML = ''; 
     
     const currentTrackSrc = track.src;
-    if (track.lyricsSrc) {
-        fetch(track.lyricsSrc)
-            .then(res => res.text())
-            .then(text => { 
-                if (tracks[currentIndex].src !== currentTrackSrc) return;
-                
-                parsedLyrics = parseLRC(text); 
-                lyricsWrapper.innerHTML = ''; 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                
-                lyricsContainer.style.display = "block"; 
-                void lyricsWrapper.offsetWidth; 
-                lyricsContainer.style.opacity = '1';
-                lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-                isChangingTrack = false;
-            })
-            .catch(() => {
-                if (tracks[currentIndex].src === currentTrackSrc) {
-                    lyricsWrapper.innerHTML = '';
-                    lyricsContainer.style.display = "none";
+    
+    setTimeout(() => {
+        audio.crossOrigin = "anonymous";
+        audio.src = currentTrackSrc;
+        
+        if (track.lyricsSrc) {
+            fetch(track.lyricsSrc)
+                .then(res => res.text())
+                .then(text => { 
+                    if (tracks[currentIndex].src !== currentTrackSrc) return;
+                    
+                    parsedLyrics = parseLRC(text); 
+                    lyricsWrapper.innerHTML = ''; 
+                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                    
+                    lyricsContainer.style.display = "block"; 
+                    void lyricsWrapper.offsetWidth; 
+                    lyricsContainer.style.opacity = '1';
+                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
                     isChangingTrack = false;
-                }
-            });
-    } else { 
-        parsedLyrics = [];
-        lyricsWrapper.innerHTML = '';
-        lyricsContainer.style.display = "none";
-        isChangingTrack = false;
-    }
+                })
+                .catch(() => {
+                    if (tracks[currentIndex].src === currentTrackSrc) {
+                        lyricsWrapper.innerHTML = '';
+                        lyricsContainer.style.display = "none";
+                        isChangingTrack = false;
+                    }
+                });
+        } else { 
+            parsedLyrics = [];
+            lyricsWrapper.innerHTML = '';
+            lyricsContainer.style.display = "none";
+            isChangingTrack = false;
+        }
+    }, 10);
     
     const isFav = favorites.includes(track.src);
     favoriteBtn.classList.toggle('active', isFav); 
@@ -379,4 +382,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                                                
+      
