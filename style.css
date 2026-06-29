@@ -48,10 +48,34 @@ body {
 }
 
 /* ==========================================================================
-   TAMPILAN BARU DESKTOP - FIX COMPATIBILITY UNTUK BOT TELEGRAM (PUPPETEER)
+   TAMPILAN KHUSUS MODE DESKTOP DI HP / TABLET (FIX BIAR GAK MENCIUT KECIL)
+   ========================================================================== */
+@media (min-width: 768px) and (pointer: coarse) {
+    /* Memicu container potret agar melebar proporsional seperti gambar 1002507180.jpg */
+    .player-container {
+        max-width: 580px; /* Ditambah lebarnya agar padat dan mantap di layar */
+        width: 92%;
+        padding: 32px;
+    }
+
+    .track-info h2 {
+        font-size: 1.5rem;
+    }
+
+    .lyrics-container {
+        max-height: 200px;
+        min-height: 160px;
+    }
+
+    .playlist-container {
+        max-height: 220px;
+    }
+}
+
+/* ==========================================================================
+   TAMPILAN BARU DESKTOP PC / LAPTOP ASLI (BUKAN EMULASI HP)
    ========================================================================== */
 @media (min-width: 768px) and (not (pointer: coarse)) {
-    /* Aktif di PC/Laptop asli DAN bot screenshot server (Puppeteer) */
     .player-container {
         width: 90%;
         max-width: 850px; 
@@ -149,7 +173,7 @@ body {
 }
 
 /* ==========================================================================
-   BASE STYLING & MOBILE VIEW COMPONENTS
+   BASE STYLE PEMUTAR MUSIK UTAMA
    ========================================================================== */
 .cover-wrapper {
     width: 100%;
@@ -542,5 +566,4 @@ body {
     .watermark {
         margin-top: 12px;
     }
-    }
-                                
+                }
