@@ -55,12 +55,20 @@ function updateMediaSession() {
             pauseAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
-            loadTrack(p); 
-            playAudioDirectly();
+            // Redam instan sebelum pindah lagu lewat notifikasi
+            audio.volume = 0;
+            setTimeout(() => {
+                let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
+                loadTrack(p); 
+                playAudioDirectly();
+            }, 15);
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            playNextTrack();
+            // Redam instan sebelum pindah lagu lewat notifikasi
+            audio.volume = 0;
+            setTimeout(() => {
+                playNextTrack();
+            }, 15);
         });
 
         try {
@@ -89,7 +97,6 @@ function updateMediaSessionState() {
     }
 }
 
-// Fungsi eksekusi langsung tanpa interval agar tidak dibekukan oleh OS Android saat background
 function playAudioDirectly() {
     const targetVol = parseFloat(localStorage.getItem('volume') || 1);
     audio.volume = targetVol; 
@@ -99,8 +106,13 @@ function playAudioDirectly() {
 }
 
 function pauseAudioDirectly() {
-    audio.pause();
-    playIcon.textContent = 'play_arrow';
+    const targetVol = parseFloat(localStorage.getItem('volume') || 1);
+    audio.volume = 0; // Jatuhkan ke 0 ms sebelum jeda untuk redam letupan sinyal
+    setTimeout(() => {
+        audio.pause();
+        playIcon.textContent = 'play_arrow';
+        audio.volume = targetVol;
+    }, 15);
 }
 
 function updateDynamicBackground(src) {
@@ -164,8 +176,11 @@ function renderPlaylist(arr) {
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
-            loadTrack(oIdx); 
-            playAudioDirectly();
+            audio.volume = 0;
+            setTimeout(() => {
+                loadTrack(oIdx); 
+                playAudioDirectly();
+            }, 15);
         }); 
         playlistContainer.appendChild(item);
     });
@@ -322,14 +337,20 @@ playBtn.addEventListener('click', () => {
 });
 
 nextBtn.addEventListener('click', () => {
-    playNextTrack();
+    audio.volume = 0;
+    setTimeout(() => {
+        playNextTrack();
+    }, 15);
 });
 
 prevBtn.addEventListener('click', () => { 
-    let p = currentIndex - 1; 
-    if (p < 0) p = tracks.length - 1; 
-    loadTrack(p); 
-    playAudioDirectly();
+    audio.volume = 0;
+    setTimeout(() => {
+        let p = currentIndex - 1; 
+        if (p < 0) p = tracks.length - 1; 
+        loadTrack(p); 
+        playAudioDirectly();
+    }, 15);
 });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
@@ -377,4 +398,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                                                                    
+              
