@@ -120,28 +120,37 @@ body {
 
 .progress-area { 
     margin-bottom: 24px; 
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.progress-bar-container { 
-    width: 100%; 
-    height: 4px; 
-    background-color: #4f4f4f !important; 
-    border-radius: 2px; 
-    cursor: pointer; 
-    margin-bottom: 8px; 
+.progress-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    background: #4f4f4f;
     color-scheme: only light !important;
 }
 
-.progress-bar { 
-    height: 100%; 
-    width: 0%; 
-    background-color: #ffffff !important; 
-    border-radius: 2px; 
+.progress-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fefffe !important;
     color-scheme: only light !important;
+    forced-color-adjust: none !important;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
-.progress-bar-container:hover .progress-bar { 
-    background-color: var(--spotify-green) !important; 
+.progress-area:hover .progress-slider::-webkit-slider-thumb {
+    opacity: 1;
 }
 
 .time-info { 
@@ -211,12 +220,11 @@ body {
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
 
-/* FIX SCROLL LIRIK MANUAL & SEMBUNYIKAN SCROLLBAR BAWAAN */
 .lyrics-container {
     position: relative;
     max-height: 160px;
     min-height: 160px;
-    overflow-y: auto; /* Diubah jadi auto agar user bisa mengscroll manual bait lirik */
+    overflow-y: auto; 
     -webkit-overflow-scrolling: touch;
     margin-bottom: 20px;
     padding: 0 12px;
@@ -227,7 +235,6 @@ body {
     will-change: opacity;
 }
 
-/* Sembunyikan batang scrollbar jelek agar lirik terlihat melayang rapi */
 .lyrics-container::-webkit-scrollbar {
     display: none;
 }
@@ -326,4 +333,4 @@ body {
 
 @keyframes shimmer {
     100% { transform: translateX(100%); }
-    }
+}
