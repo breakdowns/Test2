@@ -28,58 +28,112 @@ body {
     color: var(--text-main);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* Mengunci posisi tepat di tengah vertikal agar tidak kepotong atas/bawah */
     min-height: 100vh;
-    padding: 16px 12px 32px 12px;
+    padding: 24px 12px;
     transition: background 0.8s ease;
     overscroll-behavior-y: auto !important; 
     touch-action: auto !important;
 }
 
-/* CONTAINER UTAMA BAWAAN MOBILE */
+/* ==========================================================================
+   LAYOUT UTAMA: BERLAKU UNTUK HP PORTRAIT & MODE SITUS DESKTOP DI HP
+   ========================================================================== */
 .player-container {
     background-color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    width: 100%;
-    max-width: 420px;
+    width: 94%;
+    max-width: 580px; /* Dikunci di 580px: Pas banget mengikuti target 1002508958.jpg */
     border-radius: 16px;
-    padding: 24px;
+    padding: 28px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: transform 0.3s ease;
 }
 
-/* ==========================================================================
-   TRICK FIX: MENYEIMBANGKAN POSISI TENGAH DAN MEMPERLEBAR KANAN-KIRI DI HP DESKTOP
-   ========================================================================== */
-@media (min-width: 768px) and (max-width: 1024px) {
-    body {
-        align-items: center !important; /* Balikin ke tengah vertikal biar gak kerasa kepotong */
-        padding: 24px 12px !important; 
-    }
+.cover-wrapper {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    position: relative;
+    transition: opacity 0.3s ease-in-out; 
+    will-change: opacity;
+}
 
-    .player-container {
-        max-width: 600px !important; /* Ukuran pas biar mekar ke samping mirip 1002508958.jpg */
-        width: 96% !important;
-        padding: 28px !important;
-        margin-top: 0 !important;
-    }
-    
-    .cover-wrapper {
-        max-width: 100% !important;
-        margin-bottom: 24px !important;
-    }
-    
-    .track-info h2 { font-size: 1.55rem !important; text-align: left !important; }
-    .track-info p { font-size: 1.05rem !important; text-align: left !important; }
-    .lyric-line { font-size: 1.1rem !important; }
-    .lyrics-container { max-height: 180px !important; min-height: 150px !important; }
-    .playlist-container { max-height: 200px !important; }
+.cover-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.track-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+}
+
+.track-info { 
+    flex: 1; 
+    overflow: hidden; 
+    position: relative; 
+}
+
+.marquee-container { 
+    display: block; 
+    width: 100%; 
+    overflow: hidden; 
+    white-space: nowrap; 
+}
+
+.track-info h2 { 
+    font-size: 1.5rem; 
+    font-weight: 700; 
+    color: var(--text-main); 
+    white-space: nowrap; 
+    display: inline-block; 
+    will-change: transform; 
+    text-align: left;
+}
+
+.track-info p { 
+    font-size: 1rem; 
+    color: var(--text-muted); 
+    margin-top: 4px; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    text-align: left;
+}
+
+.lyrics-container {
+    position: relative;
+    max-height: 180px;
+    min-height: 140px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 20px;
+    padding: 0 12px;
+    mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out; 
+    will-change: opacity;
+}
+
+.playlist-container { 
+    max-height: 200px; 
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; 
 }
 
 /* ==========================================================================
-   TAMPILAN HORIZONTAL DUA KOLOM KHUSUS DESKTOP PC / LAPTOP ASLI (MONITOR LEBAR)
+   LAYOUT DESKTOP PC / LAPTOP / BOT TELEGRAM (HANYA AKTIF JIKA LAYAR LANDSCAPE)
    ========================================================================== */
-@media (min-width: 1025px) {
+@media (min-width: 768px) and (orientation: landscape) {
     .player-container {
         width: 90%;
         max-width: 850px; 
@@ -152,66 +206,8 @@ body {
 }
 
 /* ==========================================================================
-   BASE STYLE PEMUTAR MUSIK UTAMA
+   COMMON STYLES & AUDIO ELEMENTS
    ========================================================================== */
-.cover-wrapper {
-    width: 100%;
-    aspect-ratio: 1/1;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 24px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    position: relative;
-    transition: opacity 0.3s ease-in-out; 
-    will-change: opacity;
-}
-
-.cover-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.track-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 20px; 
-}
-
-.track-info { 
-    flex: 1; 
-    overflow: hidden; 
-    position: relative; 
-}
-
-.marquee-container { 
-    display: block; 
-    width: 100%; 
-    overflow: hidden; 
-    white-space: nowrap; 
-}
-
-.track-info h2 { 
-    font-size: 1.4rem; 
-    font-weight: 700; 
-    color: var(--text-main); 
-    white-space: nowrap; 
-    display: inline-block; 
-    will-change: transform; 
-    text-align: left;
-}
-
-.track-info p { 
-    font-size: 0.95rem; 
-    color: var(--text-muted); 
-    margin-top: 4px; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    text-align: left;
-}
-
 @keyframes marqueeDinamis {
     0% { transform: translate3d(0, 0, 0); }
     15% { transform: translate3d(0, 0, 0); }
@@ -317,22 +313,6 @@ body {
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
 
-.lyrics-container {
-    position: relative;
-    max-height: 160px;
-    min-height: 140px;
-    overflow-y: auto;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    margin-bottom: 20px;
-    padding: 0 12px;
-    mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out; 
-    will-change: opacity;
-}
-
 .lyrics-container::-webkit-scrollbar { display: none; }
 .lyrics-container { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -378,11 +358,6 @@ body {
     forced-color-adjust: none !important;
 }
 
-.playlist-container { 
-    max-height: 180px; 
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch; 
-}
 .playlist-container::-webkit-scrollbar { width: 4px; }
 .playlist-container::-webkit-scrollbar-thumb { background: #4f4f4f; border-radius: 2px; }
 .track-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
@@ -431,7 +406,7 @@ body {
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 
 /* ==========================================================================
-   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE BAWAAN FISIK)
+   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE FISIK ASLI)
    ========================================================================== */
 @media (max-height: 500px) and (orientation: landscape) {
     body { align-items: flex-start; padding: 12px; }
@@ -466,3 +441,4 @@ body {
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
     }
+    
