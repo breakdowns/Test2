@@ -12,13 +12,11 @@
     <audio id="mainAudio"></audio>
 
     <div class="player-container">
-        <!-- Bagian Atas: Cover Album Besar (Centered) -->
-        <div class="cover-wrapper">
-            <img id="trackCover" src="" alt="Cover Album">
-        </div>
-
-        <!-- Bagian Info Lagu -->
-        <div class="track-meta">
+        <!-- Bagian Atas: Info Lagu & Cover Sesuai Struktur Awal -->
+        <div class="track-card">
+            <div class="cover-wrapper">
+                <img id="trackCover" src="" alt="Cover Album">
+            </div>
             <div class="track-info">
                 <div class="marquee-container">
                     <h2 id="trackTitle">Memuat Judul...</h2>
@@ -68,17 +66,23 @@
             </div>
         </div>
 
-        <!-- Bagian Pencarian Dinamis (Melayang) -->
-        <div class="search-section">
+        <!-- Bagian Bawah: Playlist & Pencarian -->
+        <div class="playlist-section">
+            <div class="playlist-header">
+                <h3>Daftar Lagu</h3>
+            </div>
+            
             <div class="search-container">
                 <span class="material-icons search-icon">search</span>
                 <input type="text" id="searchBar" placeholder="Cari judul lagu atau artis...">
             </div>
-            <!-- Hasil pencarian akan muncul melayang di sini -->
-            <div id="searchDropdown" class="search-dropdown hidden"></div>
+
+            <div id="playlist" class="playlist-container-list"></div>
         </div>
     </div>
 
+    <!-- Script Pendukung Dikembalikan ke Posisi Semula -->
+    <script src="media.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
