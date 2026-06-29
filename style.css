@@ -72,19 +72,52 @@ body {
     object-fit: cover;
 }
 
-.track-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.track-info { flex: 1; overflow: hidden; position: relative; }
-.marquee-container { display: flex; width: max-content; }
-.track-info h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-main); white-space: nowrap; display: inline-block; }
-.track-info p { font-size: 0.95rem; color: var(--text-muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ==========================================
+   TRACK INFO & MARQUEE SPOTIFY (UPDATED)
+   ========================================== */
+.track-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+}
 
-@keyframes marqueeSpotify {
+.track-info { 
+    flex: 1; 
+    overflow: hidden; 
+    position: relative; 
+}
+
+.marquee-container { 
+    display: block; 
+    width: 100%; 
+    overflow: hidden; 
+    white-space: nowrap; 
+}
+
+.track-info h2 { 
+    font-size: 1.4rem; 
+    font-weight: 700; 
+    color: var(--text-main); 
+    white-space: nowrap; 
+    display: inline-block; 
+    will-change: transform; 
+}
+
+.track-info p { 
+    font-size: 0.95rem; 
+    color: var(--text-muted); 
+    margin-top: 4px; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
+@keyframes marqueeDinamis {
     0% { transform: translate3d(0, 0, 0); }
-    10% { transform: translate3d(0, 0, 0); }
-    45% { transform: translate3d(-50%, 0, 0); }
-    55% { transform: translate3d(-50%, 0, 0); }
-    90% { transform: translate3d(0, 0, 0); }
-    100% { transform: translate3d(0, 0, 0); }
+    15% { transform: translate3d(0, 0, 0); }
+    85% { transform: translate3d(var(--marquee-jarak), 0, 0); }
+    100% { transform: translate3d(var(--marquee-jarak), 0, 0); }
 }
 
 .progress-area { 
@@ -242,4 +275,4 @@ body {
 }
 @keyframes shimmer {
     100% { transform: translateX(100%); }
-}
+    }
