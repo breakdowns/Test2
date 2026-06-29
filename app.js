@@ -25,10 +25,10 @@ let currentIndex = 0, isShuffle = false, isRepeat = false;
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
 let fadeTimeout = null; 
+let isPreloaded = false; // Flag status cek preload lagu berikutnya
 
 let audioCtx = null, gainNode = null, sourceNode = null;
 
-// FIX VOLUME ABU-ABU: Ambil volume lama, lalu paksa warnai pakai HEX warna langsung agar langsung ijo pas refresh
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
@@ -70,12 +70,8 @@ function updateMediaSession() {
             ]
         });
 
-        navigator.mediaSession.setActionHandler('play', () => {
-            playAudioDirectly();
-        });
-        navigator.mediaSession.setActionHandler('pause', () => {
-            pauseAudioWithFade();
-        });
+        navigator.mediaSession.setActionHandler('play', () => { playAudioDirectly(); });
+        navigator.mediaSession.setActionHandler('pause', () => { pauseAudioWithFade(); });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
             if (isShuffle) {
                 let n = Math.floor(Math.random() * tracks.length);
@@ -86,9 +82,7 @@ function updateMediaSession() {
             }
             playAudioDirectly();
         });
-        navigator.mediaSession.setActionHandler('nexttrack', () => {
-            playNextTrack();
-        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { playNextTrack(); });
 
         try {
             navigator.mediaSession.setActionHandler('seekto', (details) => {
@@ -114,10 +108,7 @@ function updateMediaSessionState() {
 
 function playAudioDirectly() {
     if (fadeTimeout) clearTimeout(fadeTimeout);
-    
-    if (gainNode && audioCtx) {
-        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-    }
+    if (gainNode && audioCtx) gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
     
     audio.play().then(() => {
         playIcon.textContent = 'pause';
@@ -130,10 +121,8 @@ function playAudioDirectly() {
 
 function pauseAudioWithFade() {
     initAudioContext();
-    
     if (audioCtx && gainNode) {
         if (fadeTimeout) clearTimeout(fadeTimeout);
-        
         gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
         gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
         
@@ -226,6 +215,7 @@ function renderPlaylist(arr) {
 function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
+    isPreloaded = false; // Reset status preload di track baru
     
     trackTitle.classList.add('shimmer-loading');
     trackArtist.classList.add('shimmer-loading');
@@ -261,7 +251,6 @@ function loadTrack(index) {
             .then(res => res.text())
             .then(text => { 
                 if (tracks[currentIndex].src !== currentTrackSrc) return;
-                
                 parsedLyrics = parseLRC(text); 
                 lyricsWrapper.innerHTML = ''; 
                 parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
@@ -296,7 +285,6 @@ function loadTrack(index) {
         if (trackTitleEl && trackInfoEl) {
             const parentWidth = trackInfoEl.clientWidth;
             const textWidth = trackTitleEl.scrollWidth;
-            
             if (textWidth > parentWidth) {
                 const jarakGeser = parentWidth - textWidth - 25; 
                 trackTitleEl.style.setProperty('--marquee-jarak', `${jarakGeser}px`);
@@ -345,9 +333,7 @@ audio.addEventListener('playing', () => {
     updateMediaSessionState();
 });
 
-audio.addEventListener('pause', () => {
-    updateMediaSessionState();
-});
+audio.addEventListener('pause', () => { updateMediaSessionState(); });
 
 audio.addEventListener('loadedmetadata', () => { 
     if (audio.duration && !isNaN(audio.duration)) {
@@ -373,13 +359,8 @@ trackCover.addEventListener('error', () => {
     trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
 });
 
-playBtn.addEventListener('click', () => { 
-    audio.paused ? playAudioDirectly() : pauseAudioWithFade();
-});
-
-nextBtn.addEventListener('click', () => {
-    playNextTrack();
-});
+playBtn.addEventListener('click', () => { audio.paused ? playAudioDirectly() : pauseAudioWithFade(); });
+nextBtn.addEventListener('click', () => { playNextTrack(); });
 
 prevBtn.addEventListener('click', () => { 
     if (isShuffle) {
@@ -406,6 +387,22 @@ audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
     progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
+    // LOGIKA FITUR 2: PRELOAD LAGU SELANJUTNYA (Jika sisa lagu 15 detik lagi & belum di-preload)
+    if (audio.duration - audio.currentTime <= 15 && !isPreloaded && !isRepeat) {
+        isPreloaded = true;
+        let nextIdx = currentIndex + 1;
+        if (isShuffle) nextIdx = Math.floor(Math.random() * tracks.length);
+        else if (nextIdx >= tracks.length) nextIdx = 0;
+        
+        if (tracks[nextIdx]) {
+            const linkPreload = document.createElement('link');
+            linkPreload.rel = 'preload';
+            linkPreload.as = 'audio';
+            linkPreload.href = tracks[nextIdx].src;
+            document.head.appendChild(linkPreload);
+        }
+    }
+
     if (document.hidden) return;
 
     currentTimeEl.textContent = formatTime(audio.currentTime); 
@@ -433,6 +430,4 @@ progressContainer.addEventListener('click', (e) => {
     }
 });
 
-audio.addEventListener('ended', () => { 
-    isRepeat ? audio.play() : playNextTrack(); 
-});
+audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
