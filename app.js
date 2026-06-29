@@ -162,6 +162,7 @@ function parseLRC(text) {
     return res.sort((a, b) => a.time - b.time); 
 }
 
+// Fungsi pembantu render lirik lrc
 function renderLyrics() { 
     parsedLyrics.forEach((line, i) => { 
         const p = document.createElement('p'); 
@@ -415,4 +416,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                  
+      
