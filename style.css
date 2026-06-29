@@ -245,6 +245,7 @@ body {
     text-align: center; 
 }
 
+/* KOSMETIK: VISUAL LIRIK PREMIUM */
 .lyric-line { 
     font-size: 1.05rem; 
     font-weight: 700; 
@@ -349,39 +350,64 @@ body {
         max-width: 100%;
         width: 100%;
         display: grid;
-        grid-template-columns: 1.1fr 1fr; 
+        grid-template-columns: 1.2fr 1fr; 
         gap: 20px;
         padding: 16px;
     }
 
+    /* Penataan Grid Kompleks Sisi Pemutar Musik */
     .player-left-side {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        display: grid;
+        grid-template-areas: 
+            "header"
+            "progress"
+            "controls"
+            "volume";
+        justify-content: stretch;
     }
 
-    .cover-wrapper {
-        max-width: 130px; 
-        margin: 0 auto 10px auto;
+    /* Susunan Horizontal Cover (Kiri) & Judul (Kanan) */
+    .track-header { 
+        grid-area: header; 
+        display: flex; 
+        align-items: center; 
+        gap: 16px; 
+        margin-bottom: 12px;
+        width: 100%;
+        position: relative;
     }
-
-    .track-header {
-        margin-bottom: 6px;
+    
+    .cover-wrapper { 
+        grid-area: header; 
+        max-width: 80px; 
+        margin: 0; 
+        position: relative; 
+        z-index: 2; 
+    }
+    
+    .track-info {
+        padding-left: 96px; /* Memberikan ruang 80px gambar + 16px gap */
+        width: 100%;
     }
 
     .track-info h2 {
-        font-size: 1.1rem; 
+        font-size: 1.2rem; 
+        text-align: left;
     }
 
     .track-info p {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
+        text-align: left;
     }
 
+    /* Penyesuaian Ruang Komponen Kontrol */
     .progress-area {
+        grid-area: progress;
         margin-bottom: 10px;
     }
 
     .controls-area {
+        grid-area: controls;
         margin-bottom: 10px;
     }
 
@@ -395,9 +421,11 @@ body {
     }
 
     .volume-area {
+        grid-area: volume;
         margin-bottom: 0; 
     }
 
+    /* Sisi Kanan: Lirik & Playlist */
     .player-right-side {
         display: flex;
         flex-direction: column;
