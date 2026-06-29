@@ -48,15 +48,16 @@ body {
 }
 
 /* ==========================================================================
-   TAMPILAN BARU UNTUK DESKTOP PC / LAPTOP (DIBUAT HORIZONTAL KIRI-KANAN)
+   TAMPILAN BARU UNTUK DESKTOP PC / LAPTOP (PROKSI ANTI-SITUS DESKTOP HP)
    ========================================================================== */
-@media (min-width: 768px) {
+@media (min-width: 768px) and (hover: hover) {
+    /* Hanya aktif di perangkat yang punya mouse/pointer sejati (PC/Laptop asli) */
     .player-container {
         width: 90%;
-        max-width: 850px; /* Diperlebar agar memuat dua kolom dengan lega */
+        max-width: 850px; 
         padding: 30px;
         display: grid;
-        grid-template-columns: 1.2fr 1fr; /* Kiri pemutar, Kanan lirik & playlist */
+        grid-template-columns: 1.2fr 1fr; 
         gap: 32px;
     }
 
@@ -84,12 +85,12 @@ body {
     
     .cover-wrapper { 
         grid-area: header; 
-        max-width: 100px; /* Sedikit lebih besar dari mode HP landscape */
+        max-width: 100px; 
         margin: 0; 
     }
     
     .track-info {
-        padding-left: 120px; /* 100px gambar + 20px gap */
+        padding-left: 120px; 
         width: 100%;
     }
 
@@ -126,7 +127,7 @@ body {
     }
 
     .lyrics-container {
-        max-height: 160px; /* Memberikan ruang lirik lebih tinggi di layar PC */
+        max-height: 160px; 
         min-height: 160px;
         margin-bottom: 16px;
     }
@@ -138,7 +139,7 @@ body {
 
     .playlist-container {
         max-height: 160px;
-        min-height: 160px; /* Menjaga keseimbangan tinggi layout saat lirik kosong */
+        min-height: 160px; 
         overflow-y: auto;
     }
     
@@ -147,7 +148,7 @@ body {
     }
 }
 
-/* Sisa kode styling bawaan (Mobile & Base) */
+/* Base Mobile & Common Elements Styling */
 .cover-wrapper {
     width: 100%;
     aspect-ratio: 1/1;
@@ -540,4 +541,4 @@ body {
         margin-top: 12px;
     }
     }
-    
+            
