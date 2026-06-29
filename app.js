@@ -25,31 +25,26 @@ let currentIndex = 0, isShuffle = false, isRepeat = false;
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
 
-// =========================================================
-// ARSITEKTUR WEB AUDIO API PERSISTEN (ANTI-TET & ANTI-LAG)
-// =========================================================
-let audioCtx = null;
-let gainNode = null;
-let sourceNode = null;
-
-function initAudioEngine() {
-    if (!audioCtx) {
-        // Buat satu kali saja di awal, jangan buat-tutup terus menerus biar ga di-block Chrome
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        gainNode = audioCtx.createGain();
-        sourceNode = audioCtx.createMediaElementSource(audio);
-        sourceNode.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-}
+let audioCtx = null, gainNode = null, sourceNode = null;
 
 const savedVolume = localStorage.getItem('volume') || 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, var(--spotify-green) ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
+
+function initAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain();
+        sourceNode = audioCtx.createMediaElementSource(audio);
+        sourceNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
@@ -70,17 +65,20 @@ function updateMediaSession() {
         });
 
         navigator.mediaSession.setActionHandler('play', () => {
+            initAudioContext();
             playAudioWithFade();
         });
         navigator.mediaSession.setActionHandler('pause', () => {
             pauseAudioWithFade();
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
+            initAudioContext();
             let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
             loadTrack(p); 
             playAudioWithFade();
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
+            initAudioContext();
             playNextTrack();
         });
 
@@ -110,36 +108,27 @@ function updateMediaSessionState() {
     }
 }
 
-// Redam letupan sinyal via Hardware-level ramping lewat AudioContext persisten
 function playAudioWithFade() {
-    initAudioEngine();
-    
-    // Set volume awal ke 0 secara mutlak di memori audio
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    
+    initAudioContext();
     audio.play().then(() => {
         playIcon.textContent = 'pause';
-        // Naikkan volume secara micro-linear dalam waktu 0.04 detik (menghapus letupan awal)
-        gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.04);
-        updateMediaSessionState();
-    }).catch(() => {});
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
+    });
 }
 
 function pauseAudioWithFade() {
     if (audioCtx) {
-        // Ambil waktu sekarang, turunkan gain ke 0 dalam waktu 0.04 detik sebelum jeda fisik dieksekusi
         gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
-        
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
         setTimeout(() => {
+            if (audio.paused) return;
             audio.pause();
             playIcon.textContent = 'play_arrow';
-            updateMediaSessionState();
-        }, 40);
+        }, 200);
     } else {
         audio.pause();
         playIcon.textContent = 'play_arrow';
-        updateMediaSessionState();
     }
 }
 
@@ -204,6 +193,7 @@ function renderPlaylist(arr) {
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
+            initAudioContext();
             loadTrack(oIdx); 
             playAudioWithFade();
         }); 
@@ -219,8 +209,7 @@ function loadTrack(index) {
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
-    // Redam gain ke nol sebelum memutus source fisik lagu lama
-    if (gainNode && audioCtx) {
+    if (audioCtx) {
         gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
     }
     
@@ -304,17 +293,11 @@ function loadTrack(index) {
 }
 
 function playNextTrack() {
-    if (gainNode && audioCtx) {
-        gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
-    }
-    setTimeout(() => {
-        let n = currentIndex + 1; 
-        if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
-        else if (n >= tracks.length) n = 0; 
-        loadTrack(n); 
-        playAudioWithFade();
-    }, 40);
+    let n = currentIndex + 1; 
+    if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
+    else if (n >= tracks.length) n = 0; 
+    loadTrack(n); 
+    playAudioWithFade();
 }
 
 fetch('playlist.json')
@@ -337,7 +320,7 @@ audio.addEventListener('canplay', () => {
 });
 
 audio.addEventListener('playing', () => {
-    initAudioEngine();
+    initAudioContext();
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
@@ -370,27 +353,21 @@ audio.addEventListener('error', () => {
 });
 
 playBtn.addEventListener('click', () => { 
-    initAudioEngine();
+    initAudioContext();
     audio.paused ? playAudioWithFade() : pauseAudioWithFade();
 });
 
 nextBtn.addEventListener('click', () => {
-    initAudioEngine();
+    initAudioContext();
     playNextTrack();
 });
 
 prevBtn.addEventListener('click', () => { 
-    initAudioEngine();
-    if (gainNode && audioCtx) {
-        gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
-    }
-    setTimeout(() => {
-        let p = currentIndex - 1; 
-        if (p < 0) p = tracks.length - 1; 
-        loadTrack(p); 
-        playAudioWithFade();
-    }, 40);
+    initAudioContext();
+    let p = currentIndex - 1; 
+    if (p < 0) p = tracks.length - 1; 
+    loadTrack(p); 
+    playAudioWithFade();
 });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
@@ -438,4 +415,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-          
+                  
