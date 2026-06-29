@@ -48,50 +48,50 @@ body {
 }
 
 /* ==========================================================================
-   TAMPILAN MODE DESKTOP ANDROID - KUNCI UKURAN RACIKAN PAS PERSIS TARGET
+   TAMPILAN MODE DESKTOP ANDROID - UPGRADE MAKSIMAL BIAR JUMBO SANGAT PADAT
    ========================================================================== */
-@media (min-width: 768px) and (pointer: coarse) {
-    .player-container {
-        max-width: 550px !important; 
-        width: 94%;                 
-        padding: 24px;              
-    }
+body.is-mobile-device .player-container {
+    max-width: 550px !important; /* Ukuran emas pas target ss ke-2 */
+    width: 94% !important;
+    padding: 24px !important;
+    display: block !important;    /* Kunci agar tetap layout potret padat */
+}
 
-    .cover-wrapper {
-        max-width: 100%;
-        margin-bottom: 20px;
-    }
+body.is-mobile-device .cover-wrapper {
+    max-width: 100% !important;
+    margin-bottom: 20px !important;
+}
 
-    .track-info h2 {
-        font-size: 1.45rem; 
-        text-align: left;
-    }
-    
-    .track-info p {
-        font-size: 0.95rem;
-        text-align: left;
-    }
+body.is-mobile-device .track-info h2 {
+    font-size: 1.45rem !important;
+    text-align: left !important;
+}
 
-    .lyric-line {
-        font-size: 1.05rem; 
-    }
+body.is-mobile-device .track-info p {
+    font-size: 0.95rem !important;
+    text-align: left !important;
+}
 
-    .lyrics-container {
-        max-height: 160px;
-        min-height: 140px;
-        margin-bottom: 16px;
-    }
+body.is-mobile-device .lyric-line {
+    font-size: 1.05rem !important;
+}
 
-    .playlist-container {
-        max-height: 180px;
-    }
+body.is-mobile-device .lyrics-container {
+    max-height: 160px !important;
+    min-height: 140px !important;
+    margin-bottom: 16px !important;
+}
+
+body.is-mobile-device .playlist-container {
+    max-height: 180px !important;
 }
 
 /* ==========================================================================
    TAMPILAN BARU DESKTOP PC / LAPTOP ASLI (BUKAN EMULASI HP)
    ========================================================================== */
-@media (min-width: 768px) and (not (pointer: coarse)) {
-    .player-container {
+@media (min-width: 768px) {
+    /* Hanya aktif di monitor PC besar/bot Telegram, bukan emulasi HP */
+    body:not(.is-mobile-device) .player-container {
         width: 90%;
         max-width: 850px; 
         padding: 30px;
@@ -100,7 +100,7 @@ body {
         gap: 32px;
     }
 
-    .player-left-side {
+    body:not(.is-mobile-device) .player-left-side {
         display: grid;
         grid-template-areas: 
             "header"
@@ -111,7 +111,7 @@ body {
         gap: 16px;
     }
 
-    .track-header { 
+    body:not(.is-mobile-device) .track-header { 
         grid-area: header; 
         display: flex; 
         align-items: center; 
@@ -120,68 +120,46 @@ body {
         width: 100%;
     }
     
-    .cover-wrapper { 
+    body:not(.is-mobile-device) .cover-wrapper { 
         grid-area: header; 
         max-width: 100px; 
         margin: 0; 
     }
     
-    .track-info {
+    body:not(.is-mobile-device) .track-info {
         padding-left: 120px; 
         width: 100%;
     }
 
-    .track-info h2 {
+    body:not(.is-mobile-device) .track-info h2 {
         font-size: 1.3rem; 
         text-align: left;
     }
 
-    .track-info p {
+    body:not(.is-mobile-device) .track-info p {
         font-size: 1rem;
         text-align: left;
     }
 
-    .progress-area {
-        grid-area: progress;
-        margin-bottom: 0;
-    }
+    body:not(.is-mobile-device) .progress-area { grid-area: progress; margin-bottom: 0; }
+    body:not(.is-mobile-device) .controls-area { grid-area: controls; margin-bottom: 0; }
+    body:not(.is-mobile-device) .volume-area { grid-area: volume; margin-bottom: 0; }
 
-    .controls-area {
-        grid-area: controls;
-        margin-bottom: 0;
-    }
-
-    .volume-area {
-        grid-area: volume;
-        margin-bottom: 0; 
-    }
-
-    .player-right-side {
+    body:not(.is-mobile-device) .player-right-side {
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
     }
 
-    .lyrics-container {
+    body:not(.is-mobile-device) .lyrics-container {
         max-height: 160px; 
         min-height: 160px;
         margin-bottom: 16px;
     }
 
-    .search-box {
-        padding: 10px 14px;
-        margin-bottom: 12px;
-    }
-
-    .playlist-container {
-        max-height: 160px;
-        min-height: 160px; 
-        overflow-y: auto;
-    }
-    
-    .watermark {
-        margin-top: 16px;
-    }
+    body:not(.is-mobile-device) .search-box { margin-bottom: 12px; }
+    body:not(.is-mobile-device) .playlist-container { max-height: 160px; min-height: 160px; overflow-y: auto; }
+    body:not(.is-mobile-device) .watermark { margin-top: 16px; }
 }
 
 /* ==========================================================================
@@ -578,4 +556,5 @@ body {
     .watermark {
         margin-top: 12px;
     }
-    }
+        }
+    
