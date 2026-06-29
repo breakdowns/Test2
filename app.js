@@ -28,7 +28,6 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// Web Audio API dibuang total agar browser seluler memprioritaskan audio di latar belakang
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 1; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
@@ -191,10 +190,12 @@ function loadTrack(index) {
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
-    audio.pause();
-
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
+    updateMediaSession();
+
+    audio.pause();
+
     const track = tracks[index];
     
     trackTitle.textContent = track.title || "Unknown Title"; 
@@ -244,7 +245,6 @@ function loadTrack(index) {
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
-    updateMediaSession();
 
     setTimeout(() => {
         const trackTitleEl = document.getElementById('trackTitle');
@@ -439,4 +439,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                                                                    
+              
