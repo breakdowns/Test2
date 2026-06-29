@@ -244,8 +244,7 @@ function loadTrack(index) {
     durationEl.textContent = lastKnownDurationText;
 
     lyricsContainer.style.opacity = '0';
-    lyricsWrapper.style.transition = 'none';
-    lyricsWrapper.style.transform = 'translateY(0px)';
+    lyricsContainer.scrollTop = 0;
     lyricsWrapper.innerHTML = ''; 
     
     audio.crossOrigin = "anonymous";
@@ -264,7 +263,6 @@ function loadTrack(index) {
                 lyricsContainer.style.display = "block"; 
                 void lyricsWrapper.offsetWidth; 
                 lyricsContainer.style.opacity = '1';
-                lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
                 isChangingTrack = false;
             })
             .catch(() => {
@@ -389,13 +387,17 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-lyricsContainer.addEventListener('scroll', () => {
+const triggerUserScroll = () => {
     isUserScrollingLyrics = true;
     if (lyricScrollTimeout) clearTimeout(lyricScrollTimeout);
     lyricScrollTimeout = setTimeout(() => {
         isUserScrollingLyrics = false;
     }, 4000);
-});
+};
+
+lyricsContainer.addEventListener('touchstart', triggerUserScroll, {passive: true});
+lyricsContainer.addEventListener('mousedown', triggerUserScroll);
+lyricsContainer.addEventListener('wheel', triggerUserScroll, {passive: true});
 
 progressBar.addEventListener('input', (e) => {
     isSeeking = true;
@@ -449,11 +451,28 @@ audio.addEventListener('timeupdate', () => {
         lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
         
         if (!isUserScrollingLyrics && activeIndex !== -1 && lines[activeIndex]) {
-            const activeLine = lines[activeIndex], containerHeight = lyricsContainer.clientHeight, offsetTop = activeLine.offsetTop, lineHeight = activeLine.clientHeight;
+            const activeLine = lines[activeIndex];
+            const containerHeight = lyricsContainer.clientHeight;
+            const offsetTop = activeLine.offsetTop;
+            const lineHeight = activeLine.clientHeight;
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
-            lyricsWrapper.style.transform = `translateY(${-scrollAmount}px)`;
+            
+            lyricsContainer.scrollTo({
+                top: scrollAmount,
+                behavior: 'smooth'
+            });
         }
     }
 });
 
+progressContainer.addEventListener('click', (e) => {
+    if (audio.duration) {
+        const clickX = e.offsetX;
+        const totalWidth = progressContainer.clientWidth;
+        audio.currentTime = (clickX / totalWidth) * audio.duration;
+        updateMediaSessionState();
+    }
+});
+
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
+                             
