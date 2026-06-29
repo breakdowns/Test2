@@ -120,9 +120,7 @@ body {
 
 .progress-area { 
     margin-bottom: 24px; 
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    width: 100%;
 }
 
 .progress-slider {
@@ -134,23 +132,20 @@ body {
     outline: none;
     cursor: pointer;
     background: #4f4f4f;
-    color-scheme: only light !important;
+    display: block;
+    margin: 0;
+    padding: 0;
 }
 
 .progress-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
+    appearance: none;
     width: 12px;
     height: 12px;
     border-radius: 50%;
     background: #fefffe !important;
-    color-scheme: only light !important;
-    forced-color-adjust: none !important;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.progress-area:hover .progress-slider::-webkit-slider-thumb {
-    opacity: 1;
+    cursor: pointer;
+    border: none;
 }
 
 .time-info { 
@@ -158,6 +153,7 @@ body {
     justify-content: space-between; 
     font-size: 0.75rem; 
     color: var(--text-muted); 
+    margin-top: 8px;
 }
 
 .controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
@@ -244,9 +240,8 @@ body {
 }
 
 #lyricsWrapper { 
-    padding: 15px 0 40px 0; 
+    padding: 15px 0 60px 0; 
     text-align: center; 
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
 }
 
 .lyric-line { 
