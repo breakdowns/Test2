@@ -28,6 +28,8 @@ let isPreloaded = false;
 let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
+let startY = 0;
+let currentTranslateY = 0;
 
 let audioCtx = null, gainNode = null, sourceNode = null;
 
@@ -223,6 +225,7 @@ function loadTrack(index) {
     parsedLyrics = [];
     isPreloaded = false;
     isUserScrollingLyrics = false;
+    currentTranslateY = 0;
     
     trackTitle.classList.add('shimmer-loading');
     trackArtist.classList.add('shimmer-loading');
@@ -244,7 +247,7 @@ function loadTrack(index) {
     durationEl.textContent = lastKnownDurationText;
 
     lyricsContainer.style.opacity = '0';
-    lyricsContainer.scrollTop = 0;
+    lyricsWrapper.style.transform = 'translate3d(0, 0, 0)';
     lyricsWrapper.innerHTML = ''; 
     
     audio.crossOrigin = "anonymous";
@@ -387,17 +390,31 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
-const triggerUserScroll = () => {
+lyricsContainer.addEventListener('touchstart', (e) => {
     isUserScrollingLyrics = true;
     if (lyricScrollTimeout) clearTimeout(lyricScrollTimeout);
+    startY = e.touches[0].clientY;
+    lyricsWrapper.style.transition = 'none';
+}, {passive: true});
+
+lyricsContainer.addEventListener('touchmove', (e) => {
+    const deltaY = e.touches[0].clientY - startY;
+    startY = e.touches[0].clientY;
+    currentTranslateY += deltaY;
+    
+    const maxScroll = -(lyricsWrapper.clientHeight - lyricsContainer.clientHeight / 2);
+    if (currentTranslateY > 40) currentTranslateY = 40;
+    if (currentTranslateY < maxScroll) currentTranslateY = maxScroll;
+    
+    lyricsWrapper.style.transform = `translate3d(0, ${currentTranslateY}px, 0)`;
+}, {passive: true});
+
+lyricsContainer.addEventListener('touchend', () => {
     lyricScrollTimeout = setTimeout(() => {
         isUserScrollingLyrics = false;
+        lyricsWrapper.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
     }, 2000);
-};
-
-lyricsContainer.addEventListener('touchstart', triggerUserScroll, {passive: true});
-lyricsContainer.addEventListener('mousedown', triggerUserScroll);
-lyricsContainer.addEventListener('wheel', triggerUserScroll, {passive: true});
+});
 
 progressBar.addEventListener('input', (e) => {
     isSeeking = true;
@@ -455,9 +472,9 @@ audio.addEventListener('timeupdate', () => {
             const containerHeight = lyricsContainer.clientHeight;
             const offsetTop = activeLine.offsetTop;
             const lineHeight = activeLine.clientHeight;
-            const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
             
-            lyricsContainer.scrollTop = scrollAmount;
+            currentTranslateY = -(offsetTop - (containerHeight / 2) + (lineHeight / 2));
+            lyricsWrapper.style.transform = `translate3d(0, ${currentTranslateY}px, 0)`;
         }
     }
 });
@@ -469,11 +486,10 @@ document.addEventListener('visibilitychange', () => {
         if (activeIndex !== -1 && lines[activeIndex]) {
             const activeLine = lines[activeIndex];
             const containerHeight = lyricsContainer.clientHeight;
-            const scrollAmount = activeLine.offsetTop - (containerHeight / 2) + (activeLine.clientHeight / 2);
-            lyricsContainer.scrollTop = scrollAmount;
+            currentTranslateY = -(activeLine.offsetTop - (containerHeight / 2) + (activeLine.clientHeight / 2));
+            lyricsWrapper.style.transform = `translate3d(0, ${currentTranslateY}px, 0)`;
         }
     }
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                  
