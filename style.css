@@ -19,12 +19,12 @@
 
 body {
     background-color: var(--bg-black);
-    background-image: linear-gradient(to bottom, rgb(var(--dynamic-r), var(--dynamic-g), var(--dynamic-b)) 0%, var(--bg-black) 50%);
+    background-image: linear-gradient(to bottom, rgb(var(--dynamic-r), var(--dynamic-g), var(--dynamic-b)) 0%, var(--bg-black) 40%);
     color: var(--text-main);
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     padding: 20px;
     transition: background-image 0.5s ease;
 }
@@ -32,40 +32,28 @@ body {
 /* Container Utama */
 .player-container {
     width: 100%;
-    max-width: 420px;
-    background: rgba(24, 24, 24, 0.75);
-    backdrop-filter: blur(15px);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.6);
-    position: relative;
-}
-
-/* Bagian Cover Album Besar Tengah */
-.cover-wrapper {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    margin-bottom: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.cover-wrapper img {
-    width: 100%;
-    height: 100%;
+    max-width: 450px;
+    background: rgba(24, 24, 24, 0.85);
+    backdrop-filter: blur(10px);
     border-radius: 12px;
-    object-fit: cover;
+    padding: 20px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 
-/* Info Judul & Artis */
-.track-meta {
+/* Card Info Lagu */
+.track-card {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 15px;
     margin-bottom: 20px;
+}
+
+.cover-wrapper img {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 .track-info {
@@ -79,26 +67,26 @@ body {
 }
 
 #trackTitle {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 700;
     display: inline-block;
 }
 
 #trackArtist {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 /* Container Lirik */
 .lyrics-container {
-    height: 140px;
+    height: 180px;
     overflow: hidden;
     position: relative;
-    margin-bottom: 24px;
-    background: rgba(0, 0, 0, 0.15);
+    margin-bottom: 25px;
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
-    padding: 8px;
+    padding: 10px;
     mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
 }
@@ -112,10 +100,10 @@ body {
 }
 
 .lyric-line {
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.35);
-    padding: 6px 0;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 8px 0;
     width: 100%;
     cursor: pointer;
     transition: color 0.3s ease, transform 0.3s ease;
@@ -123,10 +111,10 @@ body {
 
 .lyric-line.active {
     color: var(--spotify-green);
-    transform: scale(1.03);
+    transform: scale(1.05);
 }
 
-/* Progress Bar */
+/* Progress & Waktu */
 .progress-container {
     width: 100%;
     height: 4px;
@@ -134,7 +122,7 @@ body {
     border-radius: 2px;
     cursor: pointer;
     position: relative;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .progress-bar {
@@ -147,17 +135,17 @@ body {
 .time-info {
     display: flex;
     justify-content: space-between;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     margin-bottom: 20px;
 }
 
-/* Tombol Kontrol */
+/* Tombol Navigasi Playback */
 .playback-buttons {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .control-btn {
@@ -179,8 +167,8 @@ body {
 .control-btn.play-main {
     background: var(--text-main);
     color: var(--bg-black);
-    width: 54px;
-    height: 54px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -189,7 +177,7 @@ body {
 }
 
 .control-btn.play-main:active {
-    transform: scale(0.95);
+    transform: scale(1.05);
 }
 
 /* Volume Slider */
@@ -198,7 +186,7 @@ body {
     align-items: center;
     gap: 10px;
     color: var(--text-muted);
-    margin-bottom: 24px;
+    margin-bottom: 25px;
 }
 
 .volume-container input[type="range"] {
@@ -219,93 +207,86 @@ body {
     cursor: pointer;
 }
 
-/* Komponen Pencarian Melayang */
-.search-section {
-    position: relative;
+/* Bagian Playlist */
+.playlist-section {
     border-top: 1px solid var(--bg-light);
-    padding-top: 16px;
+    padding-top: 15px;
 }
 
+.playlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.playlist-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* Pencarian */
 .search-container {
     position: relative;
+    margin-bottom: 15px;
 }
 
 .search-icon {
     position: absolute;
-    left: 12px;
+    left: 10px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 #searchBar {
     width: 100%;
     background: var(--bg-light);
     border: none;
-    padding: 10px 14px 10px 40px;
-    border-radius: 6px;
+    padding: 8px 12px 8px 36px;
+    border-radius: 4px;
     color: var(--text-main);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     outline: none;
 }
 
-/* Dropdown Hasil Pencarian Melayang */
-.search-dropdown {
-    position: absolute;
-    bottom: 50px; /* Muncul mengambang tepat di atas input search bar */
-    left: 0;
-    width: 100%;
-    max-height: 220px;
-    background: #1e1e1e;
-    border: 1px solid #333;
-    border-radius: 8px;
+/* List Item Playlist */
+.playlist-container-list {
+    max-height: 200px;
     overflow-y: auto;
-    z-index: 10;
-    box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
-    padding: 6px;
 }
 
-.search-dropdown.hidden {
-    display: none;
-}
-
-.search-item {
+.track-item {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 8px;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     transition: background 0.2s;
 }
 
-.search-item:hover {
-    background: rgba(255, 255, 255, 0.08);
+.track-item:hover {
+    background: rgba(255,255,255,0.05);
 }
 
-.search-item.active {
-    background: rgba(29, 185, 84, 0.15);
+.track-item.active {
+    background: rgba(29, 185, 84, 0.1);
 }
 
-.search-item.active strong {
+.track-item.active strong {
     color: var(--spotify-green);
 }
 
-.search-item img {
+.track-item img {
     width: 40px;
     height: 40px;
     border-radius: 4px;
     object-fit: cover;
 }
 
-.search-item div {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Efek Shimmer Pas Muat Lagu */
+/* Efek Shimmer Loading Pas Ganti Lagu */
 .shimmer-loading {
     position: relative;
     overflow: hidden;
@@ -325,7 +306,7 @@ body {
         rgba(255, 255, 255, 0.1) 60%,
         rgba(255, 255, 255, 0) 100%
     );
-    animation: shimmer 1.2s infinite;
+    animation: shimmer 1.5s infinite;
     content: '';
 }
 
@@ -336,5 +317,4 @@ body {
 @keyframes marqueeSpotify {
     0% { transform: translate3d(0, 0, 0); }
     100% { transform: translate3d(-100%, 0, 0); }
-    }
-    
+}
