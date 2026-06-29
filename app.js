@@ -55,16 +55,12 @@ function updateMediaSession() {
             pauseAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            fadeAndExecute(() => {
-                let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
-                loadTrack(p); 
-                playAudioDirectly();
-            });
+            let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
+            loadTrack(p); 
+            playAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            fadeAndExecute(() => {
-                playNextTrack();
-            });
+            playNextTrack();
         });
 
         try {
@@ -93,10 +89,25 @@ function updateMediaSessionState() {
     }
 }
 
-// Fungsi pembantu anti-gantung saat di background/notifikasi
+// Kembalikan ke eksekusi langsung murni agar sinkronisasi tombol play/pause di notifikasi tidak eror
+function playAudioDirectly() {
+    const targetVol = parseFloat(localStorage.getItem('volume') || 1);
+    audio.volume = targetVol;
+    audio.play().then(() => {
+        playIcon.textContent = 'pause';
+        updateMediaSessionState();
+    }).catch(() => {});
+}
+
+function pauseAudioDirectly() {
+    audio.pause();
+    playIcon.textContent = 'play_arrow';
+    updateMediaSessionState();
+}
+
+// Fungsi transisi volume hanya dipakai saat ganti trek di latar depan agar aman dari bug notifikasi
 function fadeAndExecute(callback) {
     const startVol = audio.volume;
-    // JIKA DI BACKGROUND (document.hidden), langsung bypass tanpa animasi biar ga beku
     if (audio.paused || startVol === 0 || document.hidden) {
         callback();
         return;
@@ -104,15 +115,13 @@ function fadeAndExecute(callback) {
 
     let vol = startVol;
     function shrink() {
-        if (document.hidden) { // Jaga-jaga kalau mendadak di-minimize
-            audio.pause();
+        if (document.hidden) {
             callback();
             return;
         }
         vol -= 0.2; 
         if (vol <= 0) {
             audio.volume = 0;
-            audio.pause();
             callback();
         } else {
             audio.volume = vol;
@@ -120,45 +129,6 @@ function fadeAndExecute(callback) {
         }
     }
     requestAnimationFrame(shrink);
-}
-
-function playAudioDirectly() {
-    const targetVol = parseFloat(localStorage.getItem('volume') || 1);
-    
-    // JIKA DI BACKGROUND, langsung tembak volume penuh & play instan
-    if (document.hidden) {
-        audio.volume = targetVol;
-        audio.play().then(() => {
-            playIcon.textContent = 'pause';
-        }).catch(() => {});
-        return;
-    }
-
-    audio.volume = 0; 
-    audio.play().then(() => {
-        playIcon.textContent = 'pause';
-        let vol = 0;
-        function grow() {
-            if (document.hidden) {
-                audio.volume = targetVol;
-                return;
-            }
-            vol += 0.2;
-            if (vol >= targetVol) {
-                audio.volume = targetVol;
-            } else {
-                audio.volume = vol;
-                requestAnimationFrame(grow);
-            }
-        }
-        requestAnimationFrame(grow);
-    }).catch(() => {});
-}
-
-function pauseAudioDirectly() {
-    fadeAndExecute(() => {
-        playIcon.textContent = 'play_arrow';
-    });
 }
 
 function updateDynamicBackground(src) {
@@ -441,4 +411,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-          
+                  
