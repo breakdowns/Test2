@@ -91,7 +91,8 @@ body {
 .marquee-container { 
     display: block; 
     width: 100%; 
-    overflow: hidden;  white-space: nowrap; 
+    overflow: hidden; 
+    white-space: nowrap; 
 }
 
 .track-info h2 { 
@@ -172,9 +173,14 @@ body {
 .btn-control:active { transform: scale(0.95); }
 .btn-control.active { color: var(--spotify-green); }
 
-/* FIX MUTLAK QUETTA: Dikasih warna hitam pekat dulu, biar pas di-invert otomatis oleh Quetta langsung berubah jadi putih */
+/* BENTENG PROTEKSI UTAMA: Tombol Play Putih Semu (Stabil di Chrome & Brave) */
 .btn-play-pause {
-    background-color: #121212 !important; 
+    background-color: #fefffe !important; 
+    filter: invert(0) !important;
+    -webkit-filter: invert(0) !important;
+    color: #121212 !important;
+    color-scheme: only light !important;
+    forced-color-adjust: none !important;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -185,22 +191,19 @@ body {
     border: none;
     cursor: pointer;
     transition: background-color 0.2s ease; 
-    
-    /* Senjata paksaan: Pembalikan filter ganda manual */
-    filter: invert(1) !important;
-    -webkit-filter: invert(1) !important;
-    forced-color-adjust: none !important;
 }
-
-/* Memastikan ikon segitiga di dalam ikut terbalik kontras dengan latar belakangnya */
 .btn-play-pause .material-icons { 
     font-size: 2.2rem; 
-    color: #ffffff !important; 
+    color: #121212 !important; 
+    filter: invert(0) !important;
+    -webkit-filter: invert(0) !important;
+    color-scheme: only light !important; 
     forced-color-adjust: none !important;
 }
 
 @media (hover: hover) {
     .btn-play-pause:hover { 
+        background-color: #fefffe; 
         transform: scale(1.05); 
     }
 }
@@ -211,19 +214,18 @@ body {
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; }
 
-/* FIX MUTLAK QUETTA: Mengamankan bulatan slider menggunakan box-shadow putih tebal solid */
+/* BENTENG PROTEKSI UTAMA: Bulatan Slider Putih Semu (Stabil di Chrome & Brave) */
 .volume-slider::-webkit-slider-thumb { 
     -webkit-appearance: none; 
     appearance: none;
-    width: 4px; 
+    width: 12px; 
     height: 12px; 
     border-radius: 50%; 
-    background: #121212 !important; 
-    box-shadow: 0 0 0 6px #fefffe !important; 
+    background: #fefffe !important; 
     color-scheme: only light !important; 
     forced-color-adjust: none !important;
-    filter: invert(1) !important;
-    -webkit-filter: invert(1) !important;
+    filter: invert(0) !important;
+    -webkit-filter: invert(0) !important;
 }
 
 .lyrics-container {
@@ -333,5 +335,4 @@ body {
 
 @keyframes shimmer {
     100% { transform: translateX(100%); }
-    }
-                                           
+        }
