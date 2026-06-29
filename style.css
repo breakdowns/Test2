@@ -37,7 +37,7 @@ body {
 }
 
 /* ==========================================================================
-   LAYOUT STANDAR: MODE PORTRAIT / MOBILE BIASA
+   LAYOUT STANDAR: MODE PORTRAIT / MOBILE / DESKTOP ANDROID TEGAK
    ========================================================================== */
 .player-container {
     background-color: #1a1a1a;
@@ -131,9 +131,10 @@ body {
 }
 
 /* ==========================================================================
-   LAYOUT DUA KOLOM HORIZONTAL: PC DESKTOP, LAPTOP, & BOT SCREENSHOT TELEGRAM
+   LAYOUT DUA KOLOM HORIZONTAL: PC DESKTOP, LAPTOP, BOT TELEGRAM, & HP LANDSCAPE
+   (KUNCIAN: WAJIB RESOLUSI LEBAR DAN ORIENTASI MELEBAR/LANDSCAPE)
    ========================================================================== */
-@media (min-width: 768px) {
+@media (min-width: 768px) and (orientation: landscape) {
     .player-container {
         width: 90%;
         max-width: 850px; 
@@ -259,7 +260,7 @@ body {
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 
 /* ==========================================================================
-   TAMPILAN KHUSUS MODE LANDSCAPE HP FISIK (TAMPILAN MENYAMPING DUA KOLOM AMAN)
+   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE FISIK ASLI)
    ========================================================================== */
 @media (max-height: 500px) and (orientation: landscape) {
     body { align-items: flex-start; padding: 12px; }
@@ -289,4 +290,3 @@ body {
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
                                         }
-    
