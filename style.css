@@ -245,7 +245,6 @@ body {
     text-align: center; 
 }
 
-/* FITUR 1: Visual Lirik Premium dengan Transisi Halus & Blur Efek */
 .lyric-line { 
     font-size: 1.05rem; 
     font-weight: 700; 
@@ -336,3 +335,93 @@ body {
 @keyframes shimmer {
     100% { transform: translateX(100%); }
 }
+
+/* ==========================================================================
+   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE)
+   ========================================================================== */
+@media (max-height: 500px) and (orientation: landscape) {
+    body {
+        align-items: flex-start;
+        padding: 10px;
+    }
+
+    .player-container {
+        max-width: 100%;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1.1fr 1fr; 
+        gap: 20px;
+        padding: 16px;
+    }
+
+    .player-left-side {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .cover-wrapper {
+        max-width: 130px; 
+        margin: 0 auto 10px auto;
+    }
+
+    .track-header {
+        margin-bottom: 6px;
+    }
+
+    .track-info h2 {
+        font-size: 1.1rem; 
+    }
+
+    .track-info p {
+        font-size: 0.85rem;
+    }
+
+    .progress-area {
+        margin-bottom: 10px;
+    }
+
+    .controls-area {
+        margin-bottom: 10px;
+    }
+
+    .btn-play-pause {
+        width: 44px;
+        height: 44px;
+    }
+
+    .btn-play-pause .material-icons {
+        font-size: 1.8rem;
+    }
+
+    .volume-area {
+        margin-bottom: 0; 
+    }
+
+    .player-right-side {
+        display: flex;
+        flex-direction: column;
+        max-height: 100%;
+        overflow: hidden;
+    }
+
+    .lyrics-container {
+        max-height: 110px; 
+        min-height: 110px;
+        margin-bottom: 10px;
+    }
+
+    .search-box {
+        padding: 6px 10px;
+        margin-bottom: 8px;
+        font-size: 0.8rem;
+    }
+
+    .playlist-container {
+        max-height: 95px; 
+    }
+    
+    .watermark {
+        margin-top: 8px;
+    }
+    }
