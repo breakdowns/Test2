@@ -18,35 +18,13 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
-    <!-- ==========================================================================
-       BYPASS VIEWPORT VIRTUAL: Memaksa Lebar Jumbo Mengikuti Skala Layar Emulasi HP
-       ========================================================================== */ -->
-    <style type="text/css">
-        .player-container {
-            width: 95vw !important;
-            max-width: 620px !important; /* Batas atas proporsional agar cover membesar padat mengisi kanan-kiri */
-            margin: 0 auto !important;
-        }
-
-        /* Memastikan di HP Portrait / Emulasi Desktop tetap mempertahankan layout satu kolom padat */
-        @media (orientation: portrait) {
-            .player-container {
-                display: block !important;
-            }
-            .player-left-side, .player-right-side {
-                display: block !important;
-                width: 100% !important;
-            }
-        }
-    </style>
 </head>
 <body>
 
     <div class="player-container">
         
         <!-- ================================================================== -->
-        <!-- KELOMPOK KIRI: PEMUTAR UTAMA (UNTUK MODE HP MENYAMPING)            -->
+        <!-- KELOMPOK KIRI: PEMUTAR UTAMA                                       -->
         <!-- ================================================================== -->
         <div class="player-left-side">
             <div class="cover-wrapper">
@@ -96,7 +74,7 @@
         </div>
 
         <!-- ================================================================== -->
-        <!-- KELOMPOK KANAN: LIRIK & PLAYLIST (UNTUK MODE HP MENYAMPING)        -->
+        <!-- KELOMPOK KANAN: LIRIK & PLAYLIST                                   -->
         <!-- ================================================================== -->
         <div class="player-right-side">
             <div id="lyricsContainer" class="lyrics-container">
@@ -124,5 +102,5 @@
         }
     </script>
 </body>
-                </html>
-                
+                    </html>
+                    
