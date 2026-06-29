@@ -28,7 +28,8 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 1; 
+// FITUR 3: Fallback Volume Aman 0.5 (50%) Jika Pertama Kali Dimuat Pengguna Baru
+const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
@@ -308,8 +309,9 @@ audio.addEventListener('loadedmetadata', () => {
     }
 });
 
+// FITUR 2: Fungsi Pencarian Ditambahkan Kontrol .trim() Agar Lebih Toleran Spasi Kosong
 searchBar.addEventListener('input', (e) => {
-    const q = e.target.value.toLowerCase(); 
+    const q = e.target.value.toLowerCase().trim(); 
     currentTracksDisplay = tracks.filter(t => (t.title && t.title.toLowerCase().includes(q)) || (t.artist && t.artist.toLowerCase().includes(q))); 
     renderPlaylist(currentTracksDisplay); 
 });
@@ -438,3 +440,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
+      
