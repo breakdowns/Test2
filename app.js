@@ -11,7 +11,6 @@ const trackTitle = document.getElementById('trackTitle'),
       trackCover = document.getElementById('trackCover'), 
       lyricsWrapper = document.getElementById('lyricsWrapper'), 
       lyricsContainer = document.getElementById('lyricsContainer'), 
-      progressContainer = document.getElementById('progressContainer'), 
       progressBar = document.getElementById('progressBar'), 
       currentTimeEl = document.getElementById('currentTime'), 
       durationEl = document.getElementById('duration'), 
@@ -25,7 +24,10 @@ let currentIndex = 0, isShuffle = false, isRepeat = false;
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
 let fadeTimeout = null; 
-let isPreloaded = false; // Flag status cek preload lagu berikutnya
+let isPreloaded = false;
+let isUserScrollingLyrics = false;
+let lyricScrollTimeout = null;
+let isSeeking = false;
 
 let audioCtx = null, gainNode = null, sourceNode = null;
 
@@ -33,6 +35,7 @@ const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localSt
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
+progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
 
 function initAudioContext() {
     if (!audioCtx) {
@@ -175,7 +178,10 @@ function renderLyrics() {
         p.className = 'lyric-line'; 
         p.id = `line-${i}`; 
         p.textContent = line.text; 
-        p.onclick = () => { audio.currentTime = line.time; }; 
+        p.onclick = () => { 
+            audio.currentTime = line.time; 
+            isUserScrollingLyrics = false;
+        }; 
         lyricsWrapper.appendChild(p); 
     }); 
 }
@@ -215,15 +221,14 @@ function renderPlaylist(arr) {
 function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
-    isPreloaded = false; // Reset status preload di track baru
+    isPreloaded = false;
+    isUserScrollingLyrics = false;
     
     trackTitle.classList.add('shimmer-loading');
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
     audio.pause();
-    audio.src = "";
-    audio.load();
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -233,7 +238,8 @@ function loadTrack(index) {
     trackArtist.textContent = track.artist || "Unknown Artist"; 
     trackCover.src = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png"; 
     
-    progressBar.style.width = '0%'; 
+    progressBar.value = 0;
+    progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
@@ -383,11 +389,41 @@ volumeSlider.addEventListener('input', (e) => {
     volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
 
+lyricsContainer.addEventListener('scroll', () => {
+    isUserScrollingLyrics = true;
+    if (lyricScrollTimeout) clearTimeout(lyricScrollTimeout);
+    lyricScrollTimeout = setTimeout(() => {
+        isUserScrollingLyrics = false;
+    }, 4000);
+});
+
+progressBar.addEventListener('input', (e) => {
+    isSeeking = true;
+    const pct = e.target.value;
+    progressBar.style.background = `linear-gradient(to right, #1ed760 ${pct}%, #4f4f4f ${pct}%)`;
+    if (audio.duration) {
+        currentTimeEl.textContent = formatTime((pct / 100) * audio.duration);
+    }
+});
+
+progressBar.addEventListener('change', (e) => {
+    if (audio.duration) {
+        audio.currentTime = (e.target.value / 100) * audio.duration;
+        updateMediaSessionState();
+    }
+    isSeeking = false;
+});
+
 audio.addEventListener('timeupdate', () => {
     if (!audio.duration) return; 
-    progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
     
-    // LOGIKA FITUR 2: PRELOAD LAGU SELANJUTNYA (Jika sisa lagu 15 detik lagi & belum di-preload)
+    const currentPercentage = (audio.currentTime / audio.duration) * 100;
+    if (!isSeeking) {
+        progressBar.value = currentPercentage;
+        progressBar.style.background = `linear-gradient(to right, #1ed760 ${currentPercentage}%, #4f4f4f ${currentPercentage}%)`;
+        currentTimeEl.textContent = formatTime(audio.currentTime); 
+    }
+    
     if (audio.duration - audio.currentTime <= 15 && !isPreloaded && !isRepeat) {
         isPreloaded = true;
         let nextIdx = currentIndex + 1;
@@ -405,28 +441,18 @@ audio.addEventListener('timeupdate', () => {
 
     if (document.hidden) return;
 
-    currentTimeEl.textContent = formatTime(audio.currentTime); 
-
     if (isChangingTrack || parsedLyrics.length === 0) return;
 
     if (parsedLyrics.length > 0) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
         const lines = document.querySelectorAll('.lyric-line');
         lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
-        if (activeIndex !== -1 && lines[activeIndex]) {
+        
+        if (!isUserScrollingLyrics && activeIndex !== -1 && lines[activeIndex]) {
             const activeLine = lines[activeIndex], containerHeight = lyricsContainer.clientHeight, offsetTop = activeLine.offsetTop, lineHeight = activeLine.clientHeight;
             const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
             lyricsWrapper.style.transform = `translateY(${-scrollAmount}px)`;
         }
-    }
-});
-
-progressContainer.addEventListener('click', (e) => {
-    if (audio.duration) {
-        const clickX = e.offsetX;
-        const totalWidth = progressContainer.clientWidth;
-        audio.currentTime = (clickX / totalWidth) * audio.duration;
-        updateMediaSessionState();
     }
 });
 
