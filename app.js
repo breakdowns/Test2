@@ -55,7 +55,6 @@ function updateMediaSession() {
             pauseAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            // Redam instan sebelum pindah lagu lewat notifikasi
             audio.volume = 0;
             setTimeout(() => {
                 let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
@@ -64,7 +63,6 @@ function updateMediaSession() {
             }, 15);
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            // Redam instan sebelum pindah lagu lewat notifikasi
             audio.volume = 0;
             setTimeout(() => {
                 playNextTrack();
@@ -107,7 +105,7 @@ function playAudioDirectly() {
 
 function pauseAudioDirectly() {
     const targetVol = parseFloat(localStorage.getItem('volume') || 1);
-    audio.volume = 0; // Jatuhkan ke 0 ms sebelum jeda untuk redam letupan sinyal
+    audio.volume = 0; 
     setTimeout(() => {
         audio.pause();
         playIcon.textContent = 'play_arrow';
@@ -273,12 +271,16 @@ function loadTrack(index) {
     }, 100);
 }
 
+// FIX UTAMA: Redam volume ke 0 sebelum memindahkan track demi hapus letupan 'tet'
 function playNextTrack() {
-    let n = currentIndex + 1; 
-    if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
-    else if (n >= tracks.length) n = 0; 
-    loadTrack(n); 
-    playAudioDirectly();
+    audio.volume = 0;
+    setTimeout(() => {
+        let n = currentIndex + 1; 
+        if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
+        else if (n >= tracks.length) n = 0; 
+        loadTrack(n); 
+        playAudioDirectly();
+    }, 15);
 }
 
 fetch('playlist.json')
@@ -337,10 +339,7 @@ playBtn.addEventListener('click', () => {
 });
 
 nextBtn.addEventListener('click', () => {
-    audio.volume = 0;
-    setTimeout(() => {
-        playNextTrack();
-    }, 15);
+    playNextTrack();
 });
 
 prevBtn.addEventListener('click', () => { 
@@ -398,4 +397,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-              
+          
