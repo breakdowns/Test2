@@ -93,17 +93,23 @@ function updateMediaSessionState() {
     }
 }
 
-// Fungsi pembantu untuk meredam letupan 'tet' menggunakan siklus animasi halus
+// Fungsi pembantu anti-gantung saat di background/notifikasi
 function fadeAndExecute(callback) {
     const startVol = audio.volume;
-    if (audio.paused || startVol === 0) {
+    // JIKA DI BACKGROUND (document.hidden), langsung bypass tanpa animasi biar ga beku
+    if (audio.paused || startVol === 0 || document.hidden) {
         callback();
         return;
     }
 
     let vol = startVol;
     function shrink() {
-        vol -= 0.15; // Turunkan volume dengan sangat cepat
+        if (document.hidden) { // Jaga-jaga kalau mendadak di-minimize
+            audio.pause();
+            callback();
+            return;
+        }
+        vol -= 0.2; 
         if (vol <= 0) {
             audio.volume = 0;
             audio.pause();
@@ -118,12 +124,26 @@ function fadeAndExecute(callback) {
 
 function playAudioDirectly() {
     const targetVol = parseFloat(localStorage.getItem('volume') || 1);
+    
+    // JIKA DI BACKGROUND, langsung tembak volume penuh & play instan
+    if (document.hidden) {
+        audio.volume = targetVol;
+        audio.play().then(() => {
+            playIcon.textContent = 'pause';
+        }).catch(() => {});
+        return;
+    }
+
     audio.volume = 0; 
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         let vol = 0;
         function grow() {
-            vol += 0.15;
+            if (document.hidden) {
+                audio.volume = targetVol;
+                return;
+            }
+            vol += 0.2;
             if (vol >= targetVol) {
                 audio.volume = targetVol;
             } else {
@@ -421,4 +441,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                 
+          
