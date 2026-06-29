@@ -1,0 +1,17 @@
+{
+  "name": "Breakdowns Music",
+  "short_name": "Breakdowns",
+  "description": "The ultimate Metalcore playlist featuring the heaviest Breakdowns.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme-color": "#121212",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
