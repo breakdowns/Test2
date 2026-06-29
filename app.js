@@ -49,15 +49,15 @@ function updateMediaSession() {
         });
 
         navigator.mediaSession.setActionHandler('play', () => {
-            playAudioWithFade();
+            playAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('pause', () => {
-            pauseAudioWithFade();
+            pauseAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
             let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
             loadTrack(p); 
-            playAudioWithFade();
+            playAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
             playNextTrack();
@@ -89,42 +89,18 @@ function updateMediaSessionState() {
     }
 }
 
-// Trik peredam suara 'tet' instan tanpa Web Audio API
-function playAudioWithFade() {
+// Fungsi eksekusi langsung tanpa interval agar tidak dibekukan oleh OS Android saat background
+function playAudioDirectly() {
     const targetVol = parseFloat(localStorage.getItem('volume') || 1);
-    audio.volume = 0;
+    audio.volume = targetVol; 
     audio.play().then(() => {
         playIcon.textContent = 'pause';
-        // Fade in sangat cepat menggunakan interval bawaan (aman & enteng)
-        let v = 0;
-        const fIn = setInterval(() => {
-            v += 0.2;
-            if (v >= targetVol) {
-                audio.volume = targetVol;
-                clearInterval(fIn);
-            } else {
-                audio.volume = v;
-            }
-        }, 10);
-    });
+    }).catch(() => {});
 }
 
-function pauseAudioWithFade() {
-    const startVol = audio.volume;
-    let v = startVol;
-    // Turunkan volume ke 0 dengan cepat dalam waktu ~40ms sebelum klik pause dieksekusi
-    const fOut = setInterval(() => {
-        v -= 0.2;
-        if (v <= 0) {
-            audio.volume = 0;
-            clearInterval(fOut);
-            audio.pause();
-            playIcon.textContent = 'play_arrow';
-            audio.volume = startVol; // Kembalikan nilai aslinya setelah pause
-        } else {
-            audio.volume = v;
-        }
-    }, 10);
+function pauseAudioDirectly() {
+    audio.pause();
+    playIcon.textContent = 'play_arrow';
 }
 
 function updateDynamicBackground(src) {
@@ -189,7 +165,7 @@ function renderPlaylist(arr) {
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
             loadTrack(oIdx); 
-            playAudioWithFade();
+            playAudioDirectly();
         }); 
         playlistContainer.appendChild(item);
     });
@@ -287,7 +263,7 @@ function playNextTrack() {
     if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
     else if (n >= tracks.length) n = 0; 
     loadTrack(n); 
-    playAudioWithFade();
+    playAudioDirectly();
 }
 
 fetch('playlist.json')
@@ -342,7 +318,7 @@ audio.addEventListener('error', () => {
 });
 
 playBtn.addEventListener('click', () => { 
-    audio.paused ? playAudioWithFade() : pauseAudioWithFade();
+    audio.paused ? playAudioDirectly() : pauseAudioDirectly();
 });
 
 nextBtn.addEventListener('click', () => {
@@ -353,7 +329,7 @@ prevBtn.addEventListener('click', () => {
     let p = currentIndex - 1; 
     if (p < 0) p = tracks.length - 1; 
     loadTrack(p); 
-    playAudioWithFade();
+    playAudioDirectly();
 });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
@@ -401,3 +377,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
+                                                                    
