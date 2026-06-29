@@ -28,7 +28,7 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// FITUR 3: Fallback Volume Aman 0.5 (50%) Jika Pertama Kali Dimuat Pengguna Baru
+// OPTIMASI VOLUME: Fallback Aman ke 0.5 (50%) Jika Pertama Kali Dimuat Pengguna Baru
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
@@ -181,6 +181,7 @@ function renderPlaylist(arr) {
     });
 }
 
+// FIX: Pemuatan Lagu Langsung Instan tanpa Timeout Penunda Audio
 function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
@@ -210,8 +211,10 @@ function loadTrack(index) {
     lyricsContainer.scrollTop = 0;
     lyricsWrapper.innerHTML = ''; 
     
+    // LANGSUNG DI-LOAD DETIK INI JUGA (ANTI-DELAY AWAL LAGU)
     audio.crossOrigin = "anonymous";
     audio.src = track.src;
+    audio.load();
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -309,7 +312,7 @@ audio.addEventListener('loadedmetadata', () => {
     }
 });
 
-// FITUR 2: Fungsi Pencarian Ditambahkan Kontrol .trim() Agar Lebih Toleran Spasi Kosong
+// OPTIMASI SEACHBAR: Ditambahkan .trim() Agar Toleran terhadap Spasi Kosong Tidak Sengaja
 searchBar.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase().trim(); 
     currentTracksDisplay = tracks.filter(t => (t.title && t.title.toLowerCase().includes(q)) || (t.artist && t.artist.toLowerCase().includes(q))); 
@@ -440,4 +443,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-      
+              
