@@ -1,6 +1,6 @@
-// DETEKSI LAYAR FISIK: Mencegah fitur "Situs Desktop" Chrome Android merusak layout HP
+// DETEKSI LAYAR FISIK: Mengunci kelas perangkat mobile agar tidak tertipu emulasi desktop browser
 if (window.screen.width < 768) {
-    document.body.classList.add('is-mobile');
+    document.body.classList.add('is-mobile-device');
 }
 
 const audio = document.getElementById('mainAudio'), 
@@ -448,4 +448,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
+        
