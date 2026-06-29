@@ -55,18 +55,16 @@ function updateMediaSession() {
             pauseAudioDirectly();
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            audio.pause();
-            setTimeout(() => {
+            fadeAndExecute(() => {
                 let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
                 loadTrack(p); 
                 playAudioDirectly();
-            }, 30);
+            });
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            audio.pause();
-            setTimeout(() => {
+            fadeAndExecute(() => {
                 playNextTrack();
-            }, 30);
+            });
         });
 
         try {
@@ -95,15 +93,52 @@ function updateMediaSessionState() {
     }
 }
 
+// Fungsi pembantu untuk meredam letupan 'tet' menggunakan siklus animasi halus
+function fadeAndExecute(callback) {
+    const startVol = audio.volume;
+    if (audio.paused || startVol === 0) {
+        callback();
+        return;
+    }
+
+    let vol = startVol;
+    function shrink() {
+        vol -= 0.15; // Turunkan volume dengan sangat cepat
+        if (vol <= 0) {
+            audio.volume = 0;
+            audio.pause();
+            callback();
+        } else {
+            audio.volume = vol;
+            requestAnimationFrame(shrink);
+        }
+    }
+    requestAnimationFrame(shrink);
+}
+
 function playAudioDirectly() {
+    const targetVol = parseFloat(localStorage.getItem('volume') || 1);
+    audio.volume = 0; 
     audio.play().then(() => {
         playIcon.textContent = 'pause';
+        let vol = 0;
+        function grow() {
+            vol += 0.15;
+            if (vol >= targetVol) {
+                audio.volume = targetVol;
+            } else {
+                audio.volume = vol;
+                requestAnimationFrame(grow);
+            }
+        }
+        requestAnimationFrame(grow);
     }).catch(() => {});
 }
 
 function pauseAudioDirectly() {
-    audio.pause();
-    playIcon.textContent = 'play_arrow';
+    fadeAndExecute(() => {
+        playIcon.textContent = 'play_arrow';
+    });
 }
 
 function updateDynamicBackground(src) {
@@ -167,11 +202,10 @@ function renderPlaylist(arr) {
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
-            audio.pause();
-            setTimeout(() => {
+            fadeAndExecute(() => {
                 loadTrack(oIdx); 
                 playAudioDirectly();
-            }, 30);
+            });
         }); 
         playlistContainer.appendChild(item);
     });
@@ -185,7 +219,7 @@ function loadTrack(index) {
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
-    // Pembersihan buffer audio secara aman
+    audio.pause();
     audio.src = "";
     audio.load();
 
@@ -265,14 +299,11 @@ function loadTrack(index) {
 }
 
 function playNextTrack() {
-    audio.pause();
-    setTimeout(() => {
-        let n = currentIndex + 1; 
-        if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
-        else if (n >= tracks.length) n = 0; 
-        loadTrack(n); 
-        playAudioDirectly();
-    }, 30);
+    let n = currentIndex + 1; 
+    if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
+    else if (n >= tracks.length) n = 0; 
+    loadTrack(n); 
+    playAudioDirectly();
 }
 
 fetch('playlist.json')
@@ -331,17 +362,18 @@ playBtn.addEventListener('click', () => {
 });
 
 nextBtn.addEventListener('click', () => {
-    playNextTrack();
+    fadeAndExecute(() => {
+        playNextTrack();
+    });
 });
 
 prevBtn.addEventListener('click', () => { 
-    audio.pause();
-    setTimeout(() => {
+    fadeAndExecute(() => {
         let p = currentIndex - 1; 
         if (p < 0) p = tracks.length - 1; 
         loadTrack(p); 
         playAudioDirectly();
-    }, 30);
+    });
 });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
@@ -389,4 +421,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-      
+                 
