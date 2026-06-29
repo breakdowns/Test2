@@ -30,7 +30,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 24px 20px 40px 20px;
+    padding: 16px 12px 32px 12px; /* Dipersempit biar kontainer di HP punya ruang gerak lebih luas */
     transition: background 0.8s ease;
     overscroll-behavior-y: auto !important; 
     touch-action: auto !important;
@@ -48,27 +48,31 @@ body {
 }
 
 /* ==========================================================================
-   TAMPILAN KHUSUS MODE DESKTOP DI HP / TABLET (FIX BIAR GAK MENCIUT KECIL)
+   TAMPILAN KHUSUS MODE DESKTOP DI HP / TABLET (DI-BOOST MAKSIMAL BIAR JUMBO)
    ========================================================================== */
 @media (min-width: 768px) and (pointer: coarse) {
-    /* Memicu container potret agar melebar proporsional seperti gambar 1002507180.jpg */
+    /* Meregangkan container secara maksimal sesuai contoh gambar 1002507180.jpg */
     .player-container {
-        max-width: 580px; /* Ditambah lebarnya agar padat dan mantap di layar */
-        width: 92%;
-        padding: 32px;
+        max-width: 680px; /* Di-boost dari 580px ke 680px biar super padat */
+        width: 96%;        /* Memaksimalkan sisa margin kanan kiri */
+        padding: 36px;     /* Menyeimbangkan proporsi dalam kontainer yang membesar */
     }
 
     .track-info h2 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
+    }
+    
+    .track-info p {
+        font-size: 1.05rem;
     }
 
     .lyrics-container {
-        max-height: 200px;
-        min-height: 160px;
+        max-height: 240px;
+        min-height: 180px;
     }
 
     .playlist-container {
-        max-height: 220px;
+        max-height: 260px;
     }
 }
 
@@ -566,4 +570,5 @@ body {
     .watermark {
         margin-top: 12px;
     }
-                }
+        }
+        
