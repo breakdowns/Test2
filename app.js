@@ -74,12 +74,19 @@ function updateMediaSession() {
         });
         navigator.mediaSession.setActionHandler('previoustrack', () => {
             initAudioContext();
-            let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
-            loadTrack(p); 
+            // OPTIMASI: Tombol Prev di notifikasi mendengarkan status Shuffle
+            if (isShuffle) {
+                let n = Math.floor(Math.random() * tracks.length);
+                loadTrack(n);
+            } else {
+                let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
+                loadTrack(p); 
+            }
             playAudioWithFade();
         });
         navigator.mediaSession.setActionHandler('nexttrack', () => {
             initAudioContext();
+            // OPTIMASI: Tombol Next di notifikasi mendengarkan status Shuffle via playNextTrack
             playNextTrack();
         });
 
@@ -111,7 +118,6 @@ function updateMediaSessionState() {
 
 function playAudioWithFade() {
     initAudioContext();
-    // Batalkan sisa antrian perintah pause dari klik spam sebelumnya jika ada
     if (fadeTimeout) clearTimeout(fadeTimeout);
     
     audio.play().then(() => {
@@ -123,7 +129,6 @@ function playAudioWithFade() {
 
 function pauseAudioWithFade() {
     if (audioCtx) {
-        // Batalkan sisa antrian lama sebelum membuat antrian penundaan baru
         if (fadeTimeout) clearTimeout(fadeTimeout);
         
         gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
@@ -133,7 +138,7 @@ function pauseAudioWithFade() {
             if (audio.paused) return;
             audio.pause();
             playIcon.textContent = 'play_arrow';
-            fadeTimeout = null; // Reset status antrian setelah sukses dieksekusi
+            fadeTimeout = null;
         }, 200);
     } else {
         audio.pause();
@@ -201,7 +206,6 @@ function renderPlaylist(arr) {
               item = document.createElement('div');
         item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         
-        // Proteksi playlist untuk fallback data kosong
         const displayTitle = track.title || "Unknown Title";
         const displayArtist = track.artist || "Unknown Artist";
         const displayCover = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
@@ -236,7 +240,6 @@ function loadTrack(index) {
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
     
-    // Fallback jika judul atau nama artis kosong di berkas json
     trackTitle.textContent = track.title || "Unknown Title"; 
     trackArtist.textContent = track.artist || "Unknown Artist"; 
     trackCover.src = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png"; 
@@ -368,7 +371,6 @@ audio.addEventListener('error', () => {
     trackCover.classList.remove('shimmer-loading');
 });
 
-// Penanganan Broken Cover menggunakan berkas breakdowns.png pilihanmu
 trackCover.addEventListener('error', () => {
     trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
 });
@@ -436,4 +438,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-                                                
+                  
