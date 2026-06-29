@@ -16,15 +16,15 @@
     font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 }
 
-/* FIX STATUS BAR CHROME: Mengunci warna dasar html agar dibaca hitam pekat oleh browser */
+/* FIX STATUS BAR: Mengunci warna dasar html agar dibaca hitam pekat oleh browser */
 html {
     background-color: #121212 !important; 
     min-height: 100%;
 }
 
-/* FIX STATUS BAR CHROME: Menambahkan background-color dasar sebelum gradasi dimuat */
+/* FIX STATUS BAR: Menambahkan background-color dasar sebelum gradasi dimuat */
 body {
-    background-color: #121212 !important; /* Pasukan cadangan warna untuk status bar Chrome */
+    background-color: #121212 !important; 
     background: linear-gradient(to bottom, rgb(var(--dynamic-r), var(--dynamic-g), var(--dynamic-b)) 0%, var(--background-base) 40%);
     background-attachment: fixed;
     color: var(--text-main);
@@ -155,7 +155,7 @@ body {
 
 .controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 
-/* FIX MUTLAK ANTI DARK-MODE FORCE PADA TOMBOL NAVIGASI */
+/* FIX ANTI-DARKMODE UNTUK TOMBOL NAVIGASI KECIL */
 .btn-control { 
     background: none !important; 
     border: none !important; 
@@ -173,9 +173,9 @@ body {
 .btn-control:active { transform: scale(0.95); }
 .btn-control.active { color: var(--spotify-green); }
 
-/* FIX MUTLAK ANTI DARK-MODE FORCE PADA PLAY BUTTON */
+/* FIX MUTLAK QUETTA & AGRESIVE BROWSER: Gradasi putih semu agar tombol play tidak jadi hitam */
 .btn-play-pause {
-    background-color: #fefffe !important; 
+    background: linear-gradient(0deg, #fefffe, #fefefe) !important; 
     filter: invert(0) !important;
     -webkit-filter: invert(0) !important;
     color: #121212 !important;
@@ -203,7 +203,7 @@ body {
 
 @media (hover: hover) {
     .btn-play-pause:hover { 
-        background-color: #fefffe; 
+        background: linear-gradient(0deg, #ffffff, #fcfcfc) !important; 
         transform: scale(1.05); 
     }
 }
@@ -213,7 +213,20 @@ body {
 
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; }
-.volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
+
+/* FIX MUTLAK QUETTA: Mengamankan bulatan slider agar tidak gaib di dark mode agresif */
+.volume-slider::-webkit-slider-thumb { 
+    -webkit-appearance: none; 
+    appearance: none;
+    width: 12px; 
+    height: 12px; 
+    border-radius: 50%; 
+    background: linear-gradient(0deg, #fefffe, #fefefe) !important; 
+    color-scheme: only light !important; 
+    forced-color-adjust: none !important;
+    filter: invert(0) !important;
+    -webkit-filter: invert(0) !important;
+}
 
 .lyrics-container {
     position: relative;
@@ -323,3 +336,4 @@ body {
 @keyframes shimmer {
     100% { transform: translateX(100%); }
     }
+    
