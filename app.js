@@ -198,42 +198,39 @@ function loadTrack(index) {
     lyricsWrapper.style.transform = 'translateY(0px)';
     lyricsWrapper.innerHTML = ''; 
     
-    const currentTrackSrc = track.src;
+    audio.crossOrigin = "anonymous";
+    audio.src = track.src;
     
-    setTimeout(() => {
-        audio.crossOrigin = "anonymous";
-        audio.src = currentTrackSrc;
-        
-        if (track.lyricsSrc) {
-            fetch(track.lyricsSrc)
-                .then(res => res.text())
-                .then(text => { 
-                    if (tracks[currentIndex].src !== currentTrackSrc) return;
-                    
-                    parsedLyrics = parseLRC(text); 
-                    lyricsWrapper.innerHTML = ''; 
-                    parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                    
-                    lyricsContainer.style.display = "block"; 
-                    void lyricsWrapper.offsetWidth; 
-                    lyricsContainer.style.opacity = '1';
-                    lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+    const currentTrackSrc = track.src;
+    if (track.lyricsSrc) {
+        fetch(track.lyricsSrc)
+            .then(res => res.text())
+            .then(text => { 
+                if (tracks[currentIndex].src !== currentTrackSrc) return;
+                
+                parsedLyrics = parseLRC(text); 
+                lyricsWrapper.innerHTML = ''; 
+                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                
+                lyricsContainer.style.display = "block"; 
+                void lyricsWrapper.offsetWidth; 
+                lyricsContainer.style.opacity = '1';
+                lyricsWrapper.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                isChangingTrack = false;
+            })
+            .catch(() => {
+                if (tracks[currentIndex].src === currentTrackSrc) {
+                    lyricsWrapper.innerHTML = '';
+                    lyricsContainer.style.display = "none";
                     isChangingTrack = false;
-                })
-                .catch(() => {
-                    if (tracks[currentIndex].src === currentTrackSrc) {
-                        lyricsWrapper.innerHTML = '';
-                        lyricsContainer.style.display = "none";
-                        isChangingTrack = false;
-                    }
-                });
-        } else { 
-            parsedLyrics = [];
-            lyricsWrapper.innerHTML = '';
-            lyricsContainer.style.display = "none";
-            isChangingTrack = false;
-        }
-    }, 10);
+                }
+            });
+    } else { 
+        parsedLyrics = [];
+        lyricsWrapper.innerHTML = '';
+        lyricsContainer.style.display = "none";
+        isChangingTrack = false;
+    }
     
     const isFav = favorites.includes(track.src);
     favoriteBtn.classList.toggle('active', isFav); 
@@ -394,4 +391,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
-              
+          
