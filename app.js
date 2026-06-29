@@ -15,11 +15,11 @@ const trackTitle = document.getElementById('trackTitle'),
       progressBar = document.getElementById('progressBar'), 
       currentTimeEl = document.getElementById('currentTime'), 
       durationEl = document.getElementById('duration'), 
-      volumeSlider = document.getElementById('volumeSlider'),
-      searchBar = document.getElementById('searchBar'),
-      searchDropdown = document.getElementById('searchDropdown');
+      volumeSlider = document.getElementById('volumeSlider'), 
+      playlistContainer = document.getElementById('playlist'), 
+      searchBar = document.getElementById('searchBar');
 
-let tracks = [], parsedLyrics = [];
+let tracks = [], currentTracksDisplay = [], parsedLyrics = [];
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 
 let isChangingTrack = false;
@@ -96,6 +96,7 @@ function updateMediaSession() {
     }
 }
 
+/* state tracking */
 function updateMediaSessionState() {
     if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
         navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
@@ -186,25 +187,19 @@ function renderStaticLyrics(text) {
     }); 
 }
 
-function renderDropdownResults(filteredArr) {
-    searchDropdown.innerHTML = '';
-    if (filteredArr.length === 0) {
-        searchDropdown.innerHTML = '<div style="padding:10px;color:var(--text-muted);font-size:0.85rem;text-align:center;">Lagu tidak ditemukan</div>';
-        return;
-    }
-    filteredArr.forEach((track) => {
-        const oIdx = tracks.findIndex(t => t.src === track.src),
+function renderPlaylist(arr) {
+    playlistContainer.innerHTML = ''; 
+    arr.forEach((track) => {
+        const oIdx = tracks.findIndex(t => t.src === track.src), 
               item = document.createElement('div');
-        item.className = `search-item ${oIdx === currentIndex ? 'active' : ''}`;
+        item.className = `track-item ${oIdx === currentIndex ? 'active' : ''}`;
         item.innerHTML = `<img src="${track.cover}"><div><strong>${track.title}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${track.artist}</small></div>`;
         item.addEventListener('click', () => { 
             initAudioContext();
             loadTrack(oIdx); 
             playAudioWithFade();
-            searchBar.value = '';
-            searchDropdown.classList.add('hidden');
         }); 
-        searchDropdown.appendChild(item);
+        playlistContainer.appendChild(item);
     });
 }
 
@@ -283,6 +278,7 @@ function loadTrack(index) {
         isChangingTrack = false;
     }
     
+    renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover);
     updateMediaSession();
 
@@ -316,6 +312,7 @@ fetch('playlist.json')
     .then(res => res.json())
     .then(data => { 
         tracks = data.playlist; 
+        currentTracksDisplay = tracks;
         const savedIndex = parseInt(localStorage.getItem('currentIndex')) || 0; 
         if (tracks.length > 0) loadTrack(savedIndex >= 0 && savedIndex < tracks.length ? savedIndex : 0); 
     });
@@ -351,20 +348,9 @@ audio.addEventListener('loadedmetadata', () => {
 });
 
 searchBar.addEventListener('input', (e) => {
-    const q = e.target.value.toLowerCase().trim();
-    if (q === '') {
-        searchDropdown.classList.add('hidden');
-        return;
-    }
-    const filtered = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
-    renderDropdownResults(filtered);
-    searchDropdown.classList.remove('hidden');
-});
-
-document.addEventListener('click', (e) => {
-    if (!searchBar.contains(e.target) && !searchDropdown.contains(e.target)) {
-        searchDropdown.classList.add('hidden');
-    }
+    const q = e.target.value.toLowerCase(); 
+    currentTracksDisplay = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)); 
+    renderPlaylist(currentTracksDisplay); 
 });
 
 audio.addEventListener('error', () => {
@@ -441,3 +427,4 @@ progressContainer.addEventListener('click', (e) => {
 audio.addEventListener('ended', () => { 
     isRepeat ? audio.play() : playNextTrack(); 
 });
+                           
