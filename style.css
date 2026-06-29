@@ -28,27 +28,26 @@ body {
     color: var(--text-main);
     display: flex;
     justify-content: center;
-    align-items: center; 
+    align-items: center;
     min-height: 100vh;
-    padding: 24px 12px;
+    padding: 16px 12px 32px 12px;
     transition: background 0.8s ease;
     overscroll-behavior-y: auto !important; 
     touch-action: auto !important;
 }
 
 /* ==========================================================================
-   LAYOUT UTAMA (HP PORTRAIT / EMULASI DESKTOP ANDROID) - PAS DI TENGAH
+   LAYOUT STANDAR: MODE PORTRAIT / MOBILE BIASA
    ========================================================================== */
 .player-container {
     background-color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    width: 94%;
-    max-width: 580px; /* Angka emas target: Lebar jumbo proporsional & simetris di tengah */
+    width: 100%;
+    max-width: 420px;
     border-radius: 16px;
-    padding: 28px;
+    padding: 24px;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: transform 0.3s ease;
-    margin: 0 auto;  /* Memastikan kontainer mutlak diam di tengah */
 }
 
 .cover-wrapper {
@@ -90,7 +89,7 @@ body {
 }
 
 .track-info h2 { 
-    font-size: 1.5rem; 
+    font-size: 1.4rem; 
     font-weight: 700; 
     color: var(--text-main); 
     white-space: nowrap; 
@@ -100,7 +99,7 @@ body {
 }
 
 .track-info p { 
-    font-size: 1rem; 
+    font-size: 0.95rem; 
     color: var(--text-muted); 
     margin-top: 4px; 
     white-space: nowrap; 
@@ -111,7 +110,7 @@ body {
 
 .lyrics-container {
     position: relative;
-    max-height: 180px;
+    max-height: 160px;
     min-height: 140px;
     overflow-y: auto;
     scroll-behavior: smooth;
@@ -126,15 +125,15 @@ body {
 }
 
 .playlist-container { 
-    max-height: 200px; 
+    max-height: 180px; 
     overflow-y: auto;
     -webkit-overflow-scrolling: touch; 
 }
 
 /* ==========================================================================
-   LAYOUT DUA KOLOM HORIZONTAL (KHUSUS MONITOR PC / LAPTOP / BOT TELEGRAM)
+   LAYOUT DUA KOLOM HORIZONTAL: PC DESKTOP, LAPTOP, & BOT SCREENSHOT TELEGRAM
    ========================================================================== */
-@media (orientation: landscape) and (min-width: 900px) {
+@media (min-width: 768px) {
     .player-container {
         width: 90%;
         max-width: 850px; 
@@ -207,7 +206,7 @@ body {
 }
 
 /* ==========================================================================
-   COMMON AUDIO ELEMENTS STYLING
+   COMMON STYLES & CONTROLS BERSAMA
    ========================================================================== */
 @keyframes marqueeDinamis {
     0% { transform: translate3d(0, 0, 0); }
@@ -260,7 +259,7 @@ body {
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 
 /* ==========================================================================
-   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE FISIK ASLI)
+   TAMPILAN KHUSUS MODE LANDSCAPE HP FISIK (TAMPILAN MENYAMPING DUA KOLOM AMAN)
    ========================================================================== */
 @media (max-height: 500px) and (orientation: landscape) {
     body { align-items: flex-start; padding: 12px; }
@@ -289,4 +288,5 @@ body {
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-}
+                                        }
+    
