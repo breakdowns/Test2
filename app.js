@@ -462,5 +462,18 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && audio.duration && parsedLyrics.length > 0 && !isChangingTrack) {
+        const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
+        const lines = document.querySelectorAll('.lyric-line');
+        if (activeIndex !== -1 && lines[activeIndex]) {
+            const activeLine = lines[activeIndex];
+            const containerHeight = lyricsContainer.clientHeight;
+            const scrollAmount = activeLine.offsetTop - (containerHeight / 2) + (activeLine.clientHeight / 2);
+            lyricsContainer.scrollTop = scrollAmount;
+        }
+    }
+});
+
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-          
+                  
