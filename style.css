@@ -40,7 +40,7 @@ body {
     box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 
-/* Card Info Lagu */
+/* Card Info Lagu Sampingan */
 .track-card {
     display: flex;
     align-items: center;
@@ -177,7 +177,7 @@ body {
 }
 
 .control-btn.play-main:active {
-    transform: scale(1.05);
+    transform: scale(0.95);
 }
 
 /* Volume Slider */
