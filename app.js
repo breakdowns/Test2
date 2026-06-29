@@ -27,7 +27,6 @@ let isPreloaded = false;
 let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
-let trackDelayTimeout = null; // Penampung timeout transisi notifikasi
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 1; 
 audio.volume = savedVolume; 
@@ -187,21 +186,14 @@ function loadTrack(index) {
     isPreloaded = false;
     isUserScrollingLyrics = false;
     
-    if (trackDelayTimeout) clearTimeout(trackDelayTimeout);
-
     trackTitle.classList.add('shimmer-loading');
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
+    audio.pause();
+
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
-    
-    // Trik Inti 1: Perbarui data notifikasi secara instan agar lock screen berubah duluan
-    updateMediaSession();
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'playing';
-    }
-
     const track = tracks[index];
     
     trackTitle.textContent = track.title || "Unknown Title"; 
@@ -217,17 +209,8 @@ function loadTrack(index) {
     lyricsContainer.scrollTop = 0;
     lyricsWrapper.innerHTML = ''; 
     
-    // Trik Inti 2: Berikan jeda mikro 200ms sebelum link src diganti agar Android mengunci wadah notifikasi lama
-    trackDelayTimeout = setTimeout(() => {
-        audio.crossOrigin = "anonymous";
-        audio.src = track.src;
-        audio.load();
-        
-        // Jika status pemutar utama tidak dijeda, langsung mainkan trek baru secara halus
-        if (playIcon.textContent === 'pause') {
-            audio.play().then(() => { updateMediaSessionState(); }).catch(() => {});
-        }
-    }, 200);
+    audio.crossOrigin = "anonymous";
+    audio.src = track.src;
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -260,6 +243,7 @@ function loadTrack(index) {
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
+    updateMediaSession();
 
     setTimeout(() => {
         const trackTitleEl = document.getElementById('trackTitle');
@@ -454,4 +438,3 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-      
