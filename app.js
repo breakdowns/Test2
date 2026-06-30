@@ -56,7 +56,7 @@ volumeSlider.value = savedVolume;
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
 
-// Set volume awal pada Gain Node jika sudah terinisialisasi
+// Set volume pada Gain Node jika sudah terinisialisasi
 function applyVolume(volValue) {
     if (gainNode && audioCtx) {
         gainNode.gain.setValueAtTime(volValue, audioCtx.currentTime);
@@ -109,16 +109,23 @@ function pauseAudioDirectly() {
     }
 
     const currentVolSetting = parseFloat(volumeSlider.value);
-    // Jalankan Linear Ramp Fade-Out super cepat dan presisi (0.04 detik / 40ms) level hardware
-    gainNode.gain.setValueAtTime(currentVolSetting, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
+    
+    // Web Audio API butuh nilai di atas 0 (misal 0.0001) untuk transisi eksponensial[span_1](start_span)[span_1](end_span)
+    const startVol = currentVolSetting > 0 ? currentVolSetting : 0.0001;
+    
+    // Bersihkan schedule audio sebelumnya dan kunci volume saat ini[span_2](start_span)[span_2](end_span)
+    gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(startVol, audioCtx.currentTime);
+    
+    // Kurva eksponensial selama 0.1 detik (100ms) untuk meredam "tet" sampai tuntas[span_3](start_span)[span_3](end_span)
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
 
-    // Eksekusi pause tepat setelah fade out ramp selesai
+    // Jeda audio tepat setelah kurva menyentuh titik terendah[span_4](start_span)[span_4](end_span)
     setTimeout(() => {
         audio.pause();
         playIcon.textContent = 'play_arrow';
         updateMediaSessionState();
-    }, 45);
+    }, 105);
 }
 
 function updateDynamicBackground(src) {
@@ -198,17 +205,20 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    // Jika audio sedang berputar dan Web Audio aktif, lakukan Hardware Ramp Fade-Out terlebih dahulu
+    // Jika audio sedang berputar, lakukan Exponential Hardware Fade-Out selama 100ms[span_5](start_span)[span_5](end_span)
     if (!audio.paused && audioCtx && gainNode) {
         const currentVolSetting = parseFloat(volumeSlider.value);
-        gainNode.gain.setValueAtTime(currentVolSetting, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
+        const startVol = currentVolSetting > 0 ? currentVolSetting : 0.0001;
+
+        gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(startVol, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
 
         setTimeout(() => {
             audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
-        }, 45);
+        }, 105);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -244,6 +254,7 @@ function executeTrackLoading(index) {
     audio.crossOrigin = "anonymous";
     audio.src = track.src; 
     
+    // updateMediaSession panggil dari media.js
     if (typeof updateMediaSession === 'function') {
         updateMediaSession(); 
     }
@@ -297,7 +308,7 @@ function executeTrackLoading(index) {
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
 
-    // Inisialisasi Audio Context di awal jika diizinkan agar gainNode siap pakai
+    // Pastikan gainNode dikunci ke volume user yang tepat sesudah track termuat
     if (audioCtx && gainNode) {
         applyVolume(parseFloat(volumeSlider.value));
     }
@@ -502,3 +513,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
+                       
