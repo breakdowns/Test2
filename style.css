@@ -88,6 +88,17 @@ body {
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
     will-change: opacity;
+    -ms-overflow-style: none;  /* Sembunyikan scrollbar IE/Edge */
+    scrollbar-width: none;     /* Sembunyikan scrollbar Firefox */
+}
+.lyrics-container::-webkit-scrollbar { 
+    display: none; /* Sembunyikan scrollbar Chrome/Safari */
+}
+
+/* KEMBALIKAN WRAPPER LIRIK BIAR KE TENGAH & ADA JARAK */
+#lyricsWrapper { 
+    padding: 40px 0 100px 0; 
+    text-align: center; 
 }
 
 .playlist-container { max-height: 180px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -106,7 +117,6 @@ body {
         gap: 40px;
     }
     
-    /* PENGGUNAAN GRID: Ngunci cover dan judul agar sejajar tanpa melayang liar */
     .player-left-side {
         flex: 1.2 !important;
         display: grid !important;
@@ -133,7 +143,7 @@ body {
         width: 100% !important;
         aspect-ratio: 1/1 !important;
         margin: 0 !important;
-        position: static !important; /* Mencegah cover melayang aneh */
+        position: static !important;
         box-shadow: 0 12px 32px rgba(0,0,0,0.5);
     }
     
@@ -200,12 +210,13 @@ body {
     font-size: 2.2rem; color: #121212 !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; color-scheme: only light !important; forced-color-adjust: none !important;
 }
 
-.volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 0; }
+/* Margin-bottom dibalikin jadi 24px biar gak dempet ke lirik */
+.volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-area .material-icons { color-scheme: only light !important; forced-color-adjust: none !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; forced-color-adjust: none !important; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
 
-/* Lirik mode smooth/blur dipertahankan */
+/* Pastikan text-align lirik ada di center */
 .lyric-line { 
     font-size: 1.05rem; 
     font-weight: 700; 
@@ -214,6 +225,7 @@ body {
     cursor: pointer; 
     transition: color 0.3s ease, transform 0.3s ease, filter 0.3s ease; 
     filter: blur(0.5px); 
+    text-align: center;
 }
 .lyric-line.active { 
     color: var(--text-main); 
@@ -288,4 +300,5 @@ body {
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-        }
+    }
+        
