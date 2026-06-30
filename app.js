@@ -28,7 +28,7 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// FIX KRESEK APOLLO: Dikunci satu kali saja di awal luar fungsi agar decoder browser tidak glitch
+// FIX KRESEK APOLLO: Dipasang SEKALI di sini (paling luar) sesuai kode html lu asli[span_5](start_span)[span_5](end_span)
 audio.crossOrigin = "anonymous";
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
@@ -43,18 +43,16 @@ function formatTime(s) {
     return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
 }
 
-// FIX LAYAR MATI: Integrasi MediaSession yang kokoh agar OS mengenali sebagai background player aktif
+// RESTORASI: Fungsi updateMediaSession bawaan kode asli lu[span_6](start_span)[span_6](end_span)
 function updateMediaSession() {
-    if ('mediaSession' in navigator && tracks[currentIndex]) {
+    if ('mediaSession' in navigator) {
         const track = tracks[currentIndex];
-        const absImg = new URL(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png", window.location.href).href;
-
         navigator.mediaSession.metadata = new MediaMetadata({
             title: track.title || "Unknown Title",
             artist: track.artist || "Unknown Artist",
             album: 'Breakdowns Music',
             artwork: [
-                { src: absImg, sizes: '512x512', type: 'image/png' }
+                { src: track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png", sizes: '512x512', type: 'image/jpeg' }
             ]
         });
 
@@ -115,7 +113,7 @@ function pauseAudioDirectly() {
 }
 
 function updateDynamicBackground(src) {
-    if (document.hidden) return; // Lewati proses canvas jika layar mati
+    if (document.hidden) return; 
     const img = new Image(); 
     img.crossOrigin = "Anonymous"; 
     img.src = src;
@@ -146,8 +144,6 @@ function parseLRC(text) {
 }
 
 function renderLyrics() { 
-    if (document.hidden) return;
-    lyricsWrapper.innerHTML = '';
     parsedLyrics.forEach((line, i) => { 
         const p = document.createElement('p'); 
         p.className = 'lyric-line'; 
@@ -162,8 +158,6 @@ function renderLyrics() {
 }
 
 function renderStaticLyrics(text) { 
-    if (document.hidden) return;
-    lyricsWrapper.innerHTML = '';
     text.split('\n').forEach(l => { 
         const c = l.replace(/\[.*?\]/g, '').trim(); 
         if (c) { 
@@ -176,7 +170,6 @@ function renderStaticLyrics(text) {
 }
 
 function renderPlaylist(arr) {
-    if (document.hidden) return;
     playlistContainer.innerHTML = ''; 
     arr.forEach((track) => {
         const oIdx = tracks.findIndex(t => t.src === track.src), 
@@ -196,11 +189,8 @@ function renderPlaylist(arr) {
     });
 }
 
+// RESTORASI: Fungsi loadTrack murni asli bawaan lu, crossOrigin dihapus dari sini[span_7](start_span)[span_7](end_span)
 function loadTrack(index) {
-    executeTrackLoading(index);
-}
-
-function executeTrackLoading(index) {
     isChangingTrack = true;
     isUserScrollingLyrics = false;
     isPreloaded = false; 
@@ -209,7 +199,6 @@ function executeTrackLoading(index) {
         trackTitle.classList.add('shimmer-loading');
         trackArtist.classList.add('shimmer-loading');
         trackCover.classList.add('shimmer-loading');
-        lyricsContainer.style.opacity = '0';
     }
 
     currentIndex = index; 
@@ -225,54 +214,57 @@ function executeTrackLoading(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
-    // Alirkan source berkas langsung ke native player Android tanpa merusak crossOrigin
+    lyricsContainer.style.opacity = '0';
+    
+    // Langsung tembak src berkas tanpa utak-atik crossOrigin lagi[span_8](start_span)[span_8](end_span)
     audio.src = track.src; 
     
     updateMediaSession(); 
 
     const currentTrackSrc = track.src;
+    const fadeOutAnim = new Promise(resolve => setTimeout(resolve, 300));
 
-    // FIX LAYAR MATI: Fetch lirik berjalan mandiri secara asinkronUS TANPA Promise.all / setTimeout pembeku nyawa
     if (track.lyricsSrc) {
-        fetch(track.lyricsSrc, { cache: "force-cache" })
-        .then(res => {
-            if (!res.ok) throw new Error("Network");
-            return res.text();
-        })
-        .then((text) => { 
+        Promise.all([
+            fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
+                if (!res.ok) throw new Error("Network");
+                return res.text();
+            }),
+            fadeOutAnim
+        ])
+        .then(([text]) => { 
             if (tracks[currentIndex].src !== currentTrackSrc) return;
             
             parsedLyrics = parseLRC(text); 
+            lyricsContainer.scrollTop = 0;
+            lyricsWrapper.innerHTML = ''; 
+            parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
             
-            if (!document.hidden) {
-                lyricsContainer.scrollTop = 0;
-                lyricsWrapper.innerHTML = ''; 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                lyricsContainer.style.display = "block"; 
-                void lyricsWrapper.offsetWidth; 
-                lyricsContainer.style.opacity = '1';
-            }
+            lyricsContainer.style.display = "block"; 
+            void lyricsWrapper.offsetWidth; 
+            lyricsContainer.style.opacity = '1';
             isChangingTrack = false;
         })
         .catch(() => {
-            if (tracks[currentIndex].src === currentTrackSrc) {
-                parsedLyrics = [];
-                if (!document.hidden) {
+            fadeOutAnim.then(() => {
+                if (tracks[currentIndex].src === currentTrackSrc) {
+                    parsedLyrics = [];
                     lyricsContainer.scrollTop = 0;
                     lyricsWrapper.innerHTML = '';
                     lyricsContainer.style.display = "none";
+                    isChangingTrack = false;
                 }
-                isChangingTrack = false;
-            }
+            });
         });
     } else { 
-        parsedLyrics = [];
-        if (!document.hidden) {
+        fadeOutAnim.then(() => {
+            if (tracks[currentIndex].src !== currentTrackSrc) return;
+            parsedLyrics = [];
             lyricsContainer.scrollTop = 0;
             lyricsWrapper.innerHTML = '';
             lyricsContainer.style.display = "none";
-        }
-        isChangingTrack = false;
+            isChangingTrack = false;
+        });
     }
     
     renderPlaylist(currentTracksDisplay); 
@@ -299,6 +291,7 @@ function executeTrackLoading(index) {
     }
 }
 
+// RESTORASI: Fungsi playNextTrack asli bawaan lu[span_9](start_span)[span_9](end_span)
 function playNextTrack() {
     let n = currentIndex + 1; 
     if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
@@ -437,7 +430,7 @@ audio.addEventListener('timeupdate', () => {
         else if (nextIdx >= tracks.length) nextIdx = 0;
         
         if (tracks[nextIdx] && tracks[nextIdx].lyricsSrc) {
-            fetch(tracks[nextIdx].lyricsSrc, { cache: "force-cache" }).catch(() => {});
+            fetch(tracks[nextIdx].sanitySrc || tracks[nextIdx].lyricsSrc, { cache: "force-cache" }).catch(() => {});
         }
     }
 
@@ -475,5 +468,6 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+// RESTORASI: Pemanggil ganti lagu otomatis murni asli bawaan lu[span_10](start_span)[span_10](end_span)
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                                              
+        
