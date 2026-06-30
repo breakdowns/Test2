@@ -28,7 +28,7 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// FIX APOLLO: Pindah ke paling luar biar ga diulang tiap ganti lagu
+// FIX APOLLO KERESEK: Diset cuma sekali di paling luar[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)
 audio.crossOrigin = "anonymous";
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
@@ -43,62 +43,10 @@ function formatTime(s) {
     return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
 }
 
-function updateMediaSession() {
-    if ('mediaSession' in navigator) {
-        const track = tracks[currentIndex];
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: track.title || "Unknown Title",
-            artist: track.artist || "Unknown Artist",
-            album: 'Breakdowns Music',
-            artwork: [
-                { src: track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png", sizes: '512x512', type: 'image/jpeg' }
-            ]
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => { playAudioDirectly(); });
-        navigator.mediaSession.setActionHandler('pause', () => { pauseAudioDirectly(); });
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-            if (isShuffle) {
-                let n = Math.floor(Math.random() * tracks.length);
-                loadTrack(n);
-            } else {
-                let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
-                loadTrack(p); 
-            }
-            playAudioDirectly();
-        });
-        navigator.mediaSession.setActionHandler('nexttrack', () => { playNextTrack(); });
-
-        try {
-            navigator.mediaSession.setActionHandler('seekto', (details) => {
-                audio.currentTime = details.seekTime;
-                updateMediaSessionState();
-            });
-        } catch (e) {}
-    }
-}
-
-function updateMediaSessionState() {
-    if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
-        navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
-        try {
-            navigator.mediaSession.setPositionState({
-                duration: audio.duration,
-                playbackRate: audio.playbackRate,
-                position: audio.currentTime
-            });
-        } catch (e) {}
-    }
-}
-
 function playAudioDirectly() {
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'playing';
-    }
-    
     audio.play().then(() => {
         playIcon.textContent = 'pause';
-        updateMediaSessionState();
+        if (typeof updateMediaSessionState === 'function') updateMediaSessionState();
     }).catch(e => {
         console.error("Playback error:", e);
         playIcon.textContent = 'play_arrow';
@@ -108,11 +56,10 @@ function playAudioDirectly() {
 function pauseAudioDirectly() {
     audio.pause();
     playIcon.textContent = 'play_arrow';
-    updateMediaSessionState();
+    if (typeof updateMediaSessionState === 'function') updateMediaSessionState();
 }
 
 function updateDynamicBackground(src) {
-    if (document.hidden) return; 
     const img = new Image(); 
     img.crossOrigin = "Anonymous"; 
     img.src = src;
@@ -192,75 +139,83 @@ function loadTrack(index) {
     isChangingTrack = true;
     isUserScrollingLyrics = false;
     isPreloaded = false; 
-    
-    if (!document.hidden) {
-        trackTitle.classList.add('shimmer-loading');
-        trackArtist.classList.add('shimmer-loading');
-        trackCover.classList.add('shimmer-loading');
-    }
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
     const track = tracks[index];
-    
-    trackTitle.textContent = track.title || "Unknown Title"; 
-    trackArtist.textContent = track.artist || "Unknown Artist"; 
-    trackCover.src = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png"; 
-    
-    progressBar.value = 0;
-    progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
-    currentTimeEl.textContent = '0:00'; 
-    durationEl.textContent = lastKnownDurationText;
-
-    lyricsContainer.style.opacity = '0';
-    
-    audio.src = track.src; 
-    
-    updateMediaSession(); 
-
     const currentTrackSrc = track.src;
-    
-    // FIX STUCK: setTimeout & Promise.all dihapus total. Langsung fetch lirik murni!
+
+    // 1. EKSEKUSI AUDIO & MEDIA SESSION SECARA INSTAN[span_5](start_span)[span_5](end_span)
+    audio.src = currentTrackSrc; 
+    if (typeof updateMediaSession === 'function') updateMediaSession(); 
+
+    // 2. TUNDA SEMUA RENDER VISUAL (UI) SAMPAI LAYAR MENYALA (ANTI-STUCK)
+    requestAnimationFrame(() => {
+        if (tracks[currentIndex].src !== currentTrackSrc) return;
+        trackTitle.classList.add('shimmer-loading');
+        trackArtist.classList.add('shimmer-loading');
+        trackCover.classList.add('shimmer-loading');
+        
+        trackTitle.textContent = track.title || "Unknown Title"; 
+        trackArtist.textContent = track.artist || "Unknown Artist"; 
+        trackCover.src = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png"; 
+        
+        progressBar.value = 0;
+        progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
+        currentTimeEl.textContent = '0:00'; 
+        durationEl.textContent = lastKnownDurationText;
+        lyricsContainer.style.opacity = '0';
+        
+        renderPlaylist(currentTracksDisplay); 
+        updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
+    });
+
+    // 3. FETCH LIRIK TANPA TIMEOUT
     if (track.lyricsSrc) {
-        fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
+        fetch(track.lyricsSrc, { cache: "force-cache" })
+        .then(res => {
             if (!res.ok) throw new Error("Network");
             return res.text();
         })
-        .then((text) => { 
-            if (tracks[currentIndex].src !== currentTrackSrc) return;
-            
+        .then(text => { 
             parsedLyrics = parseLRC(text); 
-            lyricsContainer.scrollTop = 0;
-            lyricsWrapper.innerHTML = ''; 
-            parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-            
-            lyricsContainer.style.display = "block"; 
-            void lyricsWrapper.offsetWidth; 
-            lyricsContainer.style.opacity = '1';
+            // Render lirik hanya saat layar nyala via requestAnimationFrame
+            requestAnimationFrame(() => {
+                if (tracks[currentIndex].src !== currentTrackSrc) return;
+                lyricsContainer.scrollTop = 0;
+                lyricsWrapper.innerHTML = ''; 
+                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+                lyricsContainer.style.display = "block"; 
+                void lyricsWrapper.offsetWidth; 
+                lyricsContainer.style.opacity = '1';
+            });
             isChangingTrack = false;
         })
         .catch(() => {
-            if (tracks[currentIndex].src === currentTrackSrc) {
-                parsedLyrics = [];
+            parsedLyrics = [];
+            requestAnimationFrame(() => {
+                if (tracks[currentIndex].src !== currentTrackSrc) return;
                 lyricsContainer.scrollTop = 0;
                 lyricsWrapper.innerHTML = '';
                 lyricsContainer.style.display = "none";
-                isChangingTrack = false;
-            }
+            });
+            isChangingTrack = false;
         });
     } else { 
         parsedLyrics = [];
-        lyricsContainer.scrollTop = 0;
-        lyricsWrapper.innerHTML = '';
-        lyricsContainer.style.display = "none";
+        requestAnimationFrame(() => {
+            if (tracks[currentIndex].src !== currentTrackSrc) return;
+            lyricsContainer.scrollTop = 0;
+            lyricsWrapper.innerHTML = '';
+            lyricsContainer.style.display = "none";
+        });
         isChangingTrack = false;
     }
-    
-    renderPlaylist(currentTracksDisplay); 
-    updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
 
-    if (!document.hidden) {
-        setTimeout(() => {
+    // 4. EFEK MARQUEE
+    setTimeout(() => {
+        requestAnimationFrame(() => {
+            if (tracks[currentIndex].src !== currentTrackSrc) return;
             const trackTitleEl = document.getElementById('trackTitle');
             const trackInfoEl = document.querySelector('.track-info');
             if (trackTitleEl && trackInfoEl) {
@@ -276,8 +231,8 @@ function loadTrack(index) {
                     trackTitleEl.style.paddingRight = '0px';
                 }
             }
-        }, 100);
-    }
+        });
+    }, 100);
 }
 
 function playNextTrack() {
@@ -303,15 +258,15 @@ audio.addEventListener('canplay', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
     }
-    trackTitle.classList.remove('shimmer-loading');
-    trackArtist.classList.remove('shimmer-loading');
-    trackCover.classList.remove('shimmer-loading');
+    requestAnimationFrame(() => {
+        trackTitle.classList.remove('shimmer-loading');
+        trackArtist.classList.remove('shimmer-loading');
+        trackCover.classList.remove('shimmer-loading');
+    });
 });
 
 audio.addEventListener('waiting', () => {
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'playing';
-    }
+    if (typeof updateMediaSessionState === 'function') updateMediaSessionState();
 });
 
 audio.addEventListener('playing', () => {
@@ -319,10 +274,12 @@ audio.addEventListener('playing', () => {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText;
     }
-    updateMediaSessionState();
+    if (typeof updateMediaSessionState === 'function') updateMediaSessionState();
 });
 
-audio.addEventListener('pause', () => { updateMediaSessionState(); });
+audio.addEventListener('pause', () => { 
+    if (typeof updateMediaSessionState === 'function') updateMediaSessionState(); 
+});
 
 audio.addEventListener('loadedmetadata', () => { 
     if (audio.duration && !isNaN(audio.duration)) {
@@ -339,9 +296,11 @@ searchBar.addEventListener('input', (e) => {
 
 audio.addEventListener('error', () => {
     durationEl.textContent = lastKnownDurationText;
-    trackTitle.classList.remove('shimmer-loading');
-    trackArtist.classList.remove('shimmer-loading');
-    trackCover.classList.remove('shimmer-loading');
+    requestAnimationFrame(() => {
+        trackTitle.classList.remove('shimmer-loading');
+        trackArtist.classList.remove('shimmer-loading');
+        trackCover.classList.remove('shimmer-loading');
+    });
 });
 
 trackCover.addEventListener('error', () => {
@@ -396,7 +355,7 @@ progressBar.addEventListener('input', (e) => {
 progressBar.addEventListener('change', (e) => {
     if (audio.duration) {
         audio.currentTime = (e.target.value / 100) * audio.duration;
-        updateMediaSessionState();
+        if (typeof updateMediaSessionState === 'function') updateMediaSessionState();
     }
     isSeeking = false;
 });
@@ -409,18 +368,6 @@ audio.addEventListener('timeupdate', () => {
         progressBar.value = currentPercentage;
         progressBar.style.background = `linear-gradient(to right, #1ed760 ${currentPercentage}%, #4f4f4f ${currentPercentage}%)`;
         currentTimeEl.textContent = formatTime(audio.currentTime); 
-    }
-    
-    if (audio.duration - audio.currentTime <= 20 && !isPreloaded && !isRepeat) {
-        isPreloaded = true;
-        let nextIdx = currentIndex + 1;
-        if (isShuffle) nextIdx = Math.floor(Math.random() * tracks.length);
-        else if (nextIdx >= tracks.length) nextIdx = 0;
-        
-        if (tracks[nextIdx] && tracks[nextIdx].lyricsSrc) {
-            // Fetch tanpa mempedulikan respon (hanya pancing masuk cache)
-            fetch(tracks[nextIdx].lyricsSrc, { cache: "force-cache" }).catch(() => {});
-        }
     }
 
     if (document.hidden) return;
@@ -444,6 +391,7 @@ audio.addEventListener('timeupdate', () => {
     }
 });
 
+// Kembalikan sinkronisasi lirik sesaat layar menyala
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && audio.duration && parsedLyrics.length > 0 && !isChangingTrack) {
         const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
@@ -458,4 +406,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                          
+                           
