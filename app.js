@@ -23,7 +23,6 @@ let currentIndex = 0, isShuffle = false, isRepeat = false;
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
-let isPreloaded = false;
 let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
@@ -89,17 +88,19 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
-    audio.autoplay = true; // Kunci penting biar Android tau ini transisi aktif
-    audio.play().then(() => {
-        playIcon.textContent = 'pause';
-        updateMediaSessionState();
-    }).catch(e => {
-        audio.play().then(() => { playIcon.textContent = 'pause'; });
-    });
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+        playPromise.then(() => {
+            playIcon.textContent = 'pause';
+            updateMediaSessionState();
+        }).catch(e => {
+            console.error("Playback error:", e);
+            playIcon.textContent = 'play_arrow';
+        });
+    }
 }
 
 function pauseAudioDirectly() {
-    audio.autoplay = false;
     audio.pause();
     playIcon.textContent = 'play_arrow';
     updateMediaSessionState();
@@ -185,14 +186,14 @@ function renderPlaylist(arr) {
 function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
-    isPreloaded = false;
     isUserScrollingLyrics = false;
     
-    trackTitle.classList.add('shimmer-loading');
-    trackArtist.classList.add('shimmer-loading');
-    trackCover.classList.add('shimmer-loading');
-    
-    // NOTE: audio.pause() DIHAPUS TOTAL DARI SINI agar OS tidak mematikan sesi pemutaran di latar belakang.
+    // Jangan ubah DOM pas layar mati biar Android gak emosi
+    if (!document.hidden) {
+        trackTitle.classList.add('shimmer-loading');
+        trackArtist.classList.add('shimmer-loading');
+        trackCover.classList.add('shimmer-loading');
+    }
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -212,7 +213,8 @@ function loadTrack(index) {
     lyricsWrapper.innerHTML = ''; 
     
     audio.crossOrigin = "anonymous";
-    audio.src = track.src; // Timpa src langsung. OS akan tetap menahan notif karena tidak ada perintah pause.
+    audio.src = track.src;
+    audio.load(); // KUNCI UTAMA: Wajib dipanggil biar browser me-reset pipeline media di background
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -247,23 +249,25 @@ function loadTrack(index) {
     updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
     updateMediaSession();
 
-    setTimeout(() => {
-        const trackTitleEl = document.getElementById('trackTitle');
-        const trackInfoEl = document.querySelector('.track-info');
-        if (trackTitleEl && trackInfoEl) {
-            const parentWidth = trackInfoEl.clientWidth;
-            const textWidth = trackTitleEl.scrollWidth;
-            if (textWidth > parentWidth) {
-                const jarakGeser = parentWidth - textWidth - 25; 
-                trackTitleEl.style.setProperty('--marquee-jarak', `${jarakGeser}px`);
-                trackTitleEl.style.animation = 'marqueeDinamis 8s linear infinite alternate';
-                trackTitleEl.style.paddingRight = '25px';
-            } else {
-                trackTitleEl.style.animation = 'none';
-                trackTitleEl.style.paddingRight = '0px';
+    if (!document.hidden) {
+        setTimeout(() => {
+            const trackTitleEl = document.getElementById('trackTitle');
+            const trackInfoEl = document.querySelector('.track-info');
+            if (trackTitleEl && trackInfoEl) {
+                const parentWidth = trackInfoEl.clientWidth;
+                const textWidth = trackTitleEl.scrollWidth;
+                if (textWidth > parentWidth) {
+                    const jarakGeser = parentWidth - textWidth - 25; 
+                    trackTitleEl.style.setProperty('--marquee-jarak', `${jarakGeser}px`);
+                    trackTitleEl.style.animation = 'marqueeDinamis 8s linear infinite alternate';
+                    trackTitleEl.style.paddingRight = '25px';
+                } else {
+                    trackTitleEl.style.animation = 'none';
+                    trackTitleEl.style.paddingRight = '0px';
+                }
             }
-        }
-    }, 100);
+        }, 100);
+    }
 }
 
 function playNextTrack() {
@@ -390,22 +394,8 @@ audio.addEventListener('timeupdate', () => {
         progressBar.style.background = `linear-gradient(to right, #1ed760 ${currentPercentage}%, #4f4f4f ${currentPercentage}%)`;
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
-    
-    if (audio.duration - audio.currentTime <= 15 && !isPreloaded && !isRepeat) {
-        isPreloaded = true;
-        let nextIdx = currentIndex + 1;
-        if (isShuffle) nextIdx = Math.floor(Math.random() * tracks.length);
-        else if (nextIdx >= tracks.length) nextIdx = 0;
-        
-        if (tracks[nextIdx]) {
-            const linkPreload = document.createElement('link');
-            linkPreload.rel = 'preload';
-            linkPreload.as = 'audio';
-            linkPreload.href = tracks[nextIdx].src;
-            document.head.appendChild(linkPreload);
-        }
-    }
 
+    // Blokir proses parsing/scroll lirik kalau layar mati biar hemat baterai & anti nge-hang
     if (document.hidden) return;
 
     if (isChangingTrack || parsedLyrics.length === 0) return;
@@ -441,4 +431,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                      
+                                   
