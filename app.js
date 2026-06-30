@@ -32,7 +32,7 @@ const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localSt
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
-progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`[span_0](start_span)[span_0](end_span);
+progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
@@ -211,19 +211,24 @@ function loadTrack(index) {
 
     lyricsContainer.style.opacity = '0';
     
+    audio.crossOrigin = "anonymous";
     audio.src = track.src; 
     
     updateMediaSession(); 
 
     const currentTrackSrc = track.src;
+    const fadeOutAnim = new Promise(resolve => setTimeout(resolve, 300));
 
     if (track.lyricsSrc) {
-        fetch(track.lyricsSrc, { cache: "force-cache" })
-        .then(res => {
-            if (!res.ok) throw new Error("Network");
-            return res.text();
-        })
-        .then((text) => { 
+        // Karena lirik udah kita pre-fetch dari awal, ini akan instan ambil dari cache
+        Promise.all([
+            fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
+                if (!res.ok) throw new Error("Network");
+                return res.text();
+            }),
+            fadeOutAnim
+        ])
+        .then(([text]) => { 
             if (tracks[currentIndex].src !== currentTrackSrc) return;
             
             parsedLyrics = parseLRC(text); 
@@ -237,20 +242,25 @@ function loadTrack(index) {
             isChangingTrack = false;
         })
         .catch(() => {
-            if (tracks[currentIndex].src === currentTrackSrc) {
-                parsedLyrics = [];
-                lyricsContainer.scrollTop = 0;
-                lyricsWrapper.innerHTML = '';
-                lyricsContainer.style.display = "none";
-                isChangingTrack = false;
-            }
+            fadeOutAnim.then(() => {
+                if (tracks[currentIndex].src === currentTrackSrc) {
+                    parsedLyrics = [];
+                    lyricsContainer.scrollTop = 0;
+                    lyricsWrapper.innerHTML = '';
+                    lyricsContainer.style.display = "none";
+                    isChangingTrack = false;
+                }
+            });
         });
     } else { 
-        parsedLyrics = [];
-        lyricsContainer.scrollTop = 0;
-        lyricsWrapper.innerHTML = '';
-        lyricsContainer.style.display = "none";
-        isChangingTrack = false;
+        fadeOutAnim.then(() => {
+            if (tracks[currentIndex].src !== currentTrackSrc) return;
+            parsedLyrics = [];
+            lyricsContainer.scrollTop = 0;
+            lyricsWrapper.innerHTML = '';
+            lyricsContainer.style.display = "none";
+            isChangingTrack = false;
+        });
     }
     
     renderPlaylist(currentTracksDisplay); 
@@ -305,6 +315,7 @@ audio.addEventListener('canplay', () => {
     trackCover.classList.remove('shimmer-loading');
 });
 
+// Menjaga OS tetap melek kalau audio butuh buffering sebentar di background
 audio.addEventListener('waiting', () => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
@@ -408,6 +419,7 @@ audio.addEventListener('timeupdate', () => {
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
     
+    // Trik Stealth Mode: Download lirik lagu selanjutnya pas jaringan masih hidup (sisa 20 detik)
     if (audio.duration - audio.currentTime <= 20 && !isPreloaded && !isRepeat) {
         isPreloaded = true;
         let nextIdx = currentIndex + 1;
@@ -415,6 +427,7 @@ audio.addEventListener('timeupdate', () => {
         else if (nextIdx >= tracks.length) nextIdx = 0;
         
         if (tracks[nextIdx] && tracks[nextIdx].lyricsSrc) {
+            // Fetch tanpa mempedulikan respon (hanya pancing masuk cache)
             fetch(tracks[nextIdx].lyricsSrc, { cache: "force-cache" }).catch(() => {});
         }
     }
@@ -454,4 +467,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
+                           
