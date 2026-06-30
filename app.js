@@ -28,14 +28,25 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// FIX KRESEK APOLLO: Dipindah ke global (paling atas) agar decoder browser stabil
 audio.crossOrigin = "anonymous";
+
+// ==========================================
+// FIX BUG CELAH HITAM PROGRESS BAR
+// ==========================================
+function updateSliderBg(slider, percentage, color = '#1ed760') {
+    // Asumsi lebar buletan putih (thumb) adalah 15px.
+    const thumbWidth = 15; 
+    // Rumus offset untuk mengejar titik tengah buletan
+    const offset = (thumbWidth / 2) - (percentage / 100) * thumbWidth;
+    slider.style.background = `linear-gradient(to right, ${color} calc(${percentage}% + ${offset}px), #4f4f4f calc(${percentage}% + ${offset}px))`;
+}
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
-volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
-progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
+// Pakai fungsi fix di atas
+updateSliderBg(volumeSlider, savedVolume * 100);
+updateSliderBg(progressBar, 0, '#ffffff');
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
@@ -208,13 +219,12 @@ function loadTrack(index) {
     trackCover.src = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png"; 
     
     progressBar.value = 0;
-    progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
+    updateSliderBg(progressBar, 0, '#ffffff'); // Terpasang di sini
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
     lyricsContainer.style.opacity = '0';
     
-    // crossOrigin sudah dipindah ke global, sisa src saja
     audio.src = track.src; 
     
     updateMediaSession(); 
@@ -378,7 +388,7 @@ volumeSlider.addEventListener('input', (e) => {
     const v = e.target.value; 
     audio.volume = v; 
     localStorage.setItem('volume', v); 
-    volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${v * 100}%, #4f4f4f ${v * 100}%)`; 
+    updateSliderBg(volumeSlider, v * 100); // Terpasang di sini
 });
 
 const triggerUserScroll = () => {
@@ -396,7 +406,7 @@ lyricsContainer.addEventListener('wheel', triggerUserScroll, {passive: true});
 progressBar.addEventListener('input', (e) => {
     isSeeking = true;
     const pct = e.target.value;
-    progressBar.style.background = `linear-gradient(to right, #1ed760 ${pct}%, #4f4f4f ${pct}%)`;
+    updateSliderBg(progressBar, pct); // Terpasang di sini
     if (audio.duration) {
         currentTimeEl.textContent = formatTime((pct / 100) * audio.duration);
     }
@@ -416,11 +426,10 @@ audio.addEventListener('timeupdate', () => {
     const currentPercentage = (audio.currentTime / audio.duration) * 100;
     if (!isSeeking) {
         progressBar.value = currentPercentage;
-        progressBar.style.background = `linear-gradient(to right, #1ed760 ${currentPercentage}%, #4f4f4f ${currentPercentage}%)`;
+        updateSliderBg(progressBar, currentPercentage); // Terpasang di sini
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
     
-    // Trik Stealth Mode: Download lirik lagu selanjutnya pas jaringan masih hidup (sisa 20 detik)
     if (audio.duration - audio.currentTime <= 20 && !isPreloaded && !isRepeat) {
         isPreloaded = true;
         let nextIdx = currentIndex + 1;
@@ -467,4 +476,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                                                               
+                                                    
