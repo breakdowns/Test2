@@ -132,7 +132,6 @@ body {
 
 /* ==========================================================================
    LAYOUT DUA KOLOM HORIZONTAL: PC DESKTOP, LAPTOP, BOT TELEGRAM, & HP LANDSCAPE
-   (KUNCIAN: WAJIB RESOLUSI LEBAR DAN ORIENTASI MELEBAR/LANDSCAPE)
    ========================================================================== */
 @media (min-width: 768px) and (orientation: landscape) {
     .player-container {
@@ -207,7 +206,7 @@ body {
 }
 
 /* ==========================================================================
-   COMMON STYLES & CONTROLS BERSAMA
+   COMMON STYLES & TAMENG PROTEKSI FORCE DARK MODE BROWSER
    ========================================================================== */
 @keyframes marqueeDinamis {
     0% { transform: translate3d(0, 0, 0); }
@@ -217,22 +216,114 @@ body {
 }
 
 .progress-area { margin-bottom: 24px; width: 100%; }
-.progress-slider { width: 100%; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; display: block; }
-.progress-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; cursor: pointer; border: none; }
+
+.progress-slider { 
+    width: 100%; 
+    -webkit-appearance: none; 
+    appearance: none; 
+    height: 4px; 
+    border-radius: 2px; 
+    outline: none; 
+    cursor: pointer; 
+    background: #4f4f4f; 
+    display: block; 
+    color-scheme: only light !important; 
+    forced-color-adjust: none !important;
+}
+.progress-slider::-webkit-slider-thumb { 
+    -webkit-appearance: none; 
+    appearance: none; 
+    width: 12px; 
+    height: 12px; 
+    border-radius: 50%; 
+    background: #fefffe !important; 
+    cursor: pointer; 
+    border: none; 
+    color-scheme: only light !important;
+    forced-color-adjust: none !important;
+}
+
 .time-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; }
 .controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 
-.btn-control { background: none !important; border: none !important; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s, transform 0.1s; filter: invert(0) !important; -webkit-filter: invert(0) !important; }
+.btn-control { 
+    background: none !important; 
+    border: none !important; 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: color 0.2s, transform 0.1s; 
+    forced-color-adjust: none !important; 
+    filter: invert(0) !important; 
+    -webkit-filter: invert(0) !important;
+}
 .btn-control:hover { color: var(--text-main); }
 .btn-control:active { transform: scale(0.95); }
 .btn-control.active { color: var(--spotify-green); }
 
-.btn-play-pause { background-color: #fefffe !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; color: #121212 !important; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: none; cursor: pointer; }
-.btn-play-pause .material-icons { font-size: 2.2rem; color: #121212 !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; }
+/* MEMAKSA BUTTON PLAY TETAP PUTIH DAN ICON DI DALAMNYA TETAP HITAM ASLI */
+.btn-play-pause { 
+    background-color: #fefffe !important; 
+    filter: invert(0) !important; 
+    -webkit-filter: invert(0) !important; 
+    color: #121212 !important; 
+    color-scheme: only light !important;
+    forced-color-adjust: none !important;
+    width: 56px; 
+    height: 56px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); 
+    border: none; 
+    cursor: pointer; 
+}
+.btn-play-pause .material-icons { 
+    font-size: 2.2rem; 
+    color: #121212 !important; 
+    filter: invert(0) !important; 
+    -webkit-filter: invert(0) !important; 
+    color-scheme: only light !important;
+    forced-color-adjust: none !important;
+}
 
-.volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
-.volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; }
-.volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; }
+.volume-area { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    color: var(--text-muted); 
+    margin-bottom: 24px; 
+}
+.volume-area .material-icons {
+    color-scheme: only light !important;
+    forced-color-adjust: none !important;
+    filter: invert(0) !important;
+    -webkit-filter: invert(0) !important;
+}
+.volume-slider { 
+    flex: 1; 
+    -webkit-appearance: none; 
+    appearance: none; 
+    height: 4px; 
+    border-radius: 2px; 
+    outline: none; 
+    cursor: pointer; 
+    background: #4f4f4f; 
+    color-scheme: only light !important;
+    forced-color-adjust: none !important;
+}
+.volume-slider::-webkit-slider-thumb { 
+    -webkit-appearance: none; 
+    width: 12px; 
+    height: 12px; 
+    border-radius: 50%; 
+    background: #fefffe !important; 
+    color-scheme: only light !important;
+    forced-color-adjust: none !important;
+}
 
 .lyrics-container::-webkit-scrollbar { display: none; }
 .lyrics-container { -ms-overflow-style: none; scrollbar-width: none; }
@@ -289,4 +380,4 @@ body {
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-                                        }
+             }
