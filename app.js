@@ -28,8 +28,9 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// Set up crossOrigin di awal SATU KALI SAJA untuk mencegah glitch decoder pas ganti lagu
+// Kunci identitas stream dari awal, jangan diulang-ulang agar decoder lagu Apollo ga glitch
 audio.crossOrigin = "anonymous";
+audio.autoplay = false; 
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 audio.volume = savedVolume; 
@@ -57,6 +58,9 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
+    // Aktifkan autoplay agar perpindahan track di background diambil alih penuh oleh Native OS
+    audio.autoplay = true; 
+    
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
@@ -70,7 +74,7 @@ function playAudioDirectly() {
 }
 
 function pauseAudioDirectly() {
-    // Revert ke fungsi asli lu tanpa setTimeout agar saat layar mati TIDAK AKAN macet/tercekik Android
+    audio.autoplay = false; // Matikan autoplay saat dipause manual
     audio.pause();
     playIcon.textContent = 'play_arrow';
     updateMediaSessionState();
@@ -153,7 +157,6 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    // Bersihkan fungsi loadTrack dari fading timer agar background play lancar total
     executeTrackLoading(index);
     if (autoPlay) playAudioDirectly();
 }
@@ -184,25 +187,24 @@ function executeTrackLoading(index) {
 
     lyricsContainer.style.opacity = '0';
     
-    // PERBAIKAN: Jangan panggil audio.crossOrigin lagi di sini, biar track loading mulus tanpa reset buffer
+    // Ganti source dan PAKSA browser memuat buffer stream meskipun layar mati
     audio.src = track.src; 
+    audio.load();
     
     if (typeof updateMediaSession === 'function') {
         updateMediaSession(); 
     }
 
     const currentTrackSrc = track.src;
-    const fadeOutAnim = new Promise(resolve => setTimeout(resolve, 300));
 
+    // Fetch API dibiarkan mandiri tanpa nunggu setTimeout animasi, biar gak hang di Doze Mode Android
     if (track.lyricsSrc) {
-        Promise.all([
-            fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
-                if (!res.ok) throw new Error("Network");
-                return res.text();
-            }),
-            fadeOutAnim
-        ])
-        .then(([text]) => { 
+        fetch(track.lyricsSrc, { cache: "force-cache" })
+        .then(res => {
+            if (!res.ok) throw new Error("Network");
+            return res.text();
+        })
+        .then(text => { 
             if (tracks[currentIndex].src !== currentTrackSrc) return;
             
             parsedLyrics = parseLRC(text); 
@@ -216,25 +218,20 @@ function executeTrackLoading(index) {
             isChangingTrack = false;
         })
         .catch(() => {
-            fadeOutAnim.then(() => {
-                if (tracks[currentIndex].src === currentTrackSrc) {
-                    parsedLyrics = [];
-                    lyricsContainer.scrollTop = 0;
-                    lyricsWrapper.innerHTML = '';
-                    lyricsContainer.style.display = "none";
-                    isChangingTrack = false;
-                }
-            });
+            if (tracks[currentIndex].src === currentTrackSrc) {
+                parsedLyrics = [];
+                lyricsContainer.scrollTop = 0;
+                lyricsWrapper.innerHTML = '';
+                lyricsContainer.style.display = "none";
+                isChangingTrack = false;
+            }
         });
     } else { 
-        fadeOutAnim.then(() => {
-            if (tracks[currentIndex].src !== currentTrackSrc) return;
-            parsedLyrics = [];
-            lyricsContainer.scrollTop = 0;
-            lyricsWrapper.innerHTML = '';
-            lyricsContainer.style.display = "none";
-            isChangingTrack = false;
-        });
+        parsedLyrics = [];
+        lyricsContainer.scrollTop = 0;
+        lyricsWrapper.innerHTML = '';
+        lyricsContainer.style.display = "none";
+        isChangingTrack = false;
     }
     
     renderPlaylist(currentTracksDisplay); 
@@ -436,3 +433,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
+      
