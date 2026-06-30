@@ -17,15 +17,23 @@ function updateMediaSession() {
             ]
         });
 
-        // Handler tombol di Media Control HP
+        // Handler tombol di Media Control HP - diarahkan ke fungsi pengaman fade-out
         navigator.mediaSession.setActionHandler('play', () => { 
-            audio.play(); 
-            if(playIcon) playIcon.textContent = 'pause'; 
+            if (typeof playAudioDirectly === 'function') {
+                playAudioDirectly();
+            } else {
+                audio.play(); 
+                if(playIcon) playIcon.textContent = 'pause';
+            }
         });
         
         navigator.mediaSession.setActionHandler('pause', () => { 
-            audio.pause(); 
-            if(playIcon) playIcon.textContent = 'play_arrow'; 
+            if (typeof pauseAudioDirectly === 'function') {
+                pauseAudioDirectly();
+            } else {
+                audio.pause(); 
+                if(playIcon) playIcon.textContent = 'play_arrow';
+            }
         });
         
         navigator.mediaSession.setActionHandler('previoustrack', () => { 
