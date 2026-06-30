@@ -70,23 +70,39 @@ function playAudioDirectly() {
     });
 }
 
-function pauseAudioDirectly() {
+// ====================================================
+// ULTRA FAST SCREEN-SYNC FADE OUT (MENCEGAH BUG "TET")
+// ====================================================
+function nativeFadeOut(callback) {
     const userVolume = parseFloat(volumeSlider.value);
-    let currentVol = userVolume;
-    
-    // HTML5 native fade-out cepat (50ms) biar transisi jeda tidak meletup kaget
-    const fadeOut = setInterval(() => {
-        if (currentVol > 0.05) {
-            currentVol -= 0.05;
-            audio.volume = currentVol;
+    const duration = 40; // Durasi luruh sangat singkat (40 milidetik)[span_7](start_span)[span_7](end_span)
+    const startTime = performance.now();
+
+    function fade() {
+        const now = performance.now();
+        const elapsed = now - startTime;
+        
+        if (elapsed < duration) {
+            // Hitung penurunan linear sejalan dengan refresh rate layar HP[span_8](start_span)[span_8](end_span)
+            audio.volume = userVolume * (1 - (elapsed / duration));
+            requestAnimationFrame(fade);
         } else {
-            clearInterval(fadeOut);
-            audio.pause();
-            audio.volume = userVolume; // Reset volume asal setelah pause sukses
-            playIcon.textContent = 'play_arrow';
-            updateMediaSessionState();
+            audio.volume = 0;
+            callback(); // Eksekusi perintah (pause/ganti src) pas volume bener-bener 0 mutlak[span_9](start_span)[span_9](end_span)
+            audio.volume = userVolume; // Kembalikan volume asal setelah beres[span_10](start_span)[span_10](end_span)
         }
-    }, 5);
+    }
+    requestAnimationFrame(fade);
+}
+
+function pauseAudioDirectly() {
+    if (audio.paused) return;
+
+    nativeFadeOut(() => {
+        audio.pause();
+        playIcon.textContent = 'play_arrow';
+        updateMediaSessionState();
+    });
 }
 
 function updateDynamicBackground(src) {
@@ -166,22 +182,13 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    const userVolume = parseFloat(volumeSlider.value);
-    
-    // Jika lagu lama masih jalan, turunkan volumenya dulu sebelum ganti lagu baru
+    // Jika lagu lama masih jalan, turunkan volumenya secepat refresh rate layar baru ganti lagu[span_11](start_span)[span_11](end_span)
     if (!audio.paused) {
-        let currentVol = userVolume;
-        const fadeOut = setInterval(() => {
-            if (currentVol > 0.05) {
-                currentVol -= 0.05;
-                audio.volume = currentVol;
-            } else {
-                clearInterval(fadeOut);
-                audio.pause();
-                executeTrackLoading(index);
-                if (autoPlay) playAudioDirectly();
-            }
-        }, 5);
+        nativeFadeOut(() => {
+            audio.pause();
+            executeTrackLoading(index);
+            if (autoPlay) playAudioDirectly();
+        });
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -466,4 +473,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-      
+             
