@@ -28,11 +28,40 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
+// ==========================================
+// INISIALISASI WEB AUDIO API FOR STEALTH FADE
+// ==========================================
+let audioCtx = null;
+let trackNode = null;
+let gainNode = null;
+
+function initAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        trackNode = audioCtx.createMediaElementSource(audio);
+        gainNode = audioCtx.createGain();
+        
+        // Hubungkan: Audio Tag -> Gain Node (Volume Control) -> Speaker
+        trackNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
-audio.volume = savedVolume; 
+audio.volume = 1; // Pasang volume master HTML5 ke 1, kontrol sepenuhnya lewat Gain Node Web Audio
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
+
+// Set volume awal pada Gain Node jika sudah terinisialisasi
+function applyVolume(volValue) {
+    if (gainNode && audioCtx) {
+        gainNode.gain.setValueAtTime(volValue, audioCtx.currentTime);
+    }
+}
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
@@ -54,10 +83,15 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
+    initAudioContext();
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
     
+    // Kembalikan volume node ke settingan user secara instan saat play
+    const currentVolSetting = parseFloat(volumeSlider.value);
+    gainNode.gain.setValueAtTime(currentVolSetting, audioCtx.currentTime);
+
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         updateMediaSessionState();
@@ -68,22 +102,23 @@ function playAudioDirectly() {
 }
 
 function pauseAudioDirectly() {
-    const originalVolume = audio.volume;
-    let currentVol = originalVolume;
-    
-    // Fade out singkat ~50ms sebelum memutus audio agar tidak ada bunyi "tet"
-    const fadeOut = setInterval(() => {
-        if (currentVol > 0.05) {
-            currentVol -= 0.05;
-            audio.volume = currentVol;
-        } else {
-            clearInterval(fadeOut);
-            audio.pause();
-            audio.volume = originalVolume; // Kembalikan ke volume semula setelah jeda
-            playIcon.textContent = 'play_arrow';
-            updateMediaSessionState();
-        }
-    }, 5);
+    if (!audioCtx || !gainNode || audio.paused) {
+        audio.pause();
+        playIcon.textContent = 'play_arrow';
+        return;
+    }
+
+    const currentVolSetting = parseFloat(volumeSlider.value);
+    // Jalankan Linear Ramp Fade-Out super cepat dan presisi (0.04 detik / 40ms) level hardware
+    gainNode.gain.setValueAtTime(currentVolSetting, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
+
+    // Eksekusi pause tepat setelah fade out ramp selesai
+    setTimeout(() => {
+        audio.pause();
+        playIcon.textContent = 'play_arrow';
+        updateMediaSessionState();
+    }, 45);
 }
 
 function updateDynamicBackground(src) {
@@ -163,23 +198,17 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    // Jika audio sedang berputar, jalankan fade out sebelum mengganti source src
-    if (!audio.paused) {
-        const originalVolume = audio.volume;
-        let currentVol = originalVolume;
-        
-        const fadeOut = setInterval(() => {
-            if (currentVol > 0.05) {
-                currentVol -= 0.05;
-                audio.volume = currentVol;
-            } else {
-                clearInterval(fadeOut);
-                audio.pause();
-                audio.volume = originalVolume; // Kembalikan volume asal
-                executeTrackLoading(index);
-                if (autoPlay) playAudioDirectly();
-            }
-        }, 5);
+    // Jika audio sedang berputar dan Web Audio aktif, lakukan Hardware Ramp Fade-Out terlebih dahulu
+    if (!audio.paused && audioCtx && gainNode) {
+        const currentVolSetting = parseFloat(volumeSlider.value);
+        gainNode.gain.setValueAtTime(currentVolSetting, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
+
+        setTimeout(() => {
+            audio.pause();
+            executeTrackLoading(index);
+            if (autoPlay) playAudioDirectly();
+        }, 45);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -215,7 +244,6 @@ function executeTrackLoading(index) {
     audio.crossOrigin = "anonymous";
     audio.src = track.src; 
     
-    // updateMediaSession panggil dari media.js
     if (typeof updateMediaSession === 'function') {
         updateMediaSession(); 
     }
@@ -268,6 +296,11 @@ function executeTrackLoading(index) {
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
+
+    // Inisialisasi Audio Context di awal jika diizinkan agar gainNode siap pakai
+    if (audioCtx && gainNode) {
+        applyVolume(parseFloat(volumeSlider.value));
+    }
 
     if (!document.hidden) {
         setTimeout(() => {
@@ -343,7 +376,7 @@ audio.addEventListener('playing', () => {
 
 audio.addEventListener('pause', () => { updateMediaSessionState(); });
 
-audio.addEventListener('visitedmetadata', () => { 
+audio.addEventListener('loadedmetadata', () => { 
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText; 
@@ -367,16 +400,19 @@ trackCover.addEventListener('error', () => {
     trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
 });
 
-playBtn.addEventListener('click', () => { audio.paused ? playAudioDirectly() : pauseAudioDirectly(); });
-nextBtn.addEventListener('click', () => { playNextTrack(); });
-prevBtn.addEventListener('click', () => { playPrevTrack(); });
+playBtn.addEventListener('click', () => { 
+    initAudioContext();
+    audio.paused ? playAudioDirectly() : pauseAudioDirectly(); 
+});
+nextBtn.addEventListener('click', () => { initAudioContext(); playNextTrack(); });
+prevBtn.addEventListener('click', () => { initAudioContext(); playPrevTrack(); });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
 repeatBtn.addEventListener('click', () => { isRepeat = !isRepeat; repeatBtn.classList.toggle('active', isRepeat); });
 
 volumeSlider.addEventListener('input', (e) => { 
     const v = e.target.value; 
-    audio.volume = v; 
+    applyVolume(v);
     localStorage.setItem('volume', v); 
     volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
@@ -466,4 +502,3 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
