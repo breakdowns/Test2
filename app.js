@@ -28,11 +28,42 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
+// ==========================================
+// INISIALISASI WEB AUDIO API (PERMANENT NODE)
+// ==========================================
+let audioCtx = null;
+let trackNode = null;
+let gainNode = null;
+
+function initAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        trackNode = audioCtx.createMediaElementSource(audio);
+        gainNode = audioCtx.createGain();
+        
+        trackNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+// Pemicu awal agar context aktif permanen sejak interaksi pertama
+document.addEventListener('click', () => { initAudioContext(); }, { once: true });
+document.addEventListener('touchstart', () => { initAudioContext(); }, { once: true });
+
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
-audio.volume = savedVolume; 
+audio.volume = 1; // Kunci volume HTML5 ke 1, kontrol penuh di tangan Gain Node Web Audio
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
+
+function applyVolume(volValue) {
+    if (gainNode && audioCtx) {
+        gainNode.gain.setValueAtTime(volValue, audioCtx.currentTime);
+    }
+}
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
@@ -54,10 +85,20 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
+    initAudioContext();
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
-    audio.volume = parseFloat(volumeSlider.value);
+    
+    const currentVolSetting = volumeSlider.value;
+    if (gainNode && audioCtx) {
+        const now = audioCtx.currentTime;
+        gainNode.gain.cancelScheduledValues(now);
+        gainNode.gain.setValueAtTime(0, now);
+        // Fade-in sangat halus pas mulai main biar TWS ga kaget
+        gainNode.gain.setTargetAtTime(currentVolSetting, now, 0.04);
+    }
+
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         updateMediaSessionState();
@@ -67,63 +108,26 @@ function playAudioDirectly() {
     });
 }
 
-// ==========================================================
-// TWS DISCHARGE PROTECTION: HARDWARE BUFFER BREAKDOWN RESCUE
-// ==========================================================
-function triggerNaturalEnd(callback) {
-    if (audio.paused || !audio.duration) {
-        callback();
+function pauseAudioDirectly() {
+    if (!audioCtx || !gainNode || audio.paused) {
+        audio.pause();
+        playIcon.textContent = 'play_arrow';
         return;
     }
 
-    const userVolume = parseFloat(volumeSlider.value);
-    const fadeDuration = 50; 
-    const startTime = performance.now();
+    const now = audioCtx.currentTime;
+    gainNode.gain.cancelScheduledValues(now);
+    gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+    // Fade-out logaritmik halus pas klik pause
+    gainNode.gain.setTargetAtTime(0, now, 0.03); 
 
-    function fadeOutAndSwitch() {
-        const now = performance.now();
-        const elapsed = now - startTime;
-
-        if (elapsed < fadeDuration) {
-            // Turunkan ke batas ambang gating hardware
-            audio.volume = Math.max(0.01, userVolume * (1 - (elapsed / fadeDuration)));
-            requestAnimationFrame(fadeOutAndSwitch);
-        } else {
-            audio.volume = 0.01;
-            audio.pause(); // Hentikan playback dulu agar encoder Android rilis gelombang lamanya
-
-            // Bersihkan total objek source agar audio pipeline di hp lu reset sempurna
-            audio.src = ''; 
-            audio.load();
-
-            // Kasih nafas 40ms biar TWS Soundcore lu stabil nerima perpindahan data
-            setTimeout(() => {
-                audio.volume = userVolume; 
-                callback();
-            }, 40);
-        }
-    }
-    requestAnimationFrame(fadeOutAndSwitch);
-}
-
-function pauseAudioDirectly() {
-    if (audio.paused) return;
-
-    const userVolume = parseFloat(volumeSlider.value);
-    let currentVol = audio.volume;
-    
-    const fadeOut = setInterval(() => {
-        if (currentVol > 0.06) {
-            currentVol -= 0.05;
-            audio.volume = currentVol;
-        } else {
-            clearInterval(fadeOut);
+    setTimeout(() => {
+        if (!audio.paused) {
             audio.pause();
-            audio.volume = userVolume;
             playIcon.textContent = 'play_arrow';
             updateMediaSessionState();
         }
-    }, 4);
+    }, 120);
 }
 
 function updateDynamicBackground(src) {
@@ -203,11 +207,32 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    if (!audio.paused) {
-        triggerNaturalEnd(() => {
+    initAudioContext(); 
+    
+    if (!audio.paused && audioCtx && gainNode) {
+        const now = audioCtx.currentTime;
+        const currentVolSetting = volumeSlider.value;
+        
+        gainNode.gain.cancelScheduledValues(now);
+        gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+        
+        // 1. Redam volume secara digital secepat kilat (80ms)
+        gainNode.gain.setTargetAtTime(0, now, 0.02);
+
+        // 2. Timpa berkas lagu langsung saat volume berada di titik terendah tanpa pause
+        setTimeout(() => {
             executeTrackLoading(index);
-            if (autoPlay) playAudioDirectly();
-        });
+            
+            if (autoPlay) {
+                // Angkat volume lagu baru secara fade-in lembut biar TWS lu melek konstan
+                const playTime = audioCtx.currentTime;
+                gainNode.gain.cancelScheduledValues(playTime);
+                gainNode.gain.setValueAtTime(0, playTime);
+                gainNode.gain.setTargetAtTime(currentVolSetting, playTime, 0.03);
+                
+                audio.play().catch(() => {});
+            }
+        }, 90);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -295,26 +320,6 @@ function executeTrackLoading(index) {
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
-
-    if (!document.hidden) {
-        setTimeout(() => {
-            const trackTitleEl = document.getElementById('trackTitle');
-            const trackInfoEl = document.querySelector('.track-info');
-            if (trackTitleEl && trackInfoEl) {
-                const parentWidth = trackInfoEl.clientWidth;
-                const textWidth = trackTitleEl.scrollWidth;
-                if (textWidth > parentWidth) {
-                    const jarakGeser = parentWidth - textWidth - 25; 
-                    trackTitleEl.style.setProperty('--marquee-jarak', `${jarakGeser}px`);
-                    trackTitleEl.style.animation = 'marqueeDinamis 8s linear infinite alternate';
-                    trackTitleEl.style.paddingRight = '25px';
-                } else {
-                    trackTitleEl.style.animation = 'none';
-                    trackTitleEl.style.paddingRight = '0px';
-                }
-            }
-        }, 100);
-    }
 }
 
 function playNextTrack() {
@@ -394,16 +399,19 @@ trackCover.addEventListener('error', () => {
     trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
 });
 
-playBtn.addEventListener('click', () => { audio.paused ? playAudioDirectly() : pauseAudioDirectly(); });
-nextBtn.addEventListener('click', () => { playNextTrack(); });
-prevBtn.addEventListener('click', () => { playPrevTrack(); });
+playBtn.addEventListener('click', () => { 
+    initAudioContext();
+    audio.paused ? playAudioDirectly() : pauseAudioDirectly(); 
+});
+nextBtn.addEventListener('click', () => { initAudioContext(); playNextTrack(); });
+prevBtn.addEventListener('click', () => { initAudioContext(); playPrevTrack(); });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
 repeatBtn.addEventListener('click', () => { isRepeat = !isRepeat; repeatBtn.classList.toggle('active', isRepeat); });
 
 volumeSlider.addEventListener('input', (e) => { 
     const v = e.target.value; 
-    audio.volume = v; 
+    applyVolume(v);
     localStorage.setItem('volume', v); 
     volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
@@ -492,4 +500,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                   
+      
