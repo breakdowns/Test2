@@ -42,10 +42,10 @@ body {
 .player-container {
     background-color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    width: 98% !important; /* Dibuat lebih mepet ke tepi layar */
-    max-width: 680px !important; /* Ditarik lebih lebar dari 620px */
+    width: 98% !important;
+    max-width: 680px !important;
     border-radius: 16px;
-    padding: 16px !important; /* Padding diperkecil agar konten lebih lega */
+    padding: 16px !important;
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
     transition: transform 0.3s ease;
 }
@@ -131,12 +131,15 @@ body {
 }
 
 /* ==========================================================================
-   LAYOUT DUA KOLOM HORIZONTAL: PC DESKTOP, LAPTOP, BOT TELEGRAM, & HP LANDSCAPE
+   LAYOUT DUA KOLOM HORIZONTAL (PC / BOT TELEGRAM / HP LANDSCAPE)
+   KUNCIAN: Ditambah min-height agar tidak terpotong di bot Telegram.
    ========================================================================== */
 @media (min-width: 768px) and (orientation: landscape) {
     .player-container {
         width: 90%;
         max-width: 850px; 
+        min-height: 480px !important; /* Mencegah terpotong di Bot Telegram */
+        overflow-y: auto !important;
         padding: 30px;
         display: grid;
         grid-template-columns: 1.2fr 1fr; 
@@ -206,7 +209,7 @@ body {
 }
 
 /* ==========================================================================
-   COMMON STYLES & TAMENG PROTEKSI FORCE DARK MODE BROWSER
+   COMMON STYLES & PROTEKSI FORCE DARK MODE (TAMENG ANTI-HITAM)
    ========================================================================== */
 @keyframes marqueeDinamis {
     0% { transform: translate3d(0, 0, 0); }
@@ -216,124 +219,47 @@ body {
 }
 
 .progress-area { margin-bottom: 24px; width: 100%; }
-
 .progress-slider { 
-    width: 100%; 
-    -webkit-appearance: none; 
-    appearance: none; 
-    height: 4px; 
-    border-radius: 2px; 
-    outline: none; 
-    cursor: pointer; 
-    background: #4f4f4f; 
-    display: block; 
-    color-scheme: only light !important; 
-    forced-color-adjust: none !important;
+    width: 100%; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; display: block; 
+    color-scheme: only light !important; forced-color-adjust: none !important;
 }
 .progress-slider::-webkit-slider-thumb { 
-    -webkit-appearance: none; 
-    appearance: none; 
-    width: 12px; 
-    height: 12px; 
-    border-radius: 50%; 
-    background: #fefffe !important; 
-    cursor: pointer; 
-    border: none; 
-    color-scheme: only light !important;
-    forced-color-adjust: none !important;
+    -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; cursor: pointer; border: none; 
+    color-scheme: only light !important; forced-color-adjust: none !important;
 }
 
 .time-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; }
 .controls-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 
 .btn-control { 
-    background: none !important; 
-    border: none !important; 
-    color: var(--text-muted); 
-    cursor: pointer; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    transition: color 0.2s, transform 0.1s; 
-    forced-color-adjust: none !important; 
-    filter: invert(0) !important; 
-    -webkit-filter: invert(0) !important;
+    background: none !important; border: none !important; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s, transform 0.1s; 
+    forced-color-adjust: none !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; 
 }
 .btn-control:hover { color: var(--text-main); }
 .btn-control:active { transform: scale(0.95); }
 .btn-control.active { color: var(--spotify-green); }
 
-/* MEMAKSA BUTTON PLAY TETAP PUTIH DAN ICON DI DALAMNYA TETAP HITAM ASLI */
 .btn-play-pause { 
-    background-color: #fefffe !important; 
-    filter: invert(0) !important; 
-    -webkit-filter: invert(0) !important; 
-    color: #121212 !important; 
-    color-scheme: only light !important;
-    forced-color-adjust: none !important;
-    width: 56px; 
-    height: 56px; 
-    border-radius: 50%; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); 
-    border: none; 
-    cursor: pointer; 
+    background-color: #fefffe !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; color: #121212 !important; color-scheme: only light !important; forced-color-adjust: none !important;
+    width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: none; cursor: pointer; 
 }
 .btn-play-pause .material-icons { 
-    font-size: 2.2rem; 
-    color: #121212 !important; 
-    filter: invert(0) !important; 
-    -webkit-filter: invert(0) !important; 
-    color-scheme: only light !important;
-    forced-color-adjust: none !important;
+    font-size: 2.2rem; color: #121212 !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; color-scheme: only light !important; forced-color-adjust: none !important;
 }
 
-.volume-area { 
-    display: flex; 
-    align-items: center; 
-    gap: 12px; 
-    color: var(--text-muted); 
-    margin-bottom: 24px; 
-}
-.volume-area .material-icons {
-    color-scheme: only light !important;
-    forced-color-adjust: none !important;
-    filter: invert(0) !important;
-    -webkit-filter: invert(0) !important;
-}
-.volume-slider { 
-    flex: 1; 
-    -webkit-appearance: none; 
-    appearance: none; 
-    height: 4px; 
-    border-radius: 2px; 
-    outline: none; 
-    cursor: pointer; 
-    background: #4f4f4f; 
-    color-scheme: only light !important;
-    forced-color-adjust: none !important;
-}
-.volume-slider::-webkit-slider-thumb { 
-    -webkit-appearance: none; 
-    width: 12px; 
-    height: 12px; 
-    border-radius: 50%; 
-    background: #fefffe !important; 
-    color-scheme: only light !important;
-    forced-color-adjust: none !important;
-}
+.volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
+.volume-area .material-icons { color-scheme: only light !important; forced-color-adjust: none !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; }
+.volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; forced-color-adjust: none !important; }
+.volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
 
+/* ... (sisanya sama dengan sebelumnya) ... */
 .lyrics-container::-webkit-scrollbar { display: none; }
 .lyrics-container { -ms-overflow-style: none; scrollbar-width: none; }
 #lyricsWrapper { padding: 40px 0 100px 0; text-align: center; }
 .lyric-line { font-size: 1.05rem; font-weight: 700; color: rgba(255, 255, 255, 0.25); padding: 10px 0; cursor: pointer; transition: color 0.3s ease, transform 0.3s ease, filter 0.3s ease; filter: blur(0.5px); }
 .lyric-line.active { color: var(--text-main); transform: scale(1.05); filter: blur(0px); }
-
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 .search-box:focus { border-color: var(--spotify-green) !important; box-shadow: 0 0 6px rgba(30, 215, 96, 0.2); }
-
 .playlist-container::-webkit-scrollbar { width: 4px; }
 .playlist-container::-webkit-scrollbar-thumb { background: #4f4f4f; border-radius: 2px; }
 .track-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
@@ -341,29 +267,16 @@ body {
 .track-item.active { background-color: rgba(30, 215, 96, 0.15); }
 .track-item.active strong { color: var(--spotify-green); }
 .track-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
-
 .watermark { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.5px; }
 .watermark a { color: var(--spotify-green) !important; text-decoration: none; font-weight: bold; }
 .watermark a:hover { text-decoration: underline !important; }
-
 .shimmer-loading { position: relative; overflow: hidden; background: #2a2a2a !important; color: transparent !important; border-radius: 4px; }
 .shimmer-loading::after { position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.15) 20%, rgba(255, 255, 255, 0.25) 60%, rgba(255, 255, 255, 0) 100%); animation: shimmer 1.5s infinite; content: ''; }
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 
-/* ==========================================================================
-   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE FISIK ASLI)
-   ========================================================================== */
 @media (max-height: 500px) and (orientation: landscape) {
     body { align-items: flex-start; padding: 12px; }
-    .player-container {
-        max-width: 100% !important;
-        width: 100% !important;
-        display: grid !important;
-        grid-template-columns: 1.2fr 1fr; 
-        gap: 24px;
-        padding: 20px !important;
-        height: auto;
-    }
+    .player-container { max-width: 100% !important; width: 100% !important; display: grid !important; grid-template-columns: 1.2fr 1fr; gap: 24px; padding: 20px !important; height: auto; }
     .player-left-side { display: grid; grid-template-areas: "header" "progress" "controls" "volume"; justify-content: stretch; gap: 12px; }
     .track-header { grid-area: header; display: flex; align-items: center; gap: 16px; margin-bottom: 0; width: 100%; }
     .cover-wrapper { grid-area: header; max-width: 80px !important; margin: 0; }
@@ -380,4 +293,4 @@ body {
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-             }
+        }
