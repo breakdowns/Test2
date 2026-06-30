@@ -28,19 +28,51 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// FIX KRESEK APOLLO: Dipasang di paling luar agar tidak mereset hardware decoder browser secara berulang
-audio.crossOrigin = "anonymous";
-
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
-progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
+progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`[span_0](start_span)[span_0](end_span);
 
 function formatTime(s) { 
     if (isNaN(s)) return '0:00'; 
     const m = Math.floor(s / 60), sec = Math.floor(s % 60); 
     return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
+}
+
+function updateMediaSession() {
+    if ('mediaSession' in navigator) {
+        const track = tracks[currentIndex];
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.title || "Unknown Title",
+            artist: track.artist || "Unknown Artist",
+            album: 'Breakdowns Music',
+            artwork: [
+                { src: track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png", sizes: '512x512', type: 'image/jpeg' }
+            ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => { playAudioDirectly(); });
+        navigator.mediaSession.setActionHandler('pause', () => { pauseAudioDirectly(); });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            if (isShuffle) {
+                let n = Math.floor(Math.random() * tracks.length);
+                loadTrack(n);
+            } else {
+                let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
+                loadTrack(p); 
+            }
+            playAudioDirectly();
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { playNextTrack(); });
+
+        try {
+            navigator.mediaSession.setActionHandler('seekto', (details) => {
+                audio.currentTime = details.seekTime;
+                updateMediaSessionState();
+            });
+        } catch (e) {}
+    }
 }
 
 function updateMediaSessionState() {
@@ -60,7 +92,7 @@ function playAudioDirectly() {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
-    audio.volume = parseFloat(volumeSlider.value);
+    
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         updateMediaSessionState();
@@ -70,36 +102,10 @@ function playAudioDirectly() {
     });
 }
 
-// SCREEN-SYNC FADE OUT: Menggunakan frame layar agar tidak dicekik background throttling Android
-function nativeFadeOut(callback) {
-    const userVolume = parseFloat(volumeSlider.value);
-    const duration = 40; 
-    const startTime = performance.now();
-
-    function fade() {
-        const now = performance.now();
-        const elapsed = now - startTime;
-        
-        if (elapsed < duration) {
-            audio.volume = userVolume * (1 - (elapsed / duration));
-            requestAnimationFrame(fade);
-        } else {
-            audio.volume = 0;
-            callback(); 
-            audio.volume = userVolume; 
-        }
-    }
-    requestAnimationFrame(fade);
-}
-
 function pauseAudioDirectly() {
-    if (audio.paused) return;
-
-    nativeFadeOut(() => {
-        audio.pause();
-        playIcon.textContent = 'play_arrow';
-        updateMediaSessionState();
-    });
+    audio.pause();
+    playIcon.textContent = 'play_arrow';
+    updateMediaSessionState();
 }
 
 function updateDynamicBackground(src) {
@@ -133,7 +139,6 @@ function parseLRC(text) {
     return res.sort((a, b) => a.time - b.time); 
 }
 
-// ... Sisa fungsi renderLyrics, renderStaticLyrics, renderPlaylist bawaan awal lu ...
 function renderLyrics() { 
     parsedLyrics.forEach((line, i) => { 
         const p = document.createElement('p'); 
@@ -181,17 +186,6 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index) {
-    if (!audio.paused) {
-        nativeFadeOut(() => {
-            audio.pause();
-            executeTrackLoading(index);
-        });
-    } else {
-        executeTrackLoading(index);
-    }
-}
-
-function executeTrackLoading(index) {
     isChangingTrack = true;
     isUserScrollingLyrics = false;
     isPreloaded = false; 
@@ -219,56 +213,68 @@ function executeTrackLoading(index) {
     
     audio.src = track.src; 
     
-    if (typeof updateMediaSession === 'function') {
-        updateMediaSession(); 
-    }
+    updateMediaSession(); 
 
     const currentTrackSrc = track.src;
-    const fadeOutAnim = new Promise(resolve => setTimeout(resolve, 300));
 
     if (track.lyricsSrc) {
-        Promise.all([
-            fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
-                if (!res.ok) throw new Error("Network");
-                return res.text();
-            }),
-            fadeOutAnim
-        ])
-        .then(([text]) => { 
+        fetch(track.lyricsSrc, { cache: "force-cache" })
+        .then(res => {
+            if (!res.ok) throw new Error("Network");
+            return res.text();
+        })
+        .then((text) => { 
             if (tracks[currentIndex].src !== currentTrackSrc) return;
+            
             parsedLyrics = parseLRC(text); 
             lyricsContainer.scrollTop = 0;
             lyricsWrapper.innerHTML = ''; 
             parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+            
             lyricsContainer.style.display = "block"; 
             void lyricsWrapper.offsetWidth; 
             lyricsContainer.style.opacity = '1';
             isChangingTrack = false;
         })
         .catch(() => {
-            fadeOutAnim.then(() => {
-                if (tracks[currentIndex].src === currentTrackSrc) {
-                    parsedLyrics = [];
-                    lyricsContainer.scrollTop = 0;
-                    lyricsWrapper.innerHTML = '';
-                    lyricsContainer.style.display = "none";
-                    isChangingTrack = false;
-                }
-            });
+            if (tracks[currentIndex].src === currentTrackSrc) {
+                parsedLyrics = [];
+                lyricsContainer.scrollTop = 0;
+                lyricsWrapper.innerHTML = '';
+                lyricsContainer.style.display = "none";
+                isChangingTrack = false;
+            }
         });
     } else { 
-        fadeOutAnim.then(() => {
-            if (tracks[currentIndex].src !== currentTrackSrc) return;
-            parsedLyrics = [];
-            lyricsContainer.scrollTop = 0;
-            lyricsWrapper.innerHTML = '';
-            lyricsContainer.style.display = "none";
-            isChangingTrack = false;
-        });
+        parsedLyrics = [];
+        lyricsContainer.scrollTop = 0;
+        lyricsWrapper.innerHTML = '';
+        lyricsContainer.style.display = "none";
+        isChangingTrack = false;
     }
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
+
+    if (!document.hidden) {
+        setTimeout(() => {
+            const trackTitleEl = document.getElementById('trackTitle');
+            const trackInfoEl = document.querySelector('.track-info');
+            if (trackTitleEl && trackInfoEl) {
+                const parentWidth = trackInfoEl.clientWidth;
+                const textWidth = trackTitleEl.scrollWidth;
+                if (textWidth > parentWidth) {
+                    const jarakGeser = parentWidth - textWidth - 25; 
+                    trackTitleEl.style.setProperty('--marquee-jarak', `${jarakGeser}px`);
+                    trackTitleEl.style.animation = 'marqueeDinamis 8s linear infinite alternate';
+                    trackTitleEl.style.paddingRight = '25px';
+                } else {
+                    trackTitleEl.style.animation = 'none';
+                    trackTitleEl.style.paddingRight = '0px';
+                }
+            }
+        }, 100);
+    }
 }
 
 function playNextTrack() {
@@ -289,7 +295,6 @@ fetch('playlist.json')
         if (tracks.length > 0) loadTrack(savedIndex >= 0 && savedIndex < tracks.length ? savedIndex : 0); 
     });
 
-// ... Sisa event listener canplay, playing, timeupdate, ended, dsb ...
 audio.addEventListener('canplay', () => {
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
@@ -299,21 +304,154 @@ audio.addEventListener('canplay', () => {
     trackArtist.classList.remove('shimmer-loading');
     trackCover.classList.remove('shimmer-loading');
 });
-audio.addEventListener('playing', () => { updateMediaSessionState(); });
+
+audio.addEventListener('waiting', () => {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+    }
+});
+
+audio.addEventListener('playing', () => {
+    if (audio.duration && !isNaN(audio.duration)) {
+        lastKnownDurationText = formatTime(audio.duration);
+        durationEl.textContent = lastKnownDurationText;
+    }
+    updateMediaSessionState();
+});
+
 audio.addEventListener('pause', () => { updateMediaSessionState(); });
+
+audio.addEventListener('loadedmetadata', () => { 
+    if (audio.duration && !isNaN(audio.duration)) {
+        lastKnownDurationText = formatTime(audio.duration);
+        durationEl.textContent = lastKnownDurationText; 
+    }
+});
+
+searchBar.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim(); 
+    currentTracksDisplay = tracks.filter(t => (t.title && t.title.toLowerCase().includes(q)) || (t.artist && t.artist.toLowerCase().includes(q))); 
+    renderPlaylist(currentTracksDisplay); 
+});
+
+audio.addEventListener('error', () => {
+    durationEl.textContent = lastKnownDurationText;
+    trackTitle.classList.remove('shimmer-loading');
+    trackArtist.classList.remove('shimmer-loading');
+    trackCover.classList.remove('shimmer-loading');
+});
+
+trackCover.addEventListener('error', () => {
+    trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
+});
+
 playBtn.addEventListener('click', () => { audio.paused ? playAudioDirectly() : pauseAudioDirectly(); });
 nextBtn.addEventListener('click', () => { playNextTrack(); });
+
 prevBtn.addEventListener('click', () => { 
-    let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
-    loadTrack(p); playAudioDirectly();
+    if (isShuffle) {
+        let n = Math.floor(Math.random() * tracks.length);
+        loadTrack(n);
+    } else {
+        let p = currentIndex - 1; if (p < 0) p = tracks.length - 1; 
+        loadTrack(p); 
+    }
+    playAudioDirectly();
 });
+
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
 repeatBtn.addEventListener('click', () => { isRepeat = !isRepeat; repeatBtn.classList.toggle('active', isRepeat); });
-volumeSlider.addEventListener('input', (e) => { audio.volume = e.target.value; });
-audio.addEventListener('timeupdate', () => {
-    if (!audio.duration || isSeeking) return; 
-    progressBar.value = (audio.currentTime / audio.duration) * 100;
-    currentTimeEl.textContent = formatTime(audio.currentTime); 
+
+volumeSlider.addEventListener('input', (e) => { 
+    const v = e.target.value; 
+    audio.volume = v; 
+    localStorage.setItem('volume', v); 
+    volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${v * 100}%, #4f4f4f ${v * 100}%)`; 
 });
+
+const triggerUserScroll = () => {
+    isUserScrollingLyrics = true;
+    if (lyricScrollTimeout) clearTimeout(lyricScrollTimeout);
+    lyricScrollTimeout = setTimeout(() => {
+        isUserScrollingLyrics = false;
+    }, 2000);
+};
+
+lyricsContainer.addEventListener('touchstart', triggerUserScroll, {passive: true});
+lyricsContainer.addEventListener('mousedown', triggerUserScroll);
+lyricsContainer.addEventListener('wheel', triggerUserScroll, {passive: true});
+
+progressBar.addEventListener('input', (e) => {
+    isSeeking = true;
+    const pct = e.target.value;
+    progressBar.style.background = `linear-gradient(to right, #1ed760 ${pct}%, #4f4f4f ${pct}%)`;
+    if (audio.duration) {
+        currentTimeEl.textContent = formatTime((pct / 100) * audio.duration);
+    }
+});
+
+progressBar.addEventListener('change', (e) => {
+    if (audio.duration) {
+        audio.currentTime = (e.target.value / 100) * audio.duration;
+        updateMediaSessionState();
+    }
+    isSeeking = false;
+});
+
+audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return; 
+    
+    const currentPercentage = (audio.currentTime / audio.duration) * 100;
+    if (!isSeeking) {
+        progressBar.value = currentPercentage;
+        progressBar.style.background = `linear-gradient(to right, #1ed760 ${currentPercentage}%, #4f4f4f ${currentPercentage}%)`;
+        currentTimeEl.textContent = formatTime(audio.currentTime); 
+    }
+    
+    if (audio.duration - audio.currentTime <= 20 && !isPreloaded && !isRepeat) {
+        isPreloaded = true;
+        let nextIdx = currentIndex + 1;
+        if (isShuffle) nextIdx = Math.floor(Math.random() * tracks.length);
+        else if (nextIdx >= tracks.length) nextIdx = 0;
+        
+        if (tracks[nextIdx] && tracks[nextIdx].lyricsSrc) {
+            fetch(tracks[nextIdx].lyricsSrc, { cache: "force-cache" }).catch(() => {});
+        }
+    }
+
+    if (document.hidden) return;
+
+    if (isChangingTrack || parsedLyrics.length === 0) return;
+
+    if (parsedLyrics.length > 0) {
+        const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
+        const lines = document.querySelectorAll('.lyric-line');
+        lines.forEach((el, i) => { el.classList.toggle('active', i === activeIndex); });
+        
+        if (!isUserScrollingLyrics && activeIndex !== -1 && lines[activeIndex]) {
+            const activeLine = lines[activeIndex];
+            const containerHeight = lyricsContainer.clientHeight;
+            const offsetTop = activeLine.offsetTop;
+            const lineHeight = activeLine.clientHeight;
+            const scrollAmount = offsetTop - (containerHeight / 2) + (lineHeight / 2);
+            
+            lyricsContainer.scrollTop = scrollAmount;
+        }
+    }
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && audio.duration && parsedLyrics.length > 0 && !isChangingTrack) {
+        const activeIndex = parsedLyrics.findLastIndex(l => audio.currentTime >= l.time);
+        const lines = document.querySelectorAll('.lyric-line');
+        if (activeIndex !== -1 && lines[activeIndex]) {
+            const activeLine = lines[activeIndex];
+            const containerHeight = lyricsContainer.clientHeight;
+            const scrollAmount = activeLine.offsetTop - (containerHeight / 2) + (activeLine.clientHeight / 2);
+            lyricsContainer.scrollTop = scrollAmount;
+        }
+    }
+});
+
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
               
