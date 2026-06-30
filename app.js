@@ -18,11 +18,16 @@ const trackTitle = document.getElementById('trackTitle'),
       playlistContainer = document.getElementById('playlist'), 
       searchBar = document.getElementById('searchBar');
 
+// Trik Ghost Audio: Pemutar tersembunyi buat nyolong data lagu selanjutnya saat layar masih hidup/lagu jalan
+const preloaderAudio = new Audio();
+preloaderAudio.crossOrigin = "anonymous";
+
 let tracks = [], currentTracksDisplay = [], parsedLyrics = [];
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 
 let isChangingTrack = false;
 let lastKnownDurationText = '0:00';
+let isPreloaded = false;
 let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
@@ -88,16 +93,18 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-        playPromise.then(() => {
-            playIcon.textContent = 'pause';
-            updateMediaSessionState();
-        }).catch(e => {
-            console.error("Playback error:", e);
-            playIcon.textContent = 'play_arrow';
-        });
+    // Paksa OS Android baca status 'playing' SEBELUM lagu beneran jalan biar notif gak di-kill
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
     }
+    
+    audio.play().then(() => {
+        playIcon.textContent = 'pause';
+        updateMediaSessionState();
+    }).catch(e => {
+        console.error("Playback error:", e);
+        playIcon.textContent = 'play_arrow';
+    });
 }
 
 function pauseAudioDirectly() {
@@ -187,8 +194,8 @@ function loadTrack(index) {
     isChangingTrack = true;
     parsedLyrics = [];
     isUserScrollingLyrics = false;
+    isPreloaded = false; // Bugfix: Reset status preload tiap ganti lagu biar berfungsi terus
     
-    // Jangan ubah DOM pas layar mati biar Android gak emosi
     if (!document.hidden) {
         trackTitle.classList.add('shimmer-loading');
         trackArtist.classList.add('shimmer-loading');
@@ -213,9 +220,10 @@ function loadTrack(index) {
     lyricsWrapper.innerHTML = ''; 
     
     audio.crossOrigin = "anonymous";
-    audio.src = track.src;
-    audio.load(); // KUNCI UTAMA: Wajib dipanggil biar browser me-reset pipeline media di background
+    audio.src = track.src; // Langsung tembak, browser otomatis tarik file dari Ghost Audio Cache
     
+    updateMediaSession(); // Segera pasang data lagu baru di notif biar gak kosong
+
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc)
@@ -247,7 +255,6 @@ function loadTrack(index) {
     
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
-    updateMediaSession();
 
     if (!document.hidden) {
         setTimeout(() => {
@@ -394,8 +401,21 @@ audio.addEventListener('timeupdate', () => {
         progressBar.style.background = `linear-gradient(to right, #1ed760 ${currentPercentage}%, #4f4f4f ${currentPercentage}%)`;
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
+    
+    // Ghost Audio Action: Mulai narik file 20 detik sebelum lagu habis saat jaringan masih hidup!
+    if (audio.duration - audio.currentTime <= 20 && !isPreloaded && !isRepeat) {
+        isPreloaded = true;
+        let nextIdx = currentIndex + 1;
+        if (isShuffle) nextIdx = Math.floor(Math.random() * tracks.length);
+        else if (nextIdx >= tracks.length) nextIdx = 0;
+        
+        if (tracks[nextIdx]) {
+            preloaderAudio.src = tracks[nextIdx].src;
+            preloaderAudio.preload = 'auto';
+            preloaderAudio.load(); 
+        }
+    }
 
-    // Blokir proses parsing/scroll lirik kalau layar mati biar hemat baterai & anti nge-hang
     if (document.hidden) return;
 
     if (isChangingTrack || parsedLyrics.length === 0) return;
@@ -431,4 +451,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                                   
+                      
