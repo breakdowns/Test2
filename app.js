@@ -68,7 +68,7 @@ function playAudioDirectly() {
 }
 
 // ========================================================
-// REVISI SEMPURNA: 80MS SMOOTH DROP + 160MS MARGIN BUFFER
+// TWS OPTIMIZED: LOW-LEVEL SIGNAL KEEP-ALIVE (ANTI GATING)
 // ========================================================
 function triggerNaturalEnd(callback) {
     if (audio.paused || !audio.duration) {
@@ -77,7 +77,7 @@ function triggerNaturalEnd(callback) {
     }
 
     const userVolume = parseFloat(volumeSlider.value);
-    const fadeDuration = 80; // Diperpanjang ke 80ms agar pelandaian gelombang cadas lebih landai[span_3](start_span)[span_3](end_span)
+    const fadeDuration = 60; 
     const startTime = performance.now();
 
     function fadeOutAndSeek() {
@@ -85,18 +85,19 @@ function triggerNaturalEnd(callback) {
         const elapsed = now - startTime;
 
         if (elapsed < fadeDuration) {
-            audio.volume = userVolume * (1 - (elapsed / fadeDuration));
+            // Turunkan volume, tapi batasi paling rendah di 0.01 (TWS tetep dapet arus data tipis)
+            const targetVol = userVolume * (1 - (elapsed / fadeDuration));
+            audio.volume = Math.max(0.01, targetVol);
             requestAnimationFrame(fadeOutAndSeek);
         } else {
-            audio.volume = 0;
-            // Detik lompatan dijaga presisi sebelum akhir track[span_4](start_span)[span_4](end_span)
+            // Kunci di 0.01 agar amplifier TWS tidak tidur/gating mendadak
+            audio.volume = 0.01;
             audio.currentTime = audio.duration - 0.1;
 
-            // Ditambah waktu tunggu 160ms agar hardware tuntas membisukan letupan kaget browser[span_5](start_span)[span_5](end_span)
             setTimeout(() => {
-                audio.volume = userVolume; // Pulihkan volume untuk track selanjutnya[span_6](start_span)[span_6](end_span)
+                audio.volume = userVolume; 
                 callback();
-            }, 160);
+            }, 140);
         }
     }
     requestAnimationFrame(fadeOutAndSeek);
@@ -108,8 +109,9 @@ function pauseAudioDirectly() {
     const userVolume = parseFloat(volumeSlider.value);
     let currentVol = audio.volume;
     
+    // Fade out pause juga disisakan 0.01 sebentar sebelum mutlak berhenti
     const fadeOut = setInterval(() => {
-        if (currentVol > 0.05) {
+        if (currentVol > 0.06) {
             currentVol -= 0.05;
             audio.volume = currentVol;
         } else {
@@ -140,7 +142,6 @@ function updateDynamicBackground(src) {
     };
 }
 
-// ... (Sisa fungsi parsing, lirik, rendering playlist, dsb. Tetap sama persis tanpa perubahan) ...
 function parseLRC(text) { 
     const res = []; 
     text.split('\n').forEach(l => { 
@@ -490,4 +491,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-          
+              
