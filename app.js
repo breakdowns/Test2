@@ -68,7 +68,7 @@ function playAudioDirectly() {
 }
 
 // ========================================================
-// TWS OPTIMIZED: LOW-LEVEL SIGNAL KEEP-ALIVE (ANTI GATING)
+// REVISI ULTIMATE: ZERO-CROSSING ANTI-GATING POCO & SOUNDCORE
 // ========================================================
 function triggerNaturalEnd(callback) {
     if (audio.paused || !audio.duration) {
@@ -77,30 +77,25 @@ function triggerNaturalEnd(callback) {
     }
 
     const userVolume = parseFloat(volumeSlider.value);
-    const fadeDuration = 60; 
+    const fadeDuration = 70; // Durasi luruh meluncur mulus
     const startTime = performance.now();
 
-    function fadeOutAndSeek() {
+    function fadeOutAndSwitch() {
         const now = performance.now();
         const elapsed = now - startTime;
 
         if (elapsed < fadeDuration) {
-            // Turunkan volume, tapi batasi paling rendah di 0.01 (TWS tetep dapet arus data tipis)
             const targetVol = userVolume * (1 - (elapsed / fadeDuration));
-            audio.volume = Math.max(0.01, targetVol);
-            requestAnimationFrame(fadeOutAndSeek);
+            // Jangan pernah kasih 0, ganjal di 0.005 agar sirkuit Soundcore R50i tetap terkunci ON
+            audio.volume = Math.max(0.005, targetVol);
+            requestAnimationFrame(fadeOutAndSwitch);
         } else {
-            // Kunci di 0.01 agar amplifier TWS tidak tidur/gating mendadak
-            audio.volume = 0.01;
-            audio.currentTime = audio.duration - 0.1;
-
-            setTimeout(() => {
-                audio.volume = userVolume; 
-                callback();
-            }, 140);
+            audio.volume = 0.005;
+            // LANGSUNG eksekusi ganti lagu tanpa melempar timeline detiknya, biar decoder Poco gak kaget
+            callback();
         }
     }
-    requestAnimationFrame(fadeOutAndSeek);
+    requestAnimationFrame(fadeOutAndSwitch);
 }
 
 function pauseAudioDirectly() {
@@ -109,7 +104,6 @@ function pauseAudioDirectly() {
     const userVolume = parseFloat(volumeSlider.value);
     let currentVol = audio.volume;
     
-    // Fade out pause juga disisakan 0.01 sebentar sebelum mutlak berhenti
     const fadeOut = setInterval(() => {
         if (currentVol > 0.06) {
             currentVol -= 0.05;
@@ -203,6 +197,7 @@ function renderPlaylist(arr) {
 function loadTrack(index, autoPlay = false) {
     if (!audio.paused) {
         triggerNaturalEnd(() => {
+            // Langsung matikan stream lama dan timpa src baru secara senyap
             audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
@@ -491,4 +486,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
+          
