@@ -74,12 +74,13 @@ body {
     align-items: center; 
     margin-bottom: 20px;
     width: 100%;
-    overflow: hidden;
+    overflow: hidden !important;
+    position: relative;
 }
 
 .track-info { 
     flex: 1; 
-    overflow: hidden; 
+    overflow: hidden !important; 
     position: relative;
     max-width: 100%;
 }
@@ -87,8 +88,10 @@ body {
 .marquee-container { 
     display: block; 
     width: 100%; 
-    overflow: hidden; 
+    overflow: hidden !important; 
     white-space: nowrap; 
+    position: relative;
+    isolation: isolate; /* Memaksa browser memotong masking teks beranimasi */
 }
 
 .track-info h2 { 
@@ -106,7 +109,7 @@ body {
     color: var(--text-muted); 
     margin-top: 4px; 
     white-space: nowrap; 
-    overflow: hidden; 
+    overflow: hidden !important; 
     text-overflow: ellipsis; 
     text-align: left;
     width: 100%;
@@ -322,11 +325,14 @@ body {
     
     .cover-wrapper { grid-area: cover !important; margin: 0 !important; position: static !important; }
     
+    /* Proteksi beton isolasi penuh: Teks wajib hilang tepat di pinggiran kanan cover */
     .track-header { 
         grid-area: header !important; 
         margin-bottom: 0 !important; 
         padding-left: 0 !important; 
-        overflow: hidden !important; /* Memotong teks marquee sebelum menabrak cover */
+        overflow: hidden !important; 
+        position: relative !important;
+        isolation: isolate !important; /* Menghentikan kebocoran transform layer */
         width: 100% !important;
         max-width: 280px !important; 
     }
@@ -334,7 +340,15 @@ body {
     .track-info { 
         padding-left: 0; 
         width: 100%; 
-        overflow: hidden !important; /* Proteksi ganda agar teks tidak bocor keluar */
+        overflow: hidden !important;
+        position: relative !important;
+    }
+
+    .marquee-container {
+        width: 100% !important;
+        overflow: hidden !important;
+        position: relative !important;
+        isolation: isolate !important;
     }
     
     .track-info h2 { 
@@ -342,9 +356,9 @@ body {
         text-align: left !important; 
         white-space: nowrap !important;
         display: inline-block !important;
-        overflow: visible !important; 
-        text-overflow: clip !important;
+        overflow: hidden !important; 
         width: auto !important;
+        position: relative !important;
     }
     
     .track-info p { 
@@ -368,5 +382,4 @@ body {
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-    }
-    
+}
