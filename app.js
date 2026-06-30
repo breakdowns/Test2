@@ -54,8 +54,8 @@ document.addEventListener('touchstart', () => { initAudioContext(); }, { once: t
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 
-// Pasang volume HTML5 ke 0.5 agar headroom sinyal aman dari clipping ganda
-audio.volume = 0.5; 
+// Kunci ke 1 agar tidak merusak perhitungan logaritmik hardware Web Audio API[span_4](start_span)[span_4](end_span)
+audio.volume = 1; 
 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
@@ -94,10 +94,10 @@ function playAudioDirectly() {
     
     const currentVolSetting = parseFloat(volumeSlider.value);
     if (gainNode && audioCtx) {
-        // Angkat volume secara smooth (15ms) pas putar biar ga kaget
         const now = audioCtx.currentTime;
         gainNode.gain.cancelScheduledValues(now);
         gainNode.gain.setValueAtTime(0, now);
+        // Transisi halus pas play agar tidak meletup di awal intro lagu
         gainNode.gain.setTargetAtTime(currentVolSetting, now, 0.015);
     }
 
@@ -121,15 +121,16 @@ function pauseAudioDirectly() {
     gainNode.gain.cancelScheduledValues(now);
     gainNode.gain.setValueAtTime(gainNode.gain.value, now);
     
-    // Fade out linear presisi level hardware selama 0.08 detik (80ms)
-    gainNode.gain.linearRampToValueAtTime(0, now + 0.08); 
+    // Kembali menggunakan setTargetAtTime yang melandai organik tanpa keresek & letupan[span_5](start_span)[span_5](end_span)
+    gainNode.gain.setTargetAtTime(0, now, 0.025); 
 
-    // Eksekusi jeda dengan margin waktu aman agar ramp selesai mutlak
     setTimeout(() => {
-        audio.pause();
-        playIcon.textContent = 'play_arrow';
-        updateMediaSessionState();
-    }, 110);
+        if (audioCtx && gainNode) {
+            audio.pause();
+            playIcon.textContent = 'play_arrow';
+            updateMediaSessionState();
+        }
+    }, 130);
 }
 
 function updateDynamicBackground(src) {
@@ -216,14 +217,14 @@ function loadTrack(index, autoPlay = false) {
         gainNode.gain.cancelScheduledValues(now);
         gainNode.gain.setValueAtTime(gainNode.gain.value, now);
         
-        // Buat turunan linear total ke angka 0 mutlak secara hardware ramping
-        gainNode.gain.linearRampToValueAtTime(0, now + 0.08);
+        // Meredam logaritmik konstan sebelum memutus berkas musik lama[span_6](start_span)[span_6](end_span)
+        gainNode.gain.setTargetAtTime(0, now, 0.025);
 
         setTimeout(() => {
             audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
-        }, 110);
+        }, 130);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -516,4 +517,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                                          
+      
