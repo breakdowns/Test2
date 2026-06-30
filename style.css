@@ -86,7 +86,7 @@ body {
 }
 
 /* ==========================================================================
-   PERBAIKAN MARQUEE JUDUL (SPOTIFY STYLE CONTINUOUS BOUNCE)
+   SPOTIFY STYLE TRACK MARQUEE (FIXED DYNAMIC SCROLL)
    ========================================================================== */
 .marquee-container { 
     display: block; 
@@ -94,8 +94,8 @@ body {
     overflow: hidden !important; 
     white-space: nowrap; 
     position: relative;
-    isolation: isolate;
-    /* Efek fade out transparan halus di sisi kanan kiri pas teksnya lewat */
+    isolation: isolate; 
+    /* Efek pudar transparan di kanan-kiri pas teks lewat */
     mask-image: linear-gradient(to right, transparent 0%, white 4%, white 96%, transparent 100%);
     -webkit-mask-image: linear-gradient(to right, transparent 0%, white 4%, white 96%, transparent 100%);
 }
@@ -108,9 +108,8 @@ body {
     display: inline-block; 
     will-change: transform; 
     text-align: left;
-    padding-right: 24px;
-    /* Menggunakan alternate biar pas mentok di ujung, dia balik kanan secara halus */
-    animation: marqueeDinamis 7s ease-in-out infinite alternate; 
+    /* !important dipasang untuk nabrak inline-style sekali jalan dari JS lo */
+    animation: marqueeSpotify 8s linear infinite !important; 
 }
 
 .track-info p { 
@@ -125,7 +124,7 @@ body {
 }
 
 /* ==========================================================================
-   REVERTED LYRICS STYLE (KEMBALI KE ASLI / RATA TENGAH)
+   REVERTED LYRICS STYLE (RATA TENGAH SEMULA)
    ========================================================================== */
 .lyrics-container {
     position: relative;
@@ -241,15 +240,14 @@ body {
 }
 
 /* ==========================================================================
-   KEYFRAMES TIMING MARQUEE (ANTI STUCK / MACET)
+   KEYFRAMES TIMING MARQUEE ASLI SPOTIFY (LOOPING INSTAN)
    ========================================================================== */
-@keyframes marqueeDinamis {
-    0%, 15% { 
-        transform: translate3d(0, 0, 0); 
-    } /* Diam sebentar di awal biar user sempat baca kata pertama (0-15%) */
-    85%, 100% { 
-        transform: translate3d(var(--marquee-jarak, -35%), 0, 0); 
-    } /* Bergeser mulus ke kiri sampai mentok batas JS dinamis (85-100%) */
+@keyframes marqueeSpotify {
+    0% { transform: translate3d(0, 0, 0); }
+    25% { transform: translate3d(0, 0, 0); } /* Diam di awal selama 2 detik biar kebaca */
+    75% { transform: translate3d(var(--marquee-jarak), 0, 0); } /* Bergerak konstan ke kiri sampai ujung teks */
+    95% { transform: translate3d(var(--marquee-jarak), 0, 0); } /* Diam di ujung akhir selama 1.6 detik */
+    100% { transform: translate3d(0, 0, 0); } /* Reset melompat instan ke posisi awal tanpa jeda mundur */
 }
 
 .progress-area { width: 100%; margin-bottom: 24px; }
@@ -335,7 +333,7 @@ body {
         max-width: 55% !important; 
     }
     
-    .player-right-side { flex: 1 !important; display: flex !important; filter: none !important; flex-direction: column; }
+    .player-right-side { flex: 1 !important; display: flex !important; flex-direction: column; }
     
     .cover-wrapper { grid-area: cover !important; margin: 0 !important; position: static !important; }
     
@@ -372,6 +370,7 @@ body {
         overflow: hidden !important; 
         width: auto !important;
         position: relative !important;
+        animation: marqueeSpotify 8s linear infinite !important; /* Pasang juga di landscape */
     }
     
     .track-info p { 
@@ -396,4 +395,4 @@ body {
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
     }
-                                                                                                                                                    
+                         
