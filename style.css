@@ -131,15 +131,14 @@ body {
 }
 
 /* ==========================================================================
-   LAYOUT DUA KOLOM HORIZONTAL (PC / BOT TELEGRAM / HP LANDSCAPE)
-   KUNCIAN: Ditambah min-height agar tidak terpotong di bot Telegram.
+   LAYOUT DUA KOLOM HORIZONTAL (PC / HP LANDSCAPE)
+   KUNCIAN: Ditambah min-height agar tidak terpotong di Bot Telegram yang sempit.
    ========================================================================== */
-@media (min-width: 768px) and (orientation: landscape) {
+@media (min-width: 768px) and (orientation: landscape) and (min-height: 500px) {
     .player-container {
         width: 90%;
         max-width: 850px; 
-        min-height: 480px !important; /* Mencegah terpotong di Bot Telegram */
-        overflow-y: auto !important;
+        min-height: 480px !important;
         padding: 30px;
         display: grid;
         grid-template-columns: 1.2fr 1fr; 
@@ -209,7 +208,7 @@ body {
 }
 
 /* ==========================================================================
-   COMMON STYLES & PROTEKSI FORCE DARK MODE (TAMENG ANTI-HITAM)
+   COMMON STYLES & TAMENG PROTEKSI FORCE DARK MODE (TAMENG ANTI-HITAM)
    ========================================================================== */
 @keyframes marqueeDinamis {
     0% { transform: translate3d(0, 0, 0); }
@@ -252,7 +251,6 @@ body {
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; forced-color-adjust: none !important; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
 
-/* ... (sisanya sama dengan sebelumnya) ... */
 .lyrics-container::-webkit-scrollbar { display: none; }
 .lyrics-container { -ms-overflow-style: none; scrollbar-width: none; }
 #lyricsWrapper { padding: 40px 0 100px 0; text-align: center; }
