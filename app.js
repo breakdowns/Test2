@@ -68,7 +68,7 @@ function playAudioDirectly() {
 }
 
 // ========================================================
-// REVISI FINAL: SMOOTH VOLUME DROP + NATURAL END TRIGGER
+// REVISI SEMPURNA: 80MS SMOOTH DROP + 160MS MARGIN BUFFER
 // ========================================================
 function triggerNaturalEnd(callback) {
     if (audio.paused || !audio.duration) {
@@ -77,7 +77,7 @@ function triggerNaturalEnd(callback) {
     }
 
     const userVolume = parseFloat(volumeSlider.value);
-    const fadeDuration = 40; // Meredam volume dalam 40ms seirama refresh layar[span_4](start_span)[span_4](end_span)
+    const fadeDuration = 80; // Diperpanjang ke 80ms agar pelandaian gelombang cadas lebih landai[span_3](start_span)[span_3](end_span)
     const startTime = performance.now();
 
     function fadeOutAndSeek() {
@@ -89,14 +89,14 @@ function triggerNaturalEnd(callback) {
             requestAnimationFrame(fadeOutAndSeek);
         } else {
             audio.volume = 0;
-            // Setelah volume senyap, lempar ke 0.1 detik sebelum lagu habis mutlak[span_5](start_span)[span_5](end_span)
+            // Detik lompatan dijaga presisi sebelum akhir track[span_4](start_span)[span_4](end_span)
             audio.currentTime = audio.duration - 0.1;
 
-            // Berikan jeda super singkat agar browser memicu event 'ended' secara bersih[span_6](start_span)[span_6](end_span)
+            // Ditambah waktu tunggu 160ms agar hardware tuntas membisukan letupan kaget browser[span_5](start_span)[span_5](end_span)
             setTimeout(() => {
-                audio.volume = userVolume; // Reset volume asal untuk lagu berikutnya[span_7](start_span)[span_7](end_span)
+                audio.volume = userVolume; // Pulihkan volume untuk track selanjutnya[span_6](start_span)[span_6](end_span)
                 callback();
-            }, 120);
+            }, 160);
         }
     }
     requestAnimationFrame(fadeOutAndSeek);
@@ -140,6 +140,7 @@ function updateDynamicBackground(src) {
     };
 }
 
+// ... (Sisa fungsi parsing, lirik, rendering playlist, dsb. Tetap sama persis tanpa perubahan) ...
 function parseLRC(text) { 
     const res = []; 
     text.split('\n').forEach(l => { 
@@ -489,3 +490,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
+          
