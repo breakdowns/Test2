@@ -29,7 +29,7 @@ let lyricScrollTimeout = null;
 let isSeeking = false;
 
 // ==========================================
-// INISIALISASI WEB AUDIO API (SINGLETON MODE)
+// INISIALISASI WEB AUDIO API (GLOBAL STATE)
 // ==========================================
 let audioCtx = null;
 let trackNode = null;
@@ -49,10 +49,14 @@ function initAudioContext() {
     }
 }
 
+// Inisialisasi otomatis pada interaksi pertama apa pun di dokumen luar tombol player
+document.addEventListener('click', () => { initAudioContext(); }, { once: true });
+document.addEventListener('touchstart', () => { initAudioContext(); }, { once: true });
+
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 
-// FIX UTAMA: Kunci volume HTML5 ke nilai pas untuk mencegah clipping/keresek-keresek ganda[span_4](start_span)[span_4](end_span)
-audio.volume = 0.8; 
+// Kunci volume HTML5 bawaan ke tingkat aman konstan untuk mencegah digital clipping
+audio.volume = 0.75; 
 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
@@ -60,7 +64,6 @@ progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%
 
 function applyVolume(volValue) {
     if (gainNode && audioCtx) {
-        // Skalakan volume gain node agar selaras dengan input slider tanpa merusak dynamic range
         gainNode.gain.setValueAtTime(volValue, audioCtx.currentTime);
     }
 }
@@ -113,10 +116,11 @@ function pauseAudioDirectly() {
     }
 
     const now = audioCtx.currentTime;
-    
     gainNode.gain.cancelScheduledValues(now);
     gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-    gainNode.gain.setTargetAtTime(0, now, 0.025); // Meredam logaritmik tanpa letupan[span_5](start_span)[span_5](end_span)
+    
+    // Meredam logaritmik konstan tanpa sisa gelombang bocor
+    gainNode.gain.setTargetAtTime(0, now, 0.020); 
 
     setTimeout(() => {
         if (audioCtx && gainNode) {
@@ -124,7 +128,7 @@ function pauseAudioDirectly() {
             playIcon.textContent = 'play_arrow';
             updateMediaSessionState();
         }
-    }, 120);
+    }, 100);
 }
 
 function updateDynamicBackground(src) {
@@ -204,17 +208,19 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
+    initAudioContext(); // Pastikan node dikunci di awal fungsi pergantian track dimulai
+    
     if (!audio.paused && audioCtx && gainNode) {
         const now = audioCtx.currentTime;
         gainNode.gain.cancelScheduledValues(now);
         gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-        gainNode.gain.setTargetAtTime(0, now, 0.025);
+        gainNode.gain.setTargetAtTime(0, now, 0.020);
 
         setTimeout(() => {
             audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
-        }, 120);
+        }, 100);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -507,4 +513,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                                                              
+                             
