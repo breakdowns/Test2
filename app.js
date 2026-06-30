@@ -36,7 +36,6 @@ let trackNode = null;
 let gainNode = null;
 
 function initAudioContext() {
-    // Kunci utama: Hanya buat context dan node JIKA belum ada (mencegah duplikasi keresek-keresek)[span_3](start_span)[span_3](end_span)
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         trackNode = audioCtx.createMediaElementSource(audio);
@@ -51,13 +50,17 @@ function initAudioContext() {
 }
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
-audio.volume = 1; // Kontrol volume diserahkan sepenuhnya ke Gain Node[span_4](start_span)[span_4](end_span)
+
+// FIX UTAMA: Kunci volume HTML5 ke nilai pas untuk mencegah clipping/keresek-keresek ganda[span_4](start_span)[span_4](end_span)
+audio.volume = 0.8; 
+
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
 
 function applyVolume(volValue) {
     if (gainNode && audioCtx) {
+        // Skalakan volume gain node agar selaras dengan input slider tanpa merusak dynamic range
         gainNode.gain.setValueAtTime(volValue, audioCtx.currentTime);
     }
 }
@@ -116,7 +119,6 @@ function pauseAudioDirectly() {
     gainNode.gain.setTargetAtTime(0, now, 0.025); // Meredam logaritmik tanpa letupan[span_5](start_span)[span_5](end_span)
 
     setTimeout(() => {
-        // Cek ulang apakah user tidak melakukan pembatalan/klik play lagi selama 120ms
         if (audioCtx && gainNode) {
             audio.pause();
             playIcon.textContent = 'play_arrow';
@@ -202,7 +204,6 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    // Jika audio sedang berputar, bersihkan delay volume lama dan turunkan volumenya
     if (!audio.paused && audioCtx && gainNode) {
         const now = audioCtx.currentTime;
         gainNode.gain.cancelScheduledValues(now);
@@ -404,7 +405,6 @@ trackCover.addEventListener('error', () => {
     trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
 });
 
-// Event click langsung menginisialisasi Context tunggal secara aman
 playBtn.addEventListener('click', () => { 
     initAudioContext();
     audio.paused ? playAudioDirectly() : pauseAudioDirectly(); 
@@ -507,4 +507,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-          
+                                                              
