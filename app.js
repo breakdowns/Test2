@@ -57,11 +57,6 @@ function playAudioDirectly() {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
-    
-    // Pastikan status mute dimatikan dan volume dikembalikan sebelum memutar suara
-    audio.muted = false;
-    audio.volume = parseFloat(volumeSlider.value);
-    
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         updateMediaSessionState();
@@ -71,45 +66,45 @@ function playAudioDirectly() {
     });
 }
 
-// =========================================================
-// HYBRID FADE & HARD MUTE CONTROL (ANTI LETUPAN LEVEL DEWA)
-// =========================================================
-function executeSafeStop(actionCallback) {
-    const userVolume = parseFloat(volumeSlider.value);
-    const duration = 50; // Alokasi waktu ramp-down (50ms)[span_4](start_span)[span_4](end_span)
-    const startTime = performance.now();
-
-    function fade() {
-        const now = performance.now();
-        const elapsed = now - startTime;
-        
-        if (elapsed < duration) {
-            audio.volume = userVolume * (1 - (elapsed / duration));
-            requestAnimationFrame(fade);
-        } else {
-            audio.volume = 0;
-            // Kunci utama: Paksa bisukan total lewat hardware flag browser sebelum interupsi berkas[span_5](start_span)[span_5](end_span)
-            audio.muted = true; 
-            
-            // Berikan nafas bagi driver hardware audio selama 15ms baru jalankan perintah ganti lagu/pause
-            setTimeout(() => {
-                actionCallback();
-            }, 15);
-        }
+// ========================================================
+// TRIK PAMUNGKAS: AUTO-ENDED TRIGGER (SAYONARA BUG "TET")
+// ========================================================
+function triggerNaturalEnd(callback) {
+    if (audio.paused || !audio.duration) {
+        callback();
+        return;
     }
-    requestAnimationFrame(fade);
+
+    // Turunkan volume sekejap mata agar perpindahan timeline tidak terlalu kasar
+    audio.volume = 0.01;
+
+    // Paksa loncat ke 0.1 detik sebelum lagu habis mutlak
+    audio.currentTime = audio.duration - 0.1;
+
+    // Berikan jeda sekejap agar browser memproses event 'ended' secara natural[span_3](start_span)[span_3](end_span)
+    setTimeout(() => {
+        audio.volume = parseFloat(volumeSlider.value); // Kembalikan volume asli
+        callback();
+    }, 150);
 }
 
 function pauseAudioDirectly() {
     if (audio.paused) return;
 
-    executeSafeStop(() => {
-        audio.pause();
-        audio.muted = false; // Reset status mute setelah terjeda aman
-        audio.volume = parseFloat(volumeSlider.value);
-        playIcon.textContent = 'play_arrow';
-        updateMediaSessionState();
-    });
+    // Untuk pause, kita pakai fade-out kilat karena tidak bisa memakai trik 'ended'
+    let currentVol = audio.volume;
+    const fadeOut = setInterval(() => {
+        if (currentVol > 0.05) {
+            currentVol -= 0.05;
+            audio.volume = currentVol;
+        } else {
+            clearInterval(fadeOut);
+            audio.pause();
+            audio.volume = parseFloat(volumeSlider.value);
+            playIcon.textContent = 'play_arrow';
+            updateMediaSessionState();
+        }
+    }, 4);
 }
 
 function updateDynamicBackground(src) {
@@ -190,14 +185,12 @@ function renderPlaylist(arr) {
 
 function loadTrack(index, autoPlay = false) {
     if (!audio.paused) {
-        executeSafeStop(() => {
-            audio.pause();
-            audio.muted = false; // Reset status bising
+        // Trik manipulasi ganti lagu: Paksa loncat ke akhir lagu dulu biar dimatikan alami oleh browser[span_4](start_span)[span_4](end_span)
+        triggerNaturalEnd(() => {
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
         });
     } else {
-        audio.muted = false;
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
     }
@@ -481,4 +474,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                      
+      
