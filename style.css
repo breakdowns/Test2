@@ -78,17 +78,14 @@ body {
     position: relative;
 }
 
-/* ==========================================================================
-   SPOTIFY STYLE TRACK MARQUEE (INFINITE LOOP DARI KANAN)
-   ========================================================================== */
 .track-info { 
     flex: 1; 
     overflow: hidden !important; 
     position: relative;
     max-width: 100%;
-    container-type: inline-size; /* Penting buat teleportasi CQI */
 }
 
+/* FIX: Tambah container-type biar CSS bisa ngebaca lebar maksimal area teks ini (sejajar cover) */
 .marquee-container { 
     display: block; 
     width: 100%; 
@@ -96,8 +93,7 @@ body {
     white-space: nowrap; 
     position: relative;
     isolation: isolate; 
-    mask-image: linear-gradient(to right, transparent 0%, white 4%, white 96%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, white 4%, white 96%, transparent 100%);
+    container-type: inline-size; 
 }
 
 .track-info h2 { 
@@ -108,8 +104,6 @@ body {
     display: inline-block; 
     will-change: transform; 
     text-align: left;
-    padding-right: 0 !important; 
-    animation: marqueeLoopKanan 12s linear infinite !important; 
 }
 
 .track-info p { 
@@ -123,9 +117,6 @@ body {
     width: 100%;
 }
 
-/* ==========================================================================
-   REVERTED LYRICS STYLE (RATA TENGAH)
-   ========================================================================== */
 .lyrics-container {
     position: relative;
     max-height: 160px;
@@ -240,20 +231,16 @@ body {
 }
 
 /* ==========================================================================
-   KEYFRAMES TELEPORTASI DARI KANAN (THE MAGIC TRICK)
+   FIX: KEYFRAMES MARQUEE (BERHENTI TEPAT DI KANAN COVER, GAK BABLAS)
    ========================================================================== */
-@keyframes marqueeLoopKanan {
+@keyframes marqueeDinamis {
     0%, 15% { 
-        transform: translateX(0); /* Diam santai dulu di awal */
+        transform: translate3d(0, 0, 0); 
     }
-    55% { 
-        transform: translateX(-100%); /* Jalan bablas ke kiri sampe HILANG total */
-    }
-    55.01% { 
-        transform: translateX(100cqi); /* Teleport instan ke luar batas kanan layar */
-    }
-    100% { 
-        transform: translateX(0); /* Merayap masuk dari kanan balik ke posisi awal */
+    85%, 100% { 
+        /* Teks akan digeser tepat sebesar selisih panjang teks aslinya dan batas containernya */
+        /* min(0px) dipake buat jaga-jaga kalau judulnya pendek, dia tetep diem gak lari kemana-mana */
+        transform: translate3d(min(0px, calc(100cqi - 100%)), 0, 0); 
     }
 }
 
@@ -340,7 +327,7 @@ body {
         max-width: 55% !important; 
     }
     
-    .player-right-side { flex: 1 !important; display: flex !important; filter: none !important; flex-direction: column; }
+    .player-right-side { flex: 1 !important; display: flex !important; flex-direction: column; }
     
     .cover-wrapper { grid-area: cover !important; margin: 0 !important; position: static !important; }
     
@@ -360,7 +347,6 @@ body {
         width: 100%; 
         overflow: hidden !important;
         position: relative !important;
-        container-type: inline-size;
     }
 
     .marquee-container {
@@ -368,6 +354,7 @@ body {
         overflow: hidden !important;
         position: relative !important;
         isolation: isolate !important;
+        container-type: inline-size;
     }
     
     .track-info h2 { 
@@ -378,7 +365,6 @@ body {
         overflow: hidden !important; 
         width: auto !important;
         position: relative !important;
-        animation: marqueeLoopKanan 12s linear infinite !important; 
     }
     
     .track-info p { 
@@ -402,5 +388,4 @@ body {
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-    }
-    
+        }
