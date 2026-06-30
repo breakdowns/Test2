@@ -28,9 +28,8 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// Kunci identitas stream dari awal, jangan diulang-ulang agar decoder lagu Apollo ga glitch
+// FIX KRESEK APOLLO: Set crossOrigin CUMA SEKALI di luar fungsi biar decoder browser ga glitch
 audio.crossOrigin = "anonymous";
-audio.autoplay = false; 
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 audio.volume = savedVolume; 
@@ -58,9 +57,6 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
-    // Aktifkan autoplay agar perpindahan track di background diambil alih penuh oleh Native OS
-    audio.autoplay = true; 
-    
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
@@ -74,7 +70,7 @@ function playAudioDirectly() {
 }
 
 function pauseAudioDirectly() {
-    audio.autoplay = false; // Matikan autoplay saat dipause manual
+    // FIX LAYAR MATI: Hapus semua sirkuit fade/setTimeout agar tidak di-freeze oleh Doze Mode Android
     audio.pause();
     playIcon.textContent = 'play_arrow';
     updateMediaSessionState();
@@ -187,9 +183,8 @@ function executeTrackLoading(index) {
 
     lyricsContainer.style.opacity = '0';
     
-    // Ganti source dan PAKSA browser memuat buffer stream meskipun layar mati
+    // Alirkan source baru secara langsung tanpa reset state hardware
     audio.src = track.src; 
-    audio.load();
     
     if (typeof updateMediaSession === 'function') {
         updateMediaSession(); 
@@ -197,7 +192,7 @@ function executeTrackLoading(index) {
 
     const currentTrackSrc = track.src;
 
-    // Fetch API dibiarkan mandiri tanpa nunggu setTimeout animasi, biar gak hang di Doze Mode Android
+    // FIX LAYAR MATI: Jalankan Fetch lirik secara async mandiri TANPA nunggu Promise.all / setTimeout animasi visual
     if (track.lyricsSrc) {
         fetch(track.lyricsSrc, { cache: "force-cache" })
         .then(res => {
@@ -433,4 +428,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-      
+                             
