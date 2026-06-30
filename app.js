@@ -28,7 +28,7 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// FIX KRESEK APOLLO: Dipindah ke sini (paling luar) agar decoder browser tidak glitch/mereset tiap ganti lagu
+// FIX KRESEK APOLLO: Dipindah ke global (paling atas) agar decoder browser stabil
 audio.crossOrigin = "anonymous";
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
@@ -223,7 +223,6 @@ function loadTrack(index) {
     const fadeOutAnim = new Promise(resolve => setTimeout(resolve, 300));
 
     if (track.lyricsSrc) {
-        // Karena lirik udah kita pre-fetch dari awal, ini akan instan ambil dari cache
         Promise.all([
             fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
                 if (!res.ok) throw new Error("Network");
@@ -318,7 +317,6 @@ audio.addEventListener('canplay', () => {
     trackCover.classList.remove('shimmer-loading');
 });
 
-// Menjaga OS tetap melek kalau audio butuh buffering sebentar di background
 audio.addEventListener('waiting', () => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
@@ -430,7 +428,6 @@ audio.addEventListener('timeupdate', () => {
         else if (nextIdx >= tracks.length) nextIdx = 0;
         
         if (tracks[nextIdx] && tracks[nextIdx].lyricsSrc) {
-            // Fetch tanpa mempedulikan respon (hanya pancing masuk cache)
             fetch(tracks[nextIdx].lyricsSrc, { cache: "force-cache" }).catch(() => {});
         }
     }
@@ -470,4 +467,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                      
+                                                               
