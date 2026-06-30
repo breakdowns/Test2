@@ -88,14 +88,13 @@ body {
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
     will-change: opacity;
-    -ms-overflow-style: none;  /* Sembunyikan scrollbar IE/Edge */
-    scrollbar-width: none;     /* Sembunyikan scrollbar Firefox */
+    -ms-overflow-style: none;  
+    scrollbar-width: none;     
 }
 .lyrics-container::-webkit-scrollbar { 
-    display: none; /* Sembunyikan scrollbar Chrome/Safari */
+    display: none; 
 }
 
-/* KEMBALIKAN WRAPPER LIRIK BIAR KE TENGAH & ADA JARAK */
 #lyricsWrapper { 
     padding: 40px 0 100px 0; 
     text-align: center; 
@@ -104,7 +103,7 @@ body {
 .playlist-container { max-height: 180px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
 /* ==========================================================================
-   LAYOUT DUA KOLOM GRID (KHUSUS MONITOR PC / BOT TELEGRAM > 1000px)
+   LAYOUT DUA KOLOM GRID (KHUSUS MONITOR PC > 1000px)
    ========================================================================== */
 @media (min-width: 1000px) {
     .player-container {
@@ -158,7 +157,7 @@ body {
     }
     
     .track-info { padding-left: 0; }
-    .track-info h2 { font-size: 1.3rem; white-space: normal; line-height: 1.3; margin-bottom: 6px; }
+    .track-info h2 { font-size: 1.3rem; white-space: normal; line-height: 1.3; margin-bottom: 6px; animation: none !important; transform: none !important; }
     .track-info p { font-size: 1rem; }
     
     .progress-area { grid-area: progress !important; margin-bottom: 0 !important; }
@@ -210,13 +209,11 @@ body {
     font-size: 2.2rem; color: #121212 !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; color-scheme: only light !important; forced-color-adjust: none !important;
 }
 
-/* Margin-bottom dibalikin jadi 24px biar gak dempet ke lirik */
 .volume-area { display: flex; align-items: center; gap: 12px; color: var(--text-muted); margin-bottom: 24px; }
 .volume-area .material-icons { color-scheme: only light !important; forced-color-adjust: none !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; forced-color-adjust: none !important; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
 
-/* Pastikan text-align lirik ada di center */
 .lyric-line { 
     font-size: 1.05rem; 
     font-weight: 700; 
@@ -253,7 +250,7 @@ body {
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 
 /* ==========================================================================
-   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE FISIK ASLI)
+   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE FISIK ASLI ANDROID)
    ========================================================================== */
 @media (max-height: 500px) and (orientation: landscape) {
     body { align-items: flex-start; padding: 12px; }
@@ -279,19 +276,55 @@ body {
             "volume volume" !important;
         gap: 12px 16px !important;
         align-items: center;
+        max-width: calc(100% - 24px); /* Cegah meluber ke area kanan */
     }
     
     .player-right-side { flex: 1 !important; display: flex !important; flex-direction: column; }
     
     .cover-wrapper { grid-area: cover !important; margin: 0 !important; position: static !important; }
-    .track-header { grid-area: header !important; margin-bottom: 0 !important; padding-left: 0 !important; }
+    
+    /* Kuncian ketat area judul biar sejajar batas bawah cover & tidak jalan */
+    .track-header { 
+        grid-area: header !important; 
+        margin-bottom: 0 !important; 
+        padding-left: 0 !important; 
+        overflow: hidden !important;
+        max-width: 100% !important;
+    }
+    
+    .track-info { 
+        padding-left: 0; 
+        width: 100%; 
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    /* Matikan paksa animasi geser/marquee di landscape HP dan potong rapi */
+    .track-info h2 { 
+        font-size: 1.1rem !important; 
+        text-align: left !important; 
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+        animation: none !important;
+        transform: none !important;
+        width: 100% !important;
+    }
+    
+    .track-info p { 
+        font-size: 0.85rem !important; 
+        text-align: left !important; 
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+        width: 100% !important;
+    }
+    
     .progress-area { grid-area: progress !important; margin-bottom: 0 !important; }
     .controls-area { grid-area: controls !important; margin-bottom: 0 !important; }
     .volume-area { grid-area: volume !important; margin-bottom: 0 !important; }
-    
-    .track-info { padding-left: 0; width: 100%; }
-    .track-info h2 { font-size: 1.2rem !important; text-align: left !important; }
-    .track-info p { font-size: 0.9rem !important; text-align: left !important; }
     
     .btn-play-pause { width: 44px; height: 44px; }
     .btn-play-pause .material-icons { font-size: 1.8rem; }
@@ -300,5 +333,4 @@ body {
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-    }
-        
+}
