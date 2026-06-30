@@ -18,10 +18,6 @@ const trackTitle = document.getElementById('trackTitle'),
       playlistContainer = document.getElementById('playlist'), 
       searchBar = document.getElementById('searchBar');
 
-// Trik Ghost Audio: Pemutar tersembunyi buat nyolong data lagu selanjutnya saat layar masih hidup/lagu jalan
-const preloaderAudio = new Audio();
-preloaderAudio.crossOrigin = "anonymous";
-
 let tracks = [], currentTracksDisplay = [], parsedLyrics = [];
 let currentIndex = 0, isShuffle = false, isRepeat = false;
 
@@ -213,7 +209,6 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
-    // Mulai proses fade-out. Kita biarkan DOM liriknya (jangan di-clear dulu) biar fading-nya kelihatan
     lyricsContainer.style.opacity = '0';
     
     audio.crossOrigin = "anonymous";
@@ -222,14 +217,15 @@ function loadTrack(index) {
     updateMediaSession(); 
 
     const currentTrackSrc = track.src;
-    
-    // Timer 300ms biar pas sama kecepatan transisi CSS
     const fadeOutAnim = new Promise(resolve => setTimeout(resolve, 300));
 
     if (track.lyricsSrc) {
-        // Promise.all memastikan DOM lirik baru diganti HANYA jika file sukses di-fetch DAN transisi fade-out udah selesai
+        // Karena lirik udah kita pre-fetch dari awal, ini akan instan ambil dari cache
         Promise.all([
-            fetch(track.lyricsSrc).then(res => res.text()),
+            fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
+                if (!res.ok) throw new Error("Network");
+                return res.text();
+            }),
             fadeOutAnim
         ])
         .then(([text]) => { 
@@ -241,7 +237,7 @@ function loadTrack(index) {
             parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
             
             lyricsContainer.style.display = "block"; 
-            void lyricsWrapper.offsetWidth; // Reflow paksa buat persiapan animasi fade-in
+            void lyricsWrapper.offsetWidth; 
             lyricsContainer.style.opacity = '1';
             isChangingTrack = false;
         })
@@ -317,6 +313,13 @@ audio.addEventListener('canplay', () => {
     trackTitle.classList.remove('shimmer-loading');
     trackArtist.classList.remove('shimmer-loading');
     trackCover.classList.remove('shimmer-loading');
+});
+
+// Menjaga OS tetap melek kalau audio butuh buffering sebentar di background
+audio.addEventListener('waiting', () => {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+    }
 });
 
 audio.addEventListener('playing', () => {
@@ -416,17 +419,16 @@ audio.addEventListener('timeupdate', () => {
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
     
-    // Ghost Audio Action: Mulai narik file 20 detik sebelum lagu habis saat jaringan masih hidup!
+    // Trik Stealth Mode: Download lirik lagu selanjutnya pas jaringan masih hidup (sisa 20 detik)
     if (audio.duration - audio.currentTime <= 20 && !isPreloaded && !isRepeat) {
         isPreloaded = true;
         let nextIdx = currentIndex + 1;
         if (isShuffle) nextIdx = Math.floor(Math.random() * tracks.length);
         else if (nextIdx >= tracks.length) nextIdx = 0;
         
-        if (tracks[nextIdx]) {
-            preloaderAudio.src = tracks[nextIdx].src;
-            preloaderAudio.preload = 'auto';
-            preloaderAudio.load(); 
+        if (tracks[nextIdx] && tracks[nextIdx].lyricsSrc) {
+            // Fetch tanpa mempedulikan respon (hanya pancing masuk cache)
+            fetch(tracks[nextIdx].lyricsSrc, { cache: "force-cache" }).catch(() => {});
         }
     }
 
@@ -465,4 +467,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                  
+              
