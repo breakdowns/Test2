@@ -57,6 +57,7 @@ function playAudioDirectly() {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
+    audio.volume = parseFloat(volumeSlider.value);
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         updateMediaSessionState();
@@ -67,7 +68,7 @@ function playAudioDirectly() {
 }
 
 // ========================================================
-// TRIK PAMUNGKAS: AUTO-ENDED TRIGGER (SAYONARA BUG "TET")
+// REVISI FINAL: SMOOTH VOLUME DROP + NATURAL END TRIGGER
 // ========================================================
 function triggerNaturalEnd(callback) {
     if (audio.paused || !audio.duration) {
@@ -75,24 +76,38 @@ function triggerNaturalEnd(callback) {
         return;
     }
 
-    // Turunkan volume sekejap mata agar perpindahan timeline tidak terlalu kasar
-    audio.volume = 0.01;
+    const userVolume = parseFloat(volumeSlider.value);
+    const fadeDuration = 40; // Meredam volume dalam 40ms seirama refresh layar[span_4](start_span)[span_4](end_span)
+    const startTime = performance.now();
 
-    // Paksa loncat ke 0.1 detik sebelum lagu habis mutlak
-    audio.currentTime = audio.duration - 0.1;
+    function fadeOutAndSeek() {
+        const now = performance.now();
+        const elapsed = now - startTime;
 
-    // Berikan jeda sekejap agar browser memproses event 'ended' secara natural[span_3](start_span)[span_3](end_span)
-    setTimeout(() => {
-        audio.volume = parseFloat(volumeSlider.value); // Kembalikan volume asli
-        callback();
-    }, 150);
+        if (elapsed < fadeDuration) {
+            audio.volume = userVolume * (1 - (elapsed / fadeDuration));
+            requestAnimationFrame(fadeOutAndSeek);
+        } else {
+            audio.volume = 0;
+            // Setelah volume senyap, lempar ke 0.1 detik sebelum lagu habis mutlak[span_5](start_span)[span_5](end_span)
+            audio.currentTime = audio.duration - 0.1;
+
+            // Berikan jeda super singkat agar browser memicu event 'ended' secara bersih[span_6](start_span)[span_6](end_span)
+            setTimeout(() => {
+                audio.volume = userVolume; // Reset volume asal untuk lagu berikutnya[span_7](start_span)[span_7](end_span)
+                callback();
+            }, 120);
+        }
+    }
+    requestAnimationFrame(fadeOutAndSeek);
 }
 
 function pauseAudioDirectly() {
     if (audio.paused) return;
 
-    // Untuk pause, kita pakai fade-out kilat karena tidak bisa memakai trik 'ended'
+    const userVolume = parseFloat(volumeSlider.value);
     let currentVol = audio.volume;
+    
     const fadeOut = setInterval(() => {
         if (currentVol > 0.05) {
             currentVol -= 0.05;
@@ -100,7 +115,7 @@ function pauseAudioDirectly() {
         } else {
             clearInterval(fadeOut);
             audio.pause();
-            audio.volume = parseFloat(volumeSlider.value);
+            audio.volume = userVolume;
             playIcon.textContent = 'play_arrow';
             updateMediaSessionState();
         }
@@ -185,8 +200,8 @@ function renderPlaylist(arr) {
 
 function loadTrack(index, autoPlay = false) {
     if (!audio.paused) {
-        // Trik manipulasi ganti lagu: Paksa loncat ke akhir lagu dulu biar dimatikan alami oleh browser[span_4](start_span)[span_4](end_span)
         triggerNaturalEnd(() => {
+            audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
         });
@@ -474,4 +489,3 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-      
