@@ -58,7 +58,8 @@ function playAudioDirectly() {
         navigator.mediaSession.playbackState = 'playing';
     }
     
-    // Kembalikan volume asli dari slider sebelum putar lagu baru
+    // Pastikan status mute dimatikan dan volume dikembalikan sebelum memutar suara
+    audio.muted = false;
     audio.volume = parseFloat(volumeSlider.value);
     
     audio.play().then(() => {
@@ -70,12 +71,12 @@ function playAudioDirectly() {
     });
 }
 
-// ====================================================
-// ULTRA FAST SCREEN-SYNC FADE OUT (MENCEGAH BUG "TET")
-// ====================================================
-function nativeFadeOut(callback) {
+// =========================================================
+// HYBRID FADE & HARD MUTE CONTROL (ANTI LETUPAN LEVEL DEWA)
+// =========================================================
+function executeSafeStop(actionCallback) {
     const userVolume = parseFloat(volumeSlider.value);
-    const duration = 40; // Durasi luruh sangat singkat (40 milidetik)[span_7](start_span)[span_7](end_span)
+    const duration = 50; // Alokasi waktu ramp-down (50ms)[span_4](start_span)[span_4](end_span)
     const startTime = performance.now();
 
     function fade() {
@@ -83,13 +84,17 @@ function nativeFadeOut(callback) {
         const elapsed = now - startTime;
         
         if (elapsed < duration) {
-            // Hitung penurunan linear sejalan dengan refresh rate layar HP[span_8](start_span)[span_8](end_span)
             audio.volume = userVolume * (1 - (elapsed / duration));
             requestAnimationFrame(fade);
         } else {
             audio.volume = 0;
-            callback(); // Eksekusi perintah (pause/ganti src) pas volume bener-bener 0 mutlak[span_9](start_span)[span_9](end_span)
-            audio.volume = userVolume; // Kembalikan volume asal setelah beres[span_10](start_span)[span_10](end_span)
+            // Kunci utama: Paksa bisukan total lewat hardware flag browser sebelum interupsi berkas[span_5](start_span)[span_5](end_span)
+            audio.muted = true; 
+            
+            // Berikan nafas bagi driver hardware audio selama 15ms baru jalankan perintah ganti lagu/pause
+            setTimeout(() => {
+                actionCallback();
+            }, 15);
         }
     }
     requestAnimationFrame(fade);
@@ -98,8 +103,10 @@ function nativeFadeOut(callback) {
 function pauseAudioDirectly() {
     if (audio.paused) return;
 
-    nativeFadeOut(() => {
+    executeSafeStop(() => {
         audio.pause();
+        audio.muted = false; // Reset status mute setelah terjeda aman
+        audio.volume = parseFloat(volumeSlider.value);
         playIcon.textContent = 'play_arrow';
         updateMediaSessionState();
     });
@@ -182,14 +189,15 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    // Jika lagu lama masih jalan, turunkan volumenya secepat refresh rate layar baru ganti lagu[span_11](start_span)[span_11](end_span)
     if (!audio.paused) {
-        nativeFadeOut(() => {
+        executeSafeStop(() => {
             audio.pause();
+            audio.muted = false; // Reset status bising
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
         });
     } else {
+        audio.muted = false;
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
     }
@@ -473,4 +481,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-             
+                      
