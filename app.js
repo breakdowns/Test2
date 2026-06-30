@@ -54,7 +54,6 @@ document.addEventListener('touchstart', () => { initAudioContext(); }, { once: t
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 
-// Kunci ke 1 agar tidak merusak perhitungan logaritmik hardware Web Audio API[span_4](start_span)[span_4](end_span)
 audio.volume = 1; 
 
 volumeSlider.value = savedVolume; 
@@ -96,9 +95,9 @@ function playAudioDirectly() {
     if (gainNode && audioCtx) {
         const now = audioCtx.currentTime;
         gainNode.gain.cancelScheduledValues(now);
-        gainNode.gain.setValueAtTime(0, now);
-        // Transisi halus pas play agar tidak meletup di awal intro lagu
-        gainNode.gain.setTargetAtTime(currentVolSetting, now, 0.015);
+        gainNode.gain.setValueAtTime(0.001, now);
+        // Fade in sangat cepat pas play agar gelombang naik secara mulus
+        gainNode.gain.setTargetAtTime(currentVolSetting, now, 0.02);
     }
 
     audio.play().then(() => {
@@ -121,8 +120,8 @@ function pauseAudioDirectly() {
     gainNode.gain.cancelScheduledValues(now);
     gainNode.gain.setValueAtTime(gainNode.gain.value, now);
     
-    // Kembali menggunakan setTargetAtTime yang melandai organik tanpa keresek & letupan[span_5](start_span)[span_5](end_span)
-    gainNode.gain.setTargetAtTime(0, now, 0.025); 
+    // Meredam ke titik senyap logaritmik sebelum jeda
+    gainNode.gain.setTargetAtTime(0.001, now, 0.02); 
 
     setTimeout(() => {
         if (audioCtx && gainNode) {
@@ -130,7 +129,7 @@ function pauseAudioDirectly() {
             playIcon.textContent = 'play_arrow';
             updateMediaSessionState();
         }
-    }, 130);
+    }, 100);
 }
 
 function updateDynamicBackground(src) {
@@ -217,14 +216,23 @@ function loadTrack(index, autoPlay = false) {
         gainNode.gain.cancelScheduledValues(now);
         gainNode.gain.setValueAtTime(gainNode.gain.value, now);
         
-        // Meredam logaritmik konstan sebelum memutus berkas musik lama[span_6](start_span)[span_6](end_span)
-        gainNode.gain.setTargetAtTime(0, now, 0.025);
+        // Redam volume lagu lama sampai senyap total secara logaritmik
+        gainNode.gain.setTargetAtTime(0.001, now, 0.02);
 
         setTimeout(() => {
             audio.pause();
-            executeTrackLoading(index);
-            if (autoPlay) playAudioDirectly();
-        }, 130);
+            
+            // FIX UTAMA: Kosongkan source dan lepaskan buffer lama agar driver audio browser istirahat
+            audio.removeAttribute('src'); 
+            audio.load(); 
+
+            // Berikan jeda super singkat (30ms) sebelum memuat lagu Apollo agar gelombang tidak tabrakan
+            setTimeout(() => {
+                executeTrackLoading(index);
+                if (autoPlay) playAudioDirectly();
+            }, 30);
+
+        }, 100);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -517,4 +525,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-      
+          
