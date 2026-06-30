@@ -108,24 +108,16 @@ function pauseAudioDirectly() {
         return;
     }
 
-    const currentVolSetting = parseFloat(volumeSlider.value);
-    
-    // Web Audio API butuh nilai di atas 0 (misal 0.0001) untuk transisi eksponensial[span_1](start_span)[span_1](end_span)
-    const startVol = currentVolSetting > 0 ? currentVolSetting : 0.0001;
-    
-    // Bersihkan schedule audio sebelumnya dan kunci volume saat ini[span_2](start_span)[span_2](end_span)
-    gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-    gainNode.gain.setValueAtTime(startVol, audioCtx.currentTime);
-    
-    // Kurva eksponensial selama 0.1 detik (100ms) untuk meredam "tet" sampai tuntas[span_3](start_span)[span_3](end_span)
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+    // Menggunakan setTargetAtTime untuk meredam volume ke 0 secara logaritmik tanpa keresek[span_1](start_span)[span_1](end_span)
+    // Konstanta waktu 0.025 (25ms) akan membuat audio senyap dalam waktu ~100ms secara mulus[span_2](start_span)[span_2](end_span)
+    gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.025);
 
-    // Jeda audio tepat setelah kurva menyentuh titik terendah[span_4](start_span)[span_4](end_span)
+    // Jeda audio setelah volume benar-benar melandai habis[span_3](start_span)[span_3](end_span)
     setTimeout(() => {
         audio.pause();
         playIcon.textContent = 'play_arrow';
         updateMediaSessionState();
-    }, 105);
+    }, 120);
 }
 
 function updateDynamicBackground(src) {
@@ -205,20 +197,15 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    // Jika audio sedang berputar, lakukan Exponential Hardware Fade-Out selama 100ms[span_5](start_span)[span_5](end_span)
+    // Jika audio sedang berputar, lakukan peredaman anti-keresek sebelum ganti lagu[span_4](start_span)[span_4](end_span)
     if (!audio.paused && audioCtx && gainNode) {
-        const currentVolSetting = parseFloat(volumeSlider.value);
-        const startVol = currentVolSetting > 0 ? currentVolSetting : 0.0001;
-
-        gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(startVol, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+        gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.025);
 
         setTimeout(() => {
             audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
-        }, 105);
+        }, 120);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -513,4 +500,3 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                       
