@@ -78,16 +78,17 @@ body {
     position: relative;
 }
 
+/* ==========================================================================
+   SPOTIFY STYLE TRACK MARQUEE (INFINITE LOOP DARI KANAN)
+   ========================================================================== */
 .track-info { 
     flex: 1; 
     overflow: hidden !important; 
     position: relative;
     max-width: 100%;
+    container-type: inline-size; /* Penting buat teleportasi CQI */
 }
 
-/* ==========================================================================
-   SPOTIFY STYLE TRACK MARQUEE (FIXED DYNAMIC SCROLL)
-   ========================================================================== */
 .marquee-container { 
     display: block; 
     width: 100%; 
@@ -95,7 +96,6 @@ body {
     white-space: nowrap; 
     position: relative;
     isolation: isolate; 
-    /* Efek pudar transparan di kanan-kiri pas teks lewat */
     mask-image: linear-gradient(to right, transparent 0%, white 4%, white 96%, transparent 100%);
     -webkit-mask-image: linear-gradient(to right, transparent 0%, white 4%, white 96%, transparent 100%);
 }
@@ -108,8 +108,8 @@ body {
     display: inline-block; 
     will-change: transform; 
     text-align: left;
-    /* !important dipasang untuk nabrak inline-style sekali jalan dari JS lo */
-    animation: marqueeSpotify 8s linear infinite !important; 
+    padding-right: 0 !important; 
+    animation: marqueeLoopKanan 12s linear infinite !important; 
 }
 
 .track-info p { 
@@ -124,7 +124,7 @@ body {
 }
 
 /* ==========================================================================
-   REVERTED LYRICS STYLE (RATA TENGAH SEMULA)
+   REVERTED LYRICS STYLE (RATA TENGAH)
    ========================================================================== */
 .lyrics-container {
     position: relative;
@@ -240,14 +240,21 @@ body {
 }
 
 /* ==========================================================================
-   KEYFRAMES TIMING MARQUEE ASLI SPOTIFY (LOOPING INSTAN)
+   KEYFRAMES TELEPORTASI DARI KANAN (THE MAGIC TRICK)
    ========================================================================== */
-@keyframes marqueeSpotify {
-    0% { transform: translate3d(0, 0, 0); }
-    25% { transform: translate3d(0, 0, 0); } /* Diam di awal selama 2 detik biar kebaca */
-    75% { transform: translate3d(var(--marquee-jarak), 0, 0); } /* Bergerak konstan ke kiri sampai ujung teks */
-    95% { transform: translate3d(var(--marquee-jarak), 0, 0); } /* Diam di ujung akhir selama 1.6 detik */
-    100% { transform: translate3d(0, 0, 0); } /* Reset melompat instan ke posisi awal tanpa jeda mundur */
+@keyframes marqueeLoopKanan {
+    0%, 15% { 
+        transform: translateX(0); /* Diam santai dulu di awal */
+    }
+    55% { 
+        transform: translateX(-100%); /* Jalan bablas ke kiri sampe HILANG total */
+    }
+    55.01% { 
+        transform: translateX(100cqi); /* Teleport instan ke luar batas kanan layar */
+    }
+    100% { 
+        transform: translateX(0); /* Merayap masuk dari kanan balik ke posisi awal */
+    }
 }
 
 .progress-area { width: 100%; margin-bottom: 24px; }
@@ -333,7 +340,7 @@ body {
         max-width: 55% !important; 
     }
     
-    .player-right-side { flex: 1 !important; display: flex !important; flex-direction: column; }
+    .player-right-side { flex: 1 !important; display: flex !important; filter: none !important; flex-direction: column; }
     
     .cover-wrapper { grid-area: cover !important; margin: 0 !important; position: static !important; }
     
@@ -353,6 +360,7 @@ body {
         width: 100%; 
         overflow: hidden !important;
         position: relative !important;
+        container-type: inline-size;
     }
 
     .marquee-container {
@@ -370,7 +378,7 @@ body {
         overflow: hidden !important; 
         width: auto !important;
         position: relative !important;
-        animation: marqueeSpotify 8s linear infinite !important; /* Pasang juga di landscape */
+        animation: marqueeLoopKanan 12s linear infinite !important; 
     }
     
     .track-info p { 
@@ -395,4 +403,4 @@ body {
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
     }
-                         
+    
