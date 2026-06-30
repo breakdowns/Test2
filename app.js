@@ -93,7 +93,6 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
-    // Paksa OS Android baca status 'playing' SEBELUM lagu beneran jalan biar notif gak di-kill
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
@@ -192,9 +191,8 @@ function renderPlaylist(arr) {
 
 function loadTrack(index) {
     isChangingTrack = true;
-    parsedLyrics = [];
     isUserScrollingLyrics = false;
-    isPreloaded = false; // Bugfix: Reset status preload tiap ganti lagu biar berfungsi terus
+    isPreloaded = false; 
     
     if (!document.hidden) {
         trackTitle.classList.add('shimmer-loading');
@@ -215,42 +213,58 @@ function loadTrack(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
+    // Mulai proses fade-out. Kita biarkan DOM liriknya (jangan di-clear dulu) biar fading-nya kelihatan
     lyricsContainer.style.opacity = '0';
-    lyricsContainer.scrollTop = 0;
-    lyricsWrapper.innerHTML = ''; 
     
     audio.crossOrigin = "anonymous";
-    audio.src = track.src; // Langsung tembak, browser otomatis tarik file dari Ghost Audio Cache
+    audio.src = track.src; 
     
-    updateMediaSession(); // Segera pasang data lagu baru di notif biar gak kosong
+    updateMediaSession(); 
 
     const currentTrackSrc = track.src;
+    
+    // Timer 300ms biar pas sama kecepatan transisi CSS
+    const fadeOutAnim = new Promise(resolve => setTimeout(resolve, 300));
+
     if (track.lyricsSrc) {
-        fetch(track.lyricsSrc)
-            .then(res => res.text())
-            .then(text => { 
-                if (tracks[currentIndex].src !== currentTrackSrc) return;
-                parsedLyrics = parseLRC(text); 
-                lyricsWrapper.innerHTML = ''; 
-                parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
-                
-                lyricsContainer.style.display = "block"; 
-                void lyricsWrapper.offsetWidth; 
-                lyricsContainer.style.opacity = '1';
-                isChangingTrack = false;
-            })
-            .catch(() => {
+        // Promise.all memastikan DOM lirik baru diganti HANYA jika file sukses di-fetch DAN transisi fade-out udah selesai
+        Promise.all([
+            fetch(track.lyricsSrc).then(res => res.text()),
+            fadeOutAnim
+        ])
+        .then(([text]) => { 
+            if (tracks[currentIndex].src !== currentTrackSrc) return;
+            
+            parsedLyrics = parseLRC(text); 
+            lyricsContainer.scrollTop = 0;
+            lyricsWrapper.innerHTML = ''; 
+            parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
+            
+            lyricsContainer.style.display = "block"; 
+            void lyricsWrapper.offsetWidth; // Reflow paksa buat persiapan animasi fade-in
+            lyricsContainer.style.opacity = '1';
+            isChangingTrack = false;
+        })
+        .catch(() => {
+            fadeOutAnim.then(() => {
                 if (tracks[currentIndex].src === currentTrackSrc) {
+                    parsedLyrics = [];
+                    lyricsContainer.scrollTop = 0;
                     lyricsWrapper.innerHTML = '';
                     lyricsContainer.style.display = "none";
                     isChangingTrack = false;
                 }
             });
+        });
     } else { 
-        parsedLyrics = [];
-        lyricsWrapper.innerHTML = '';
-        lyricsContainer.style.display = "none";
-        isChangingTrack = false;
+        fadeOutAnim.then(() => {
+            if (tracks[currentIndex].src !== currentTrackSrc) return;
+            parsedLyrics = [];
+            lyricsContainer.scrollTop = 0;
+            lyricsWrapper.innerHTML = '';
+            lyricsContainer.style.display = "none";
+            isChangingTrack = false;
+        });
     }
     
     renderPlaylist(currentTracksDisplay); 
@@ -451,4 +465,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                      
+                  
