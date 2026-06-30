@@ -28,7 +28,7 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// FIX KRESEK APOLLO: Set crossOrigin SATU KALI di paling luar agar decoder browser ga glitch
+// FIX KRESEK APOLLO: Dikunci satu kali saja di awal luar fungsi agar decoder browser tidak glitch
 audio.crossOrigin = "anonymous";
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
@@ -43,7 +43,44 @@ function formatTime(s) {
     return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
 }
 
-// FIX LAYAR MATI: Media Session wajib aktif penuh untuk mengunci izin background streaming dari OS Android
+// FIX LAYAR MATI: Integrasi MediaSession yang kokoh agar OS mengenali sebagai background player aktif
+function updateMediaSession() {
+    if ('mediaSession' in navigator && tracks[currentIndex]) {
+        const track = tracks[currentIndex];
+        const absImg = new URL(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png", window.location.href).href;
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.title || "Unknown Title",
+            artist: track.artist || "Unknown Artist",
+            album: 'Breakdowns Music',
+            artwork: [
+                { src: absImg, sizes: '512x512', type: 'image/png' }
+            ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => { playAudioDirectly(); });
+        navigator.mediaSession.setActionHandler('pause', () => { pauseAudioDirectly(); });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            if (isShuffle) {
+                let n = Math.floor(Math.random() * tracks.length);
+                loadTrack(n);
+            } else {
+                let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
+                loadTrack(p); 
+            }
+            playAudioDirectly();
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { playNextTrack(); });
+
+        try {
+            navigator.mediaSession.setActionHandler('seekto', (details) => {
+                audio.currentTime = details.seekTime;
+                updateMediaSessionState();
+            });
+        } catch (e) {}
+    }
+}
+
 function updateMediaSessionState() {
     if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
         navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
@@ -57,31 +94,11 @@ function updateMediaSessionState() {
     }
 }
 
-function updateMediaSession() {
-    if ('mediaSession' in navigator && tracks[currentIndex]) {
-        const track = tracks[currentIndex];
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: track.title || "Unknown Title",
-            artist: track.artist || "Unknown Artist",
-            album: "My Playlist",
-            artwork: [
-                { src: track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png", sizes: '512x512', type: 'image/png' }
-            ]
-        });
-    }
-}
-
-if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', () => { playAudioDirectly(); });
-    navigator.mediaSession.setActionHandler('pause', () => { pauseAudioDirectly(); });
-    navigator.mediaSession.setActionHandler('previoustrack', () => { playPrevTrack(); });
-    navigator.mediaSession.setActionHandler('nexttrack', () => { playNextTrack(); });
-}
-
 function playAudioDirectly() {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
     }
+    
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         updateMediaSessionState();
@@ -98,7 +115,7 @@ function pauseAudioDirectly() {
 }
 
 function updateDynamicBackground(src) {
-    if (document.hidden) return; // Lewati proses berat canvas jika layar mati
+    if (document.hidden) return; // Lewati proses canvas jika layar mati
     const img = new Image(); 
     img.crossOrigin = "Anonymous"; 
     img.src = src;
@@ -130,7 +147,7 @@ function parseLRC(text) {
 
 function renderLyrics() { 
     if (document.hidden) return;
-    lyricsWrapper.innerHTML = ''; 
+    lyricsWrapper.innerHTML = '';
     parsedLyrics.forEach((line, i) => { 
         const p = document.createElement('p'); 
         p.className = 'lyric-line'; 
@@ -146,7 +163,7 @@ function renderLyrics() {
 
 function renderStaticLyrics(text) { 
     if (document.hidden) return;
-    lyricsWrapper.innerHTML = ''; 
+    lyricsWrapper.innerHTML = '';
     text.split('\n').forEach(l => { 
         const c = l.replace(/\[.*?\]/g, '').trim(); 
         if (c) { 
@@ -159,7 +176,7 @@ function renderStaticLyrics(text) {
 }
 
 function renderPlaylist(arr) {
-    if (document.hidden) return; // Lewati manipulasi DOM jika tidak terlihat
+    if (document.hidden) return;
     playlistContainer.innerHTML = ''; 
     arr.forEach((track) => {
         const oIdx = tracks.findIndex(t => t.src === track.src), 
@@ -172,15 +189,15 @@ function renderPlaylist(arr) {
         
         item.innerHTML = `<img src="${displayCover}" onerror="this.src='https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png'"><div><strong>${displayTitle}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${displayArtist}</small></div>`;
         item.addEventListener('click', () => { 
-            loadTrack(oIdx, true); 
+            loadTrack(oIdx); 
+            playAudioDirectly();
         }); 
         playlistContainer.appendChild(item);
     });
 }
 
-function loadTrack(index, autoPlay = false) {
+function loadTrack(index) {
     executeTrackLoading(index);
-    if (autoPlay) playAudioDirectly();
 }
 
 function executeTrackLoading(index) {
@@ -192,6 +209,7 @@ function executeTrackLoading(index) {
         trackTitle.classList.add('shimmer-loading');
         trackArtist.classList.add('shimmer-loading');
         trackCover.classList.add('shimmer-loading');
+        lyricsContainer.style.opacity = '0';
     }
 
     currentIndex = index; 
@@ -207,19 +225,15 @@ function executeTrackLoading(index) {
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
-    if (!document.hidden) {
-        lyricsContainer.style.opacity = '0';
-    }
-    
-    // Alirkan source berkas langsung ke native player Android
+    // Alirkan source berkas langsung ke native player Android tanpa merusak crossOrigin
     audio.src = track.src; 
     
     updateMediaSession(); 
 
     const currentTrackSrc = track.src;
 
+    // FIX LAYAR MATI: Fetch lirik berjalan mandiri secara asinkronUS TANPA Promise.all / setTimeout pembeku nyawa
     if (track.lyricsSrc) {
-        // Fetch lirik berjalan secara background-async mandiri tanpa memblokir pemutaran musik
         fetch(track.lyricsSrc, { cache: "force-cache" })
         .then(res => {
             if (!res.ok) throw new Error("Network");
@@ -229,8 +243,10 @@ function executeTrackLoading(index) {
             if (tracks[currentIndex].src !== currentTrackSrc) return;
             
             parsedLyrics = parseLRC(text); 
+            
             if (!document.hidden) {
                 lyricsContainer.scrollTop = 0;
+                lyricsWrapper.innerHTML = ''; 
                 parsedLyrics.length > 0 ? renderLyrics() : renderStaticLyrics(text); 
                 lyricsContainer.style.display = "block"; 
                 void lyricsWrapper.offsetWidth; 
@@ -288,17 +304,8 @@ function playNextTrack() {
     if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
     else if (n >= tracks.length) n = 0; 
     
-    loadTrack(n, true); 
-}
-
-function playPrevTrack() {
-    let n;
-    if (isShuffle) {
-        n = Math.floor(Math.random() * tracks.length);
-    } else {
-        n = currentIndex - 1; if (n < 0) n = tracks.length - 1; 
-    }
-    loadTrack(n, true); 
+    loadTrack(n); 
+    playAudioDirectly();
 }
 
 fetch('playlist.json')
@@ -362,7 +369,17 @@ trackCover.addEventListener('error', () => {
 
 playBtn.addEventListener('click', () => { audio.paused ? playAudioDirectly() : pauseAudioDirectly(); });
 nextBtn.addEventListener('click', () => { playNextTrack(); });
-prevBtn.addEventListener('click', () => { playPrevTrack(); });
+
+prevBtn.addEventListener('click', () => { 
+    if (isShuffle) {
+        let n = Math.floor(Math.random() * tracks.length);
+        loadTrack(n);
+    } else {
+        let p = currentIndex - 1; if (p < 0) p = tracks.length - 1; 
+        loadTrack(p); 
+    }
+    playAudioDirectly();
+});
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
 repeatBtn.addEventListener('click', () => { isRepeat = !isRepeat; repeatBtn.classList.toggle('active', isRepeat); });
@@ -425,6 +442,7 @@ audio.addEventListener('timeupdate', () => {
     }
 
     if (document.hidden) return;
+
     if (isChangingTrack || parsedLyrics.length === 0) return;
 
     if (parsedLyrics.length > 0) {
@@ -458,4 +476,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
+                                              
