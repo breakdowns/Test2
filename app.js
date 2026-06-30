@@ -191,11 +191,8 @@ function loadTrack(index) {
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
+    // NOTE: Kode reset audio.src = "" dihapus di sini agar notif tidak dibunuh OS di background.
     audio.pause();
-    
-    // Reset total jalur audio bawaan HP agar memori cache tidak tersendat (Fix Delay)
-    audio.src = "";
-    audio.removeAttribute('src');
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -215,7 +212,7 @@ function loadTrack(index) {
     lyricsWrapper.innerHTML = ''; 
     
     audio.crossOrigin = "anonymous";
-    audio.src = track.src;
+    audio.src = track.src; // Langsung tembak src baru secara mulus
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -443,4 +440,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                  
+              
