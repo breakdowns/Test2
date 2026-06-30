@@ -86,7 +86,7 @@ body {
 }
 
 /* ==========================================================================
-   SPOTIFY STYLE TRACK MARQUEE (JUDUL BERJALAN)
+   PERBAIKAN MARQUEE JUDUL (SPOTIFY STYLE CONTINUOUS BOUNCE)
    ========================================================================== */
 .marquee-container { 
     display: block; 
@@ -94,9 +94,10 @@ body {
     overflow: hidden !important; 
     white-space: nowrap; 
     position: relative;
-    isolation: isolate; /* Memaksa masking CSS/browser memotong teks beranimasi di batas container */
-    mask-image: linear-gradient(to right, transparent 0%, white 5%, white 95%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, white 5%, white 95%, transparent 100%);
+    isolation: isolate;
+    /* Efek fade out transparan halus di sisi kanan kiri pas teksnya lewat */
+    mask-image: linear-gradient(to right, transparent 0%, white 4%, white 96%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, white 4%, white 96%, transparent 100%);
 }
 
 .track-info h2 { 
@@ -107,8 +108,9 @@ body {
     display: inline-block; 
     will-change: transform; 
     text-align: left;
-    padding-right: 50px; /* Jeda ruang kosong sebelum teks berulang/berputar kembali */
-    animation: marqueeDinamis 10s linear infinite; /* Jalankan animasi konstan */
+    padding-right: 24px;
+    /* Menggunakan alternate biar pas mentok di ujung, dia balik kanan secara halus */
+    animation: marqueeDinamis 7s ease-in-out infinite alternate; 
 }
 
 .track-info p { 
@@ -123,7 +125,7 @@ body {
 }
 
 /* ==========================================================================
-   REVERTED LYRICS STYLE (KEMBALI KE RATA TENGAH AWAL)
+   REVERTED LYRICS STYLE (KEMBALI KE ASLI / RATA TENGAH)
    ========================================================================== */
 .lyrics-container {
     position: relative;
@@ -239,13 +241,15 @@ body {
 }
 
 /* ==========================================================================
-   COMMON STYLES & PROTEKSI DARK MODE
+   KEYFRAMES TIMING MARQUEE (ANTI STUCK / MACET)
    ========================================================================== */
 @keyframes marqueeDinamis {
-    0% { transform: translate3d(0, 0, 0); }
-    20% { transform: translate3d(0, 0, 0); } /* Diam sebentar di awal sebelum jalan */
-    80% { transform: translate3d(var(--marquee-jarak, -50%), 0, 0); } /* Geser sejauh variabel dinamis/lebar teks */
-    100% { transform: translate3d(var(--marquee-jarak, -50%), 0, 0); }
+    0%, 15% { 
+        transform: translate3d(0, 0, 0); 
+    } /* Diam sebentar di awal biar user sempat baca kata pertama (0-15%) */
+    85%, 100% { 
+        transform: translate3d(var(--marquee-jarak, -35%), 0, 0); 
+    } /* Bergeser mulus ke kiri sampai mentok batas JS dinamis (85-100%) */
 }
 
 .progress-area { width: 100%; margin-bottom: 24px; }
@@ -331,7 +335,7 @@ body {
         max-width: 55% !important; 
     }
     
-    .player-right-side { flex: 1 !important; display: flex !important; flex-direction: column; }
+    .player-right-side { flex: 1 !important; display: flex !important; filter: none !important; flex-direction: column; }
     
     .cover-wrapper { grid-area: cover !important; margin: 0 !important; position: static !important; }
     
@@ -391,4 +395,5 @@ body {
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-                    }
+    }
+                                                                                                                                                    
