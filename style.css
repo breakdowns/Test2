@@ -91,7 +91,7 @@ body {
     overflow: hidden !important; 
     white-space: nowrap; 
     position: relative;
-    isolation: isolate; /* Memaksa browser memotong masking teks beranimasi */
+    isolation: isolate; 
 }
 
 .track-info h2 { 
@@ -115,30 +115,58 @@ body {
     width: 100%;
 }
 
+/* ==========================================================================
+   SPOTIFY STYLE LYRICS CONTAINER
+   ========================================================================== */
 .lyrics-container {
     position: relative;
-    max-height: 160px;
-    min-height: 140px;
+    max-height: 220px; /* Ditambah sedikit biar space lirik yang lebih besar terasa pas */
+    min-height: 160px;
     overflow-y: auto;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    margin-bottom: 20px;
-    padding: 0 12px;
-    mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
+    margin-bottom: 24px;
+    padding: 0 4px; /* Disesuaikan agar mepet kiri khas Spotify */
+    mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 80%, transparent 100%);
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
     will-change: opacity;
     -ms-overflow-style: none;  
     scrollbar-width: none;     
 }
+
 .lyrics-container::-webkit-scrollbar { 
     display: none; 
 }
 
 #lyricsWrapper { 
-    padding: 40px 0 100px 0; 
-    text-align: center; 
+    padding: 20px 0 100px 0; 
+    text-align: left; /* Spotify menggunakan lirik rata kiri */
+}
+
+.lyric-line { 
+    font-size: 1.35rem; /* Ukuran font diperbesar agar bold & terbaca jelas */
+    font-weight: 800; /* Extra bold khas tampilan lirik Spotify */
+    color: rgba(255, 255, 255, 0.35); /* Warna lirik sebelum/sesudah lewat (redup) */
+    padding: 10px 0; 
+    cursor: pointer; 
+    transition: color 0.25s ease, transform 0.25s ease; 
+    text-align: left; /* Konsisten rata kiri */
+    line-height: 1.4;
+    letter-spacing: -0.03em; /* Karakter agak rapat merapat estetik */
+    transform-origin: left center; /* Efek zoom membesar mengarah ke kanan */
+    word-break: break-word;
+}
+
+.lyric-line.active { 
+    color: var(--text-main); /* Menjadi putih bersih saat aktif mendarat di timelinenya */
+    transform: scale(1.02); /* Sedikit membesar tanpa merusak ketajaman font */
+    filter: blur(0px); 
+}
+
+.lyric-line:hover {
+    color: rgba(255, 255, 255, 0.7); /* Interaksi hover opsional seperti Spotify Desktop */
 }
 
 .playlist-container { max-height: 180px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -206,7 +234,7 @@ body {
     .controls-area { grid-area: controls !important; margin-bottom: 0 !important; }
     .volume-area { grid-area: volume !important; margin-bottom: 0 !important; }
     
-    .lyrics-container { max-height: 200px; min-height: 200px; margin-bottom: 16px; }
+    .lyrics-container { max-height: 240px; min-height: 240px; margin-bottom: 16px; }
     .playlist-container { max-height: 200px; min-height: 200px; overflow-y: auto; }
     .search-box { margin-bottom: 12px; }
     .watermark { margin-top: 16px; }
@@ -255,22 +283,6 @@ body {
 .volume-area .material-icons { color-scheme: only light !important; forced-color-adjust: none !important; filter: invert(0) !important; -webkit-filter: invert(0) !important; }
 .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; cursor: pointer; background: #4f4f4f; color-scheme: only light !important; forced-color-adjust: none !important; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fefffe !important; color-scheme: only light !important; forced-color-adjust: none !important; }
-
-.lyric-line { 
-    font-size: 1.05rem; 
-    font-weight: 700; 
-    color: rgba(255, 255, 255, 0.25); 
-    padding: 10px 0; 
-    cursor: pointer; 
-    transition: color 0.3s ease, transform 0.3s ease, filter 0.3s ease; 
-    filter: blur(0.5px); 
-    text-align: center;
-}
-.lyric-line.active { 
-    color: var(--text-main); 
-    transform: scale(1.05); 
-    filter: blur(0px); 
-}
 
 .search-box { width: 100%; background-color: var(--background-highlight); border: 1px solid #3e3e3e; padding: 10px 14px; border-radius: 4px; color: var(--text-main); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
 .search-box:focus { border-color: var(--spotify-green) !important; box-shadow: 0 0 6px rgba(30, 215, 96, 0.2); }
@@ -325,14 +337,13 @@ body {
     
     .cover-wrapper { grid-area: cover !important; margin: 0 !important; position: static !important; }
     
-    /* Proteksi beton isolasi penuh: Teks wajib hilang tepat di pinggiran kanan cover */
     .track-header { 
         grid-area: header !important; 
         margin-bottom: 0 !important; 
         padding-left: 0 !important; 
         overflow: hidden !important; 
         position: relative !important;
-        isolation: isolate !important; /* Menghentikan kebocoran transform layer */
+        isolation: isolate !important; 
         width: 100% !important;
         max-width: 280px !important; 
     }
@@ -378,8 +389,9 @@ body {
     .btn-play-pause { width: 44px; height: 44px; }
     .btn-play-pause .material-icons { font-size: 1.8rem; }
     
-    .lyrics-container { max-height: 110px !important; min-height: 110px !important; margin-bottom: 10px; }
+    .lyrics-container { max-height: 120px !important; min-height: 120px !important; margin-bottom: 10px; }
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-}
+        }
+        
