@@ -156,14 +156,13 @@ function renderPlaylist(arr) {
         
         item.innerHTML = `<img src="${displayCover}" onerror="this.src='https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png'"><div><strong>${displayTitle}</strong><br><small style="color:var(--text-muted);font-size:0.8rem;">${displayArtist}</small></div>`;
         item.addEventListener('click', () => { 
-            loadTrack(oIdx); 
-            playAudioDirectly();
+            loadTrack(oIdx, true); 
         }); 
         playlistContainer.appendChild(item);
     });
 }
 
-function loadTrack(index) {
+function loadTrack(index, autoPlay = false) {
     // Jika audio sedang berputar, jalankan fade out sebelum mengganti source src
     if (!audio.paused) {
         const originalVolume = audio.volume;
@@ -178,10 +177,12 @@ function loadTrack(index) {
                 audio.pause();
                 audio.volume = originalVolume; // Kembalikan volume asal
                 executeTrackLoading(index);
+                if (autoPlay) playAudioDirectly();
             }
         }, 5);
     } else {
         executeTrackLoading(index);
+        if (autoPlay) playAudioDirectly();
     }
 }
 
@@ -294,19 +295,17 @@ function playNextTrack() {
     if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
     else if (n >= tracks.length) n = 0; 
     
-    loadTrack(n); 
-    playAudioDirectly();
+    loadTrack(n, true); 
 }
 
 function playPrevTrack() {
+    let n;
     if (isShuffle) {
-        let n = Math.floor(Math.random() * tracks.length);
-        loadTrack(n);
+        n = Math.floor(Math.random() * tracks.length);
     } else {
-        let p = currentIndex - 1; if (p < 0) p = tracks.length - 1; 
-        loadTrack(p); 
+        n = currentIndex - 1; if (n < 0) n = tracks.length - 1; 
     }
-    playAudioDirectly();
+    loadTrack(n, true); 
 }
 
 fetch('playlist.json')
@@ -344,7 +343,7 @@ audio.addEventListener('playing', () => {
 
 audio.addEventListener('pause', () => { updateMediaSessionState(); });
 
-audio.addEventListener('loadedmetadata', () => { 
+audio.addEventListener('visitedmetadata', () => { 
     if (audio.duration && !isNaN(audio.duration)) {
         lastKnownDurationText = formatTime(audio.duration);
         durationEl.textContent = lastKnownDurationText; 
@@ -467,4 +466,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-          
+              
