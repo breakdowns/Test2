@@ -29,19 +29,19 @@ let lyricScrollTimeout = null;
 let isSeeking = false;
 
 // ==========================================
-// INISIALISASI WEB AUDIO API FOR STEALTH FADE
+// INISIALISASI WEB AUDIO API (SINGLETON MODE)
 // ==========================================
 let audioCtx = null;
 let trackNode = null;
 let gainNode = null;
 
 function initAudioContext() {
+    // Kunci utama: Hanya buat context dan node JIKA belum ada (mencegah duplikasi keresek-keresek)[span_3](start_span)[span_3](end_span)
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         trackNode = audioCtx.createMediaElementSource(audio);
         gainNode = audioCtx.createGain();
         
-        // Hubungkan: Audio Tag -> Gain Node (Volume Control) -> Speaker
         trackNode.connect(gainNode);
         gainNode.connect(audioCtx.destination);
     }
@@ -51,12 +51,11 @@ function initAudioContext() {
 }
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
-audio.volume = 1; // Pasang volume master HTML5 ke 1, kontrol sepenuhnya lewat Gain Node Web Audio
+audio.volume = 1; // Kontrol volume diserahkan sepenuhnya ke Gain Node[span_4](start_span)[span_4](end_span)
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
 progressBar.style.background = `linear-gradient(to right, #ffffff 0%, #4f4f4f 0%)`;
 
-// Set volume pada Gain Node jika sudah terinisialisasi
 function applyVolume(volValue) {
     if (gainNode && audioCtx) {
         gainNode.gain.setValueAtTime(volValue, audioCtx.currentTime);
@@ -88,10 +87,11 @@ function playAudioDirectly() {
         navigator.mediaSession.playbackState = 'playing';
     }
     
-    // Kembalikan volume node ke settingan user secara instan saat play
     const currentVolSetting = parseFloat(volumeSlider.value);
-    gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-    gainNode.gain.setValueAtTime(currentVolSetting, audioCtx.currentTime);
+    if (gainNode && audioCtx) {
+        gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(currentVolSetting, audioCtx.currentTime);
+    }
 
     audio.play().then(() => {
         playIcon.textContent = 'pause';
@@ -110,21 +110,19 @@ function pauseAudioDirectly() {
     }
 
     const now = audioCtx.currentTime;
-    const currentVolSetting = parseFloat(volumeSlider.value);
     
-    // Kunci volume saat ini sebelum melakukan peredaman
     gainNode.gain.cancelScheduledValues(now);
-    gainNode.gain.setValueAtTime(currentVolSetting, now);
-    
-    // Menaikkan konstanta waktu ke 0.030 (~30ms) agar transisi penurunan kurva jauh lebih landai
-    gainNode.gain.setTargetAtTime(0, now, 0.030);
+    gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+    gainNode.gain.setTargetAtTime(0, now, 0.025); // Meredam logaritmik tanpa letupan[span_5](start_span)[span_5](end_span)
 
-    // Memberikan buffer waktu tunggu 150ms agar gelombang benar-benar habis di level 0 mutlak[span_2](start_span)[span_2](end_span)
     setTimeout(() => {
-        audio.pause();
-        playIcon.textContent = 'play_arrow';
-        updateMediaSessionState();
-    }, 150);
+        // Cek ulang apakah user tidak melakukan pembatalan/klik play lagi selama 120ms
+        if (audioCtx && gainNode) {
+            audio.pause();
+            playIcon.textContent = 'play_arrow';
+            updateMediaSessionState();
+        }
+    }, 120);
 }
 
 function updateDynamicBackground(src) {
@@ -204,20 +202,18 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    // Jika audio sedang berputar, jalankan Exponential Decay presisi sebelum ganti source lagu
+    // Jika audio sedang berputar, bersihkan delay volume lama dan turunkan volumenya
     if (!audio.paused && audioCtx && gainNode) {
         const now = audioCtx.currentTime;
-        const currentVolSetting = parseFloat(volumeSlider.value);
-
         gainNode.gain.cancelScheduledValues(now);
-        gainNode.gain.setValueAtTime(currentVolSetting, now);
-        gainNode.gain.setTargetAtTime(0, now, 0.030);
+        gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+        gainNode.gain.setTargetAtTime(0, now, 0.025);
 
         setTimeout(() => {
             audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
-        }, 150);
+        }, 120);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -253,7 +249,6 @@ function executeTrackLoading(index) {
     audio.crossOrigin = "anonymous";
     audio.src = track.src; 
     
-    // updateMediaSession panggil dari media.js
     if (typeof updateMediaSession === 'function') {
         updateMediaSession(); 
     }
@@ -307,7 +302,6 @@ function executeTrackLoading(index) {
     renderPlaylist(currentTracksDisplay); 
     updateDynamicBackground(track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png");
 
-    // Pastikan gainNode dikunci ke volume user yang tepat sesudah track termuat
     if (audioCtx && gainNode) {
         applyVolume(parseFloat(volumeSlider.value));
     }
@@ -410,6 +404,7 @@ trackCover.addEventListener('error', () => {
     trackCover.src = "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png";
 });
 
+// Event click langsung menginisialisasi Context tunggal secara aman
 playBtn.addEventListener('click', () => { 
     initAudioContext();
     audio.paused ? playAudioDirectly() : pauseAudioDirectly(); 
