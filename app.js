@@ -90,6 +90,7 @@ function playAudioDirectly() {
     
     // Kembalikan volume node ke settingan user secara instan saat play
     const currentVolSetting = parseFloat(volumeSlider.value);
+    gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
     gainNode.gain.setValueAtTime(currentVolSetting, audioCtx.currentTime);
 
     audio.play().then(() => {
@@ -108,16 +109,22 @@ function pauseAudioDirectly() {
         return;
     }
 
-    // Menggunakan setTargetAtTime untuk meredam volume ke 0 secara logaritmik tanpa keresek[span_1](start_span)[span_1](end_span)
-    // Konstanta waktu 0.025 (25ms) akan membuat audio senyap dalam waktu ~100ms secara mulus[span_2](start_span)[span_2](end_span)
-    gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.025);
+    const now = audioCtx.currentTime;
+    const currentVolSetting = parseFloat(volumeSlider.value);
+    
+    // Kunci volume saat ini sebelum melakukan peredaman
+    gainNode.gain.cancelScheduledValues(now);
+    gainNode.gain.setValueAtTime(currentVolSetting, now);
+    
+    // Menaikkan konstanta waktu ke 0.030 (~30ms) agar transisi penurunan kurva jauh lebih landai
+    gainNode.gain.setTargetAtTime(0, now, 0.030);
 
-    // Jeda audio setelah volume benar-benar melandai habis[span_3](start_span)[span_3](end_span)
+    // Memberikan buffer waktu tunggu 150ms agar gelombang benar-benar habis di level 0 mutlak[span_2](start_span)[span_2](end_span)
     setTimeout(() => {
         audio.pause();
         playIcon.textContent = 'play_arrow';
         updateMediaSessionState();
-    }, 120);
+    }, 150);
 }
 
 function updateDynamicBackground(src) {
@@ -197,15 +204,20 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    // Jika audio sedang berputar, lakukan peredaman anti-keresek sebelum ganti lagu[span_4](start_span)[span_4](end_span)
+    // Jika audio sedang berputar, jalankan Exponential Decay presisi sebelum ganti source lagu
     if (!audio.paused && audioCtx && gainNode) {
-        gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.025);
+        const now = audioCtx.currentTime;
+        const currentVolSetting = parseFloat(volumeSlider.value);
+
+        gainNode.gain.cancelScheduledValues(now);
+        gainNode.gain.setValueAtTime(currentVolSetting, now);
+        gainNode.gain.setTargetAtTime(0, now, 0.030);
 
         setTimeout(() => {
             audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
-        }, 120);
+        }, 150);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -500,3 +512,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
+          
