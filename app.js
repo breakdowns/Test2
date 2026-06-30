@@ -28,7 +28,6 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
-// OPTIMASI VOLUME: Fallback Aman ke 0.5 (50%) Jika Pertama Kali Dimuat Pengguna Baru
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
@@ -90,6 +89,7 @@ function updateMediaSessionState() {
 }
 
 function playAudioDirectly() {
+    audio.autoplay = true; // Kunci penting biar Android tau ini transisi aktif
     audio.play().then(() => {
         playIcon.textContent = 'pause';
         updateMediaSessionState();
@@ -99,6 +99,7 @@ function playAudioDirectly() {
 }
 
 function pauseAudioDirectly() {
+    audio.autoplay = false;
     audio.pause();
     playIcon.textContent = 'play_arrow';
     updateMediaSessionState();
@@ -191,8 +192,7 @@ function loadTrack(index) {
     trackArtist.classList.add('shimmer-loading');
     trackCover.classList.add('shimmer-loading');
     
-    // NOTE: Kode reset audio.src = "" dihapus di sini agar notif tidak dibunuh OS di background.
-    audio.pause();
+    // NOTE: audio.pause() DIHAPUS TOTAL DARI SINI agar OS tidak mematikan sesi pemutaran di latar belakang.
 
     currentIndex = index; 
     localStorage.setItem('currentIndex', index); 
@@ -212,7 +212,7 @@ function loadTrack(index) {
     lyricsWrapper.innerHTML = ''; 
     
     audio.crossOrigin = "anonymous";
-    audio.src = track.src; // Langsung tembak src baru secara mulus
+    audio.src = track.src; // Timpa src langsung. OS akan tetap menahan notif karena tidak ada perintah pause.
     
     const currentTrackSrc = track.src;
     if (track.lyricsSrc) {
@@ -270,6 +270,7 @@ function playNextTrack() {
     let n = currentIndex + 1; 
     if (isShuffle) n = Math.floor(Math.random() * tracks.length); 
     else if (n >= tracks.length) n = 0; 
+    
     loadTrack(n); 
     playAudioDirectly();
 }
@@ -440,4 +441,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
+                      
