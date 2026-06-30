@@ -85,13 +85,18 @@ body {
     max-width: 100%;
 }
 
+/* ==========================================================================
+   SPOTIFY STYLE TRACK MARQUEE (JUDUL BERJALAN)
+   ========================================================================== */
 .marquee-container { 
     display: block; 
     width: 100%; 
     overflow: hidden !important; 
     white-space: nowrap; 
     position: relative;
-    isolation: isolate; 
+    isolation: isolate; /* Memaksa masking CSS/browser memotong teks beranimasi di batas container */
+    mask-image: linear-gradient(to right, transparent 0%, white 5%, white 95%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, white 5%, white 95%, transparent 100%);
 }
 
 .track-info h2 { 
@@ -102,6 +107,8 @@ body {
     display: inline-block; 
     will-change: transform; 
     text-align: left;
+    padding-right: 50px; /* Jeda ruang kosong sebelum teks berulang/berputar kembali */
+    animation: marqueeDinamis 10s linear infinite; /* Jalankan animasi konstan */
 }
 
 .track-info p { 
@@ -116,57 +123,48 @@ body {
 }
 
 /* ==========================================================================
-   SPOTIFY STYLE LYRICS CONTAINER
+   REVERTED LYRICS STYLE (KEMBALI KE RATA TENGAH AWAL)
    ========================================================================== */
 .lyrics-container {
     position: relative;
-    max-height: 220px; /* Ditambah sedikit biar space lirik yang lebih besar terasa pas */
-    min-height: 160px;
+    max-height: 160px;
+    min-height: 140px;
     overflow-y: auto;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    margin-bottom: 24px;
-    padding: 0 4px; /* Disesuaikan agar mepet kiri khas Spotify */
-    mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 80%, transparent 100%);
+    margin-bottom: 20px;
+    padding: 0 12px;
+    mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 20%, white 80%, transparent 100%);
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
     will-change: opacity;
     -ms-overflow-style: none;  
     scrollbar-width: none;     
 }
-
 .lyrics-container::-webkit-scrollbar { 
     display: none; 
 }
 
 #lyricsWrapper { 
-    padding: 20px 0 100px 0; 
-    text-align: left; /* Spotify menggunakan lirik rata kiri */
+    padding: 40px 0 100px 0; 
+    text-align: center; 
 }
 
 .lyric-line { 
-    font-size: 1.35rem; /* Ukuran font diperbesar agar bold & terbaca jelas */
-    font-weight: 800; /* Extra bold khas tampilan lirik Spotify */
-    color: rgba(255, 255, 255, 0.35); /* Warna lirik sebelum/sesudah lewat (redup) */
+    font-size: 1.05rem; 
+    font-weight: 700; 
+    color: rgba(255, 255, 255, 0.25); 
     padding: 10px 0; 
     cursor: pointer; 
-    transition: color 0.25s ease, transform 0.25s ease; 
-    text-align: left; /* Konsisten rata kiri */
-    line-height: 1.4;
-    letter-spacing: -0.03em; /* Karakter agak rapat merapat estetik */
-    transform-origin: left center; /* Efek zoom membesar mengarah ke kanan */
-    word-break: break-word;
+    transition: color 0.3s ease, transform 0.3s ease, filter 0.3s ease; 
+    filter: blur(0.5px); 
+    text-align: center;
 }
-
 .lyric-line.active { 
-    color: var(--text-main); /* Menjadi putih bersih saat aktif mendarat di timelinenya */
-    transform: scale(1.02); /* Sedikit membesar tanpa merusak ketajaman font */
+    color: var(--text-main); 
+    transform: scale(1.05); 
     filter: blur(0px); 
-}
-
-.lyric-line:hover {
-    color: rgba(255, 255, 255, 0.7); /* Interaksi hover opsional seperti Spotify Desktop */
 }
 
 .playlist-container { max-height: 180px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -234,7 +232,7 @@ body {
     .controls-area { grid-area: controls !important; margin-bottom: 0 !important; }
     .volume-area { grid-area: volume !important; margin-bottom: 0 !important; }
     
-    .lyrics-container { max-height: 240px; min-height: 240px; margin-bottom: 16px; }
+    .lyrics-container { max-height: 200px; min-height: 200px; margin-bottom: 16px; }
     .playlist-container { max-height: 200px; min-height: 200px; overflow-y: auto; }
     .search-box { margin-bottom: 12px; }
     .watermark { margin-top: 16px; }
@@ -245,9 +243,9 @@ body {
    ========================================================================== */
 @keyframes marqueeDinamis {
     0% { transform: translate3d(0, 0, 0); }
-    15% { transform: translate3d(0, 0, 0); }
-    85% { transform: translate3d(var(--marquee-jarak), 0, 0); }
-    100% { transform: translate3d(var(--marquee-jarak), 0, 0); }
+    20% { transform: translate3d(0, 0, 0); } /* Diam sebentar di awal sebelum jalan */
+    80% { transform: translate3d(var(--marquee-jarak, -50%), 0, 0); } /* Geser sejauh variabel dinamis/lebar teks */
+    100% { transform: translate3d(var(--marquee-jarak, -50%), 0, 0); }
 }
 
 .progress-area { width: 100%; margin-bottom: 24px; }
@@ -389,9 +387,8 @@ body {
     .btn-play-pause { width: 44px; height: 44px; }
     .btn-play-pause .material-icons { font-size: 1.8rem; }
     
-    .lyrics-container { max-height: 120px !important; min-height: 120px !important; margin-bottom: 10px; }
+    .lyrics-container { max-height: 110px !important; min-height: 110px !important; margin-bottom: 10px; }
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-        }
-        
+                    }
