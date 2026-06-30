@@ -67,9 +67,9 @@ function playAudioDirectly() {
     });
 }
 
-// ========================================================
-// REVISI ULTIMATE: ZERO-CROSSING ANTI-GATING POCO & SOUNDCORE
-// ========================================================
+// ==========================================================
+// TWS DISCHARGE PROTECTION: HARDWARE BUFFER BREAKDOWN RESCUE
+// ==========================================================
 function triggerNaturalEnd(callback) {
     if (audio.paused || !audio.duration) {
         callback();
@@ -77,7 +77,7 @@ function triggerNaturalEnd(callback) {
     }
 
     const userVolume = parseFloat(volumeSlider.value);
-    const fadeDuration = 70; // Durasi luruh meluncur mulus
+    const fadeDuration = 50; 
     const startTime = performance.now();
 
     function fadeOutAndSwitch() {
@@ -85,14 +85,22 @@ function triggerNaturalEnd(callback) {
         const elapsed = now - startTime;
 
         if (elapsed < fadeDuration) {
-            const targetVol = userVolume * (1 - (elapsed / fadeDuration));
-            // Jangan pernah kasih 0, ganjal di 0.005 agar sirkuit Soundcore R50i tetap terkunci ON
-            audio.volume = Math.max(0.005, targetVol);
+            // Turunkan ke batas ambang gating hardware
+            audio.volume = Math.max(0.01, userVolume * (1 - (elapsed / fadeDuration)));
             requestAnimationFrame(fadeOutAndSwitch);
         } else {
-            audio.volume = 0.005;
-            // LANGSUNG eksekusi ganti lagu tanpa melempar timeline detiknya, biar decoder Poco gak kaget
-            callback();
+            audio.volume = 0.01;
+            audio.pause(); // Hentikan playback dulu agar encoder Android rilis gelombang lamanya
+
+            // Bersihkan total objek source agar audio pipeline di hp lu reset sempurna
+            audio.src = ''; 
+            audio.load();
+
+            // Kasih nafas 40ms biar TWS Soundcore lu stabil nerima perpindahan data
+            setTimeout(() => {
+                audio.volume = userVolume; 
+                callback();
+            }, 40);
         }
     }
     requestAnimationFrame(fadeOutAndSwitch);
@@ -197,8 +205,6 @@ function renderPlaylist(arr) {
 function loadTrack(index, autoPlay = false) {
     if (!audio.paused) {
         triggerNaturalEnd(() => {
-            // Langsung matikan stream lama dan timpa src baru secara senyap
-            audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
         });
@@ -486,4 +492,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-          
+                   
