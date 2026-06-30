@@ -74,20 +74,21 @@ body {
     align-items: center; 
     margin-bottom: 20px;
     width: 100%;
-    overflow: hidden !important;
     position: relative;
 }
 
+/* ==========================================================================
+   THE MAGIC FIX: MENCEGAH WADAH MELAR LEWAT GARIS MERAH
+   ========================================================================== */
 .track-info { 
     flex: 1; 
     overflow: hidden !important; 
     position: relative;
     max-width: 100%;
+    /* INI OBAT SAKTINYA! Bikin flex item ga akan pernah nembus batas cover */
+    min-width: 0 !important; 
 }
 
-/* ==========================================================================
-   FIX MARQUEE: NGEREM PERSIS DI GARIS MERAH COVER & VOLUME
-   ========================================================================== */
 .marquee-container { 
     display: block; 
     width: 100%; 
@@ -105,12 +106,12 @@ body {
     display: inline-block; 
     text-align: left;
     
-    /* Kunci utamanya di dua baris ini: */
-    position: relative;
-    min-width: 100%; /* Memaksa teks penuhi ruang minimum biar teks pendek nggak loncat */
+    padding-right: 0 !important; /* Hapus semua padding siluman */
+    margin: 0 !important;
     
-    /* Timpa JS lu pake animasi murni kita */
-    animation: marqueeGarisMerah 8s ease-in-out infinite alternate !important; 
+    position: relative;
+    min-width: 100%; 
+    animation: marqueeBerhentiPas 8s ease-in-out infinite alternate !important; 
 }
 
 .track-info p { 
@@ -125,7 +126,7 @@ body {
 }
 
 /* ==========================================================================
-   LYRICS STYLE (ASLI BAWAAN LO)
+   LYRICS STYLE (ASLI BAWAAN LO, RATA TENGAH AMAN SENTOSA)
    ========================================================================== */
 .lyrics-container {
     position: relative;
@@ -242,15 +243,14 @@ body {
 }
 
 /* ==========================================================================
-   RUMUS ANIMASI HOLY GRAIL (ANTI-BABLAS, ANTI-STUCK)
+   RUMUS ANIMASI HOLY GRAIL (ANTI-BABLAS)
    ========================================================================== */
-@keyframes marqueeGarisMerah {
-    0%, 20% { 
+@keyframes marqueeBerhentiPas {
+    0%, 15% { 
         left: 0;
         transform: translateX(0); 
     }
-    80%, 100% { 
-        /* Kombinasi Math CSS ini ngejamin ekor teks berhenti mulus di garis merah */
+    85%, 100% { 
         left: 100%;
         transform: translateX(-100%); 
     }
@@ -359,6 +359,7 @@ body {
         width: 100%; 
         overflow: hidden !important;
         position: relative !important;
+        min-width: 0 !important; /* Fix bocor di landscape juga */
     }
 
     .marquee-container {
@@ -374,11 +375,10 @@ body {
         white-space: nowrap !important;
         display: inline-block !important;
         overflow: hidden !important; 
-        width: auto !important;
         
         position: relative !important;
         min-width: 100% !important;
-        animation: marqueeGarisMerah 8s ease-in-out infinite alternate !important; 
+        animation: marqueeBerhentiPas 8s ease-in-out infinite alternate !important; 
     }
     
     .track-info p { 
@@ -402,5 +402,5 @@ body {
     .search-box { padding: 6px 10px; margin-bottom: 8px; font-size: 0.8rem; }
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
-  }
-                                      
+    }
+    
