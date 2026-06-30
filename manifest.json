@@ -6,7 +6,7 @@
   "display": "standalone",
   "background_color": "#121212",
   "theme-color": "#121212",
-  "orientation": "portrait",
+  "orientation": "any",
   "icons": [
     {
       "src": "https://raw.githubusercontent.com/breakdowns/website/refs/heads/master/images/logo.png",
