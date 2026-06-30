@@ -49,14 +49,13 @@ function initAudioContext() {
     }
 }
 
-// Inisialisasi otomatis pada interaksi pertama apa pun di dokumen luar tombol player
 document.addEventListener('click', () => { initAudioContext(); }, { once: true });
 document.addEventListener('touchstart', () => { initAudioContext(); }, { once: true });
 
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 
-// Kunci volume HTML5 bawaan ke tingkat aman konstan untuk mencegah digital clipping
-audio.volume = 0.75; 
+// Pasang volume HTML5 ke 0.5 agar headroom sinyal aman dari clipping ganda
+audio.volume = 0.5; 
 
 volumeSlider.value = savedVolume; 
 volumeSlider.style.background = `linear-gradient(to right, #1ed760 ${savedVolume * 100}%, #4f4f4f ${savedVolume * 100}%)`;
@@ -95,8 +94,11 @@ function playAudioDirectly() {
     
     const currentVolSetting = parseFloat(volumeSlider.value);
     if (gainNode && audioCtx) {
-        gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(currentVolSetting, audioCtx.currentTime);
+        // Angkat volume secara smooth (15ms) pas putar biar ga kaget
+        const now = audioCtx.currentTime;
+        gainNode.gain.cancelScheduledValues(now);
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.setTargetAtTime(currentVolSetting, now, 0.015);
     }
 
     audio.play().then(() => {
@@ -119,16 +121,15 @@ function pauseAudioDirectly() {
     gainNode.gain.cancelScheduledValues(now);
     gainNode.gain.setValueAtTime(gainNode.gain.value, now);
     
-    // Meredam logaritmik konstan tanpa sisa gelombang bocor
-    gainNode.gain.setTargetAtTime(0, now, 0.020); 
+    // Fade out linear presisi level hardware selama 0.08 detik (80ms)
+    gainNode.gain.linearRampToValueAtTime(0, now + 0.08); 
 
+    // Eksekusi jeda dengan margin waktu aman agar ramp selesai mutlak
     setTimeout(() => {
-        if (audioCtx && gainNode) {
-            audio.pause();
-            playIcon.textContent = 'play_arrow';
-            updateMediaSessionState();
-        }
-    }, 100);
+        audio.pause();
+        playIcon.textContent = 'play_arrow';
+        updateMediaSessionState();
+    }, 110);
 }
 
 function updateDynamicBackground(src) {
@@ -208,19 +209,21 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index, autoPlay = false) {
-    initAudioContext(); // Pastikan node dikunci di awal fungsi pergantian track dimulai
+    initAudioContext(); 
     
     if (!audio.paused && audioCtx && gainNode) {
         const now = audioCtx.currentTime;
         gainNode.gain.cancelScheduledValues(now);
         gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-        gainNode.gain.setTargetAtTime(0, now, 0.020);
+        
+        // Buat turunan linear total ke angka 0 mutlak secara hardware ramping
+        gainNode.gain.linearRampToValueAtTime(0, now + 0.08);
 
         setTimeout(() => {
             audio.pause();
             executeTrackLoading(index);
             if (autoPlay) playAudioDirectly();
-        }, 100);
+        }, 110);
     } else {
         executeTrackLoading(index);
         if (autoPlay) playAudioDirectly();
@@ -513,4 +516,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                             
+                                          
