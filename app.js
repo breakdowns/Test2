@@ -40,41 +40,6 @@ function formatTime(s) {
     return `${m}:${sec < 10 ? '0' : ''}${sec}`; 
 }
 
-function updateMediaSession() {
-    if ('mediaSession' in navigator) {
-        const track = tracks[currentIndex];
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: track.title || "Unknown Title",
-            artist: track.artist || "Unknown Artist",
-            album: 'Breakdowns Music',
-            artwork: [
-                { src: track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png", sizes: '512x512', type: 'image/jpeg' }
-            ]
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => { playAudioDirectly(); });
-        navigator.mediaSession.setActionHandler('pause', () => { pauseAudioDirectly(); });
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-            if (isShuffle) {
-                let n = Math.floor(Math.random() * tracks.length);
-                loadTrack(n);
-            } else {
-                let p = currentIndex - 1; if (p < 0) p = tracks.length - 1;
-                loadTrack(p); 
-            }
-            playAudioDirectly();
-        });
-        navigator.mediaSession.setActionHandler('nexttrack', () => { playNextTrack(); });
-
-        try {
-            navigator.mediaSession.setActionHandler('seekto', (details) => {
-                audio.currentTime = details.seekTime;
-                updateMediaSessionState();
-            });
-        } catch (e) {}
-    }
-}
-
 function updateMediaSessionState() {
     if ('mediaSession' in navigator && audio.duration && !isNaN(audio.duration)) {
         navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
@@ -103,9 +68,22 @@ function playAudioDirectly() {
 }
 
 function pauseAudioDirectly() {
-    audio.pause();
-    playIcon.textContent = 'play_arrow';
-    updateMediaSessionState();
+    const originalVolume = audio.volume;
+    let currentVol = originalVolume;
+    
+    // Fade out singkat ~50ms sebelum memutus audio agar tidak ada bunyi "tet"
+    const fadeOut = setInterval(() => {
+        if (currentVol > 0.05) {
+            currentVol -= 0.05;
+            audio.volume = currentVol;
+        } else {
+            clearInterval(fadeOut);
+            audio.pause();
+            audio.volume = originalVolume; // Kembalikan ke volume semula setelah jeda
+            playIcon.textContent = 'play_arrow';
+            updateMediaSessionState();
+        }
+    }, 5);
 }
 
 function updateDynamicBackground(src) {
@@ -186,6 +164,28 @@ function renderPlaylist(arr) {
 }
 
 function loadTrack(index) {
+    // Jika audio sedang berputar, jalankan fade out sebelum mengganti source src
+    if (!audio.paused) {
+        const originalVolume = audio.volume;
+        let currentVol = originalVolume;
+        
+        const fadeOut = setInterval(() => {
+            if (currentVol > 0.05) {
+                currentVol -= 0.05;
+                audio.volume = currentVol;
+            } else {
+                clearInterval(fadeOut);
+                audio.pause();
+                audio.volume = originalVolume; // Kembalikan volume asal
+                executeTrackLoading(index);
+            }
+        }, 5);
+    } else {
+        executeTrackLoading(index);
+    }
+}
+
+function executeTrackLoading(index) {
     isChangingTrack = true;
     isUserScrollingLyrics = false;
     isPreloaded = false; 
@@ -214,13 +214,15 @@ function loadTrack(index) {
     audio.crossOrigin = "anonymous";
     audio.src = track.src; 
     
-    updateMediaSession(); 
+    // updateMediaSession panggil dari media.js
+    if (typeof updateMediaSession === 'function') {
+        updateMediaSession(); 
+    }
 
     const currentTrackSrc = track.src;
     const fadeOutAnim = new Promise(resolve => setTimeout(resolve, 300));
 
     if (track.lyricsSrc) {
-        // Karena lirik udah kita pre-fetch dari awal, ini akan instan ambil dari cache
         Promise.all([
             fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
                 if (!res.ok) throw new Error("Network");
@@ -296,6 +298,17 @@ function playNextTrack() {
     playAudioDirectly();
 }
 
+function playPrevTrack() {
+    if (isShuffle) {
+        let n = Math.floor(Math.random() * tracks.length);
+        loadTrack(n);
+    } else {
+        let p = currentIndex - 1; if (p < 0) p = tracks.length - 1; 
+        loadTrack(p); 
+    }
+    playAudioDirectly();
+}
+
 fetch('playlist.json')
     .then(res => res.json())
     .then(data => { 
@@ -315,7 +328,6 @@ audio.addEventListener('canplay', () => {
     trackCover.classList.remove('shimmer-loading');
 });
 
-// Menjaga OS tetap melek kalau audio butuh buffering sebentar di background
 audio.addEventListener('waiting', () => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
@@ -358,17 +370,7 @@ trackCover.addEventListener('error', () => {
 
 playBtn.addEventListener('click', () => { audio.paused ? playAudioDirectly() : pauseAudioDirectly(); });
 nextBtn.addEventListener('click', () => { playNextTrack(); });
-
-prevBtn.addEventListener('click', () => { 
-    if (isShuffle) {
-        let n = Math.floor(Math.random() * tracks.length);
-        loadTrack(n);
-    } else {
-        let p = currentIndex - 1; if (p < 0) p = tracks.length - 1; 
-        loadTrack(p); 
-    }
-    playAudioDirectly();
-});
+prevBtn.addEventListener('click', () => { playPrevTrack(); });
 
 shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
 repeatBtn.addEventListener('click', () => { isRepeat = !isRepeat; repeatBtn.classList.toggle('active', isRepeat); });
@@ -419,7 +421,6 @@ audio.addEventListener('timeupdate', () => {
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
     
-    // Trik Stealth Mode: Download lirik lagu selanjutnya pas jaringan masih hidup (sisa 20 detik)
     if (audio.duration - audio.currentTime <= 20 && !isPreloaded && !isRepeat) {
         isPreloaded = true;
         let nextIdx = currentIndex + 1;
@@ -427,7 +428,6 @@ audio.addEventListener('timeupdate', () => {
         else if (nextIdx >= tracks.length) nextIdx = 0;
         
         if (tracks[nextIdx] && tracks[nextIdx].lyricsSrc) {
-            // Fetch tanpa mempedulikan respon (hanya pancing masuk cache)
             fetch(tracks[nextIdx].lyricsSrc, { cache: "force-cache" }).catch(() => {});
         }
     }
@@ -467,4 +467,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-              
+          
