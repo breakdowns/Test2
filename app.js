@@ -28,6 +28,9 @@ let isUserScrollingLyrics = false;
 let lyricScrollTimeout = null;
 let isSeeking = false;
 
+// FIX APOLLO: Pindah ke paling luar biar ga diulang tiap ganti lagu
+audio.crossOrigin = "anonymous";
+
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
@@ -211,24 +214,19 @@ function loadTrack(index) {
 
     lyricsContainer.style.opacity = '0';
     
-    audio.crossOrigin = "anonymous";
     audio.src = track.src; 
     
     updateMediaSession(); 
 
     const currentTrackSrc = track.src;
-    const fadeOutAnim = new Promise(resolve => setTimeout(resolve, 300));
-
+    
+    // FIX STUCK: setTimeout & Promise.all dihapus total. Langsung fetch lirik murni!
     if (track.lyricsSrc) {
-        // Karena lirik udah kita pre-fetch dari awal, ini akan instan ambil dari cache
-        Promise.all([
-            fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
-                if (!res.ok) throw new Error("Network");
-                return res.text();
-            }),
-            fadeOutAnim
-        ])
-        .then(([text]) => { 
+        fetch(track.lyricsSrc, { cache: "force-cache" }).then(res => {
+            if (!res.ok) throw new Error("Network");
+            return res.text();
+        })
+        .then((text) => { 
             if (tracks[currentIndex].src !== currentTrackSrc) return;
             
             parsedLyrics = parseLRC(text); 
@@ -242,25 +240,20 @@ function loadTrack(index) {
             isChangingTrack = false;
         })
         .catch(() => {
-            fadeOutAnim.then(() => {
-                if (tracks[currentIndex].src === currentTrackSrc) {
-                    parsedLyrics = [];
-                    lyricsContainer.scrollTop = 0;
-                    lyricsWrapper.innerHTML = '';
-                    lyricsContainer.style.display = "none";
-                    isChangingTrack = false;
-                }
-            });
+            if (tracks[currentIndex].src === currentTrackSrc) {
+                parsedLyrics = [];
+                lyricsContainer.scrollTop = 0;
+                lyricsWrapper.innerHTML = '';
+                lyricsContainer.style.display = "none";
+                isChangingTrack = false;
+            }
         });
     } else { 
-        fadeOutAnim.then(() => {
-            if (tracks[currentIndex].src !== currentTrackSrc) return;
-            parsedLyrics = [];
-            lyricsContainer.scrollTop = 0;
-            lyricsWrapper.innerHTML = '';
-            lyricsContainer.style.display = "none";
-            isChangingTrack = false;
-        });
+        parsedLyrics = [];
+        lyricsContainer.scrollTop = 0;
+        lyricsWrapper.innerHTML = '';
+        lyricsContainer.style.display = "none";
+        isChangingTrack = false;
     }
     
     renderPlaylist(currentTracksDisplay); 
@@ -315,7 +308,6 @@ audio.addEventListener('canplay', () => {
     trackCover.classList.remove('shimmer-loading');
 });
 
-// Menjaga OS tetap melek kalau audio butuh buffering sebentar di background
 audio.addEventListener('waiting', () => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
@@ -419,7 +411,6 @@ audio.addEventListener('timeupdate', () => {
         currentTimeEl.textContent = formatTime(audio.currentTime); 
     }
     
-    // Trik Stealth Mode: Download lirik lagu selanjutnya pas jaringan masih hidup (sisa 20 detik)
     if (audio.duration - audio.currentTime <= 20 && !isPreloaded && !isRepeat) {
         isPreloaded = true;
         let nextIdx = currentIndex + 1;
@@ -467,4 +458,4 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                           
+                          
