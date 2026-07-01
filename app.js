@@ -30,13 +30,8 @@ let isSeeking = false;
 
 audio.crossOrigin = "anonymous";
 
-// ==========================================
-// FIX BUG CELAH HITAM PROGRESS BAR
-// ==========================================
 function updateSliderBg(slider, percentage, color = '#1ed760') {
-    // Asumsi lebar buletan putih (thumb) adalah 15px.
     const thumbWidth = 15; 
-    // Rumus offset untuk mengejar titik tengah buletan
     const offset = (thumbWidth / 2) - (percentage / 100) * thumbWidth;
     slider.style.background = `linear-gradient(to right, ${color} calc(${percentage}% + ${offset}px), #4f4f4f calc(${percentage}% + ${offset}px))`;
 }
@@ -44,7 +39,6 @@ function updateSliderBg(slider, percentage, color = '#1ed760') {
 const savedVolume = localStorage.getItem('volume') !== null ? parseFloat(localStorage.getItem('volume')) : 0.5; 
 audio.volume = savedVolume; 
 volumeSlider.value = savedVolume; 
-// Pakai fungsi fix di atas
 updateSliderBg(volumeSlider, savedVolume * 100);
 updateSliderBg(progressBar, 0, '#ffffff');
 
@@ -219,7 +213,7 @@ function loadTrack(index) {
     trackCover.src = track.cover || "https://raw.githubusercontent.com/breakdowns/music/refs/heads/master/breakdowns.png"; 
     
     progressBar.value = 0;
-    updateSliderBg(progressBar, 0, '#ffffff'); // Terpasang di sini
+    updateSliderBg(progressBar, 0, '#ffffff');
     currentTimeEl.textContent = '0:00'; 
     durationEl.textContent = lastKnownDurationText;
 
@@ -388,7 +382,7 @@ volumeSlider.addEventListener('input', (e) => {
     const v = e.target.value; 
     audio.volume = v; 
     localStorage.setItem('volume', v); 
-    updateSliderBg(volumeSlider, v * 100); // Terpasang di sini
+    updateSliderBg(volumeSlider, v * 100);
 });
 
 const triggerUserScroll = () => {
@@ -406,7 +400,7 @@ lyricsContainer.addEventListener('wheel', triggerUserScroll, {passive: true});
 progressBar.addEventListener('input', (e) => {
     isSeeking = true;
     const pct = e.target.value;
-    updateSliderBg(progressBar, pct); // Terpasang di sini
+    updateSliderBg(progressBar, pct);
     if (audio.duration) {
         currentTimeEl.textContent = formatTime((pct / 100) * audio.duration);
     }
@@ -476,4 +470,3 @@ document.addEventListener('visibilitychange', () => {
 });
 
 audio.addEventListener('ended', () => { isRepeat ? audio.play() : playNextTrack(); });
-                                                    
