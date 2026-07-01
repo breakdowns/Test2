@@ -36,9 +36,6 @@ body {
     touch-action: auto !important;
 }
 
-/* ==========================================================================
-   LAYOUT STANDAR (MOBILE & PORTRAIT)
-   ========================================================================== */
 .player-container {
     background-color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -77,9 +74,6 @@ body {
     position: relative;
 }
 
-/* ==========================================================================
-   THE MAGIC FIX: MENCEGAH WADAH MELAR LEWAT GARIS MERAH
-   ========================================================================== */
 .track-info { 
     flex: 1; 
     overflow: hidden !important; 
@@ -124,9 +118,6 @@ body {
     width: 100%;
 }
 
-/* ==========================================================================
-   LYRICS STYLE
-   ========================================================================== */
 .lyrics-container {
     position: relative;
     max-height: 160px;
@@ -171,9 +162,6 @@ body {
 
 .playlist-container { max-height: 180px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-/* ==========================================================================
-   LAYOUT DUA KOLOM GRID (KHUSUS MONITOR PC > 1000px)
-   ========================================================================== */
 @media (min-width: 1000px) {
     .player-container {
         width: 90% !important;
@@ -240,9 +228,6 @@ body {
     .watermark { margin-top: 16px; }
 }
 
-/* ==========================================================================
-   RUMUS ANIMASI HOLY GRAIL (ANTI-BABLAS)
-   ========================================================================== */
 @keyframes marqueeBerhentiPas {
     0%, 15% { 
         left: 0;
@@ -307,9 +292,6 @@ body {
 .shimmer-loading::after { position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.15) 20%, rgba(255, 255, 255, 0.25) 60%, rgba(255, 255, 255, 0) 100%); animation: shimmer 1.5s infinite; content: ''; }
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 
-/* ==========================================================================
-   TAMPILAN KHUSUS MODE HP MENYAMPING (LANDSCAPE FISIK ASLI ANDROID)
-   ========================================================================== */
 @media (max-height: 500px) and (orientation: landscape) {
     body { align-items: flex-start; padding: 12px; }
     
@@ -340,8 +322,7 @@ body {
     .player-right-side { flex: 1 !important; display: flex !important; flex-direction: column; }
     
     .cover-wrapper { grid-area: cover !important; margin: 0 !important; position: static !important; }
-    
-    /* FIX: Hapus max-width: 280px biar wadah bebas memanjang nyampe batas kanan durasi! */
+
     .track-header { 
         grid-area: header !important; 
         margin-bottom: 0 !important; 
@@ -401,4 +382,3 @@ body {
     .playlist-container { max-height: 160px !important; min-height: 160px !important; overflow-y: auto; }
     .watermark { margin-top: 12px; }
                     }
-                
